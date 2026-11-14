@@ -16,10 +16,14 @@ export async function findFlaggedFieldId(request) {
   return f ? f.id : null;
 }
 
-/** JQL do estado atual: tudo o que está aberto e o que foi resolvido nos últimos N dias. */
+/**
+ * JQL do estado atual: tudo o que está aberto e o que foi atualizado nos últimos N dias.
+ * «updated» e não «resolved»: há fluxos que levam a issue a Feito sem preencher a resolução.
+ * Apanha um pouco a mais; o filtro exato pela data de conclusão é feito em currentState.
+ */
 export function currentStateJql(projectKey, doneWindowDays) {
   if (!/^[A-Z][A-Z0-9_]+$/.test(projectKey)) throw new Error(`Chave de projeto inválida: ${projectKey}`);
-  return `project = "${projectKey}" AND (statusCategory != Done OR resolved >= -${doneWindowDays}d) ORDER BY created DESC`;
+  return `project = "${projectKey}" AND (statusCategory != Done OR updated >= -${doneWindowDays}d) ORDER BY created DESC`;
 }
 
 /**

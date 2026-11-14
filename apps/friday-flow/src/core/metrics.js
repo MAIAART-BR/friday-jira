@@ -23,6 +23,10 @@ export function normalizeIssue(raw, opts = {}) {
     created: toDate(f.created),
     resolved: toDate(f.resolutiondate),
     categoryChanged: toDate(f.statuscategorychangedate),
+    // Data de conclusão: a resolução, ou a entrada em «Feito» quando o fluxo não preenche a resolução.
+    doneAt: categoryOf(f.status?.statusCategory?.key) === 'done'
+      ? toDate(f.resolutiondate) || toDate(f.statuscategorychangedate)
+      : null,
     flagged: Array.isArray(flaggedValue) ? flaggedValue.length > 0 : Boolean(flaggedValue),
     url: opts.siteUrl ? `${opts.siteUrl.replace(/\/$/, '')}/browse/${raw.key}` : null,
   };
@@ -72,7 +76,7 @@ export function currentState(issues, now = new Date(), { doneWindowDays = 14 } =
   for (const i of issues) {
     if (i.category === 'backlog') backlog += 1;
     else if (i.category === 'wip') wip += 1;
-    else if (i.category === 'done' && i.resolved && i.resolved >= since) doneRecent += 1;
+    else if (i.category === 'done' && i.doneAt && i.doneAt >= since) doneRecent += 1;
     if (i.flagged && i.category !== 'done') blocked += 1;
   }
   return { open: backlog + wip, backlog, wip, blocked, doneRecent, doneWindowDays };
@@ -101,11 +105,11 @@ export function wipAging(issues, now = new Date()) {
     .sort((a, b) => b.ageDays - a.ageDays);
 }
 
-/** Lead time (criação → resolução) das issues concluídas, em dias. */
+/** Lead time (criação → conclusão) das issues concluídas, em dias. */
 export function leadTimes(issues) {
   return issues
-    .filter((i) => i.category === 'done' && i.created && i.resolved)
-    .map((i) => ({ key: i.key, days: daysBetween(i.created, i.resolved) }));
+    .filter((i) => i.category === 'done' && i.created && i.doneAt)
+    .map((i) => ({ key: i.key, days: daysBetween(i.created, i.doneAt) }));
 }
 
 /**
@@ -120,10 +124,10 @@ export function throughputByWeek(issues, now = new Date(), weeks = 12) {
     buckets.push({ week: from.toISOString().slice(0, 10), from, count: 0 });
   }
   for (const i of issues) {
-    if (i.category !== 'done' || !i.resolved) continue;
+    if (i.category !== 'done' || !i.doneAt) continue;
     for (let b = buckets.length - 1; b >= 0; b -= 1) {
-      if (i.resolved >= buckets[b].from) {
-        if (b === buckets.length - 1 || i.resolved < buckets[b + 1].from) buckets[b].count += 1;
+      if (i.doneAt >= buckets[b].from) {
+        if (b === buckets.length - 1 || i.doneAt < buckets[b + 1].from) buckets[b].count += 1;
         break;
       }
     }

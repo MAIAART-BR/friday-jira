@@ -20,7 +20,7 @@ function rawIssue(n, statusKey, extra = {}) {
 }
 
 test('JQL recusa chaves de projeto que não são chaves do Jira', () => {
-  assert.match(currentStateJql('FRI', 14), /^project = "FRI" AND \(statusCategory != Done OR resolved >= -14d\)/);
+  assert.match(currentStateJql('FRI', 14), /^project = "FRI" AND \(statusCategory != Done OR updated >= -14d\)/);
   assert.throws(() => currentStateJql('FRI" OR 1=1', 14));
 });
 
@@ -59,6 +59,8 @@ test('do Jira à vista: KPIs, gráficos e envelhecimento', async () => {
         rawIssue(2, 'indeterminate', { customfield_1: [{ value: 'Impediment' }] }),
         rawIssue(3, 'indeterminate', { assignee: null, statuscategorychangedate: '2026-11-13T00:00:00.000+0000' }),
         rawIssue(4, 'done', { resolutiondate: '2026-11-12T00:00:00.000+0000' }),
+        rawIssue(5, 'done', { resolutiondate: null, statuscategorychangedate: '2026-11-13T00:00:00.000+0000' }),
+        rawIssue(6, 'done', { resolutiondate: null, statuscategorychangedate: '2026-10-01T00:00:00.000+0000' }),
       ],
     });
   };
@@ -66,7 +68,7 @@ test('do Jira à vista: KPIs, gráficos e envelhecimento', async () => {
   assert.equal(truncated, false);
   assert.equal(hasFlaggedField, true);
   const v = buildFlowView(issues, new Date('2026-11-14T00:00:00Z'));
-  assert.deepEqual(v.kpis, { open: 3, backlog: 1, wip: 2, blocked: 1, doneRecent: 1, doneWindowDays: 14 });
+  assert.deepEqual(v.kpis, { open: 3, backlog: 1, wip: 2, blocked: 1, doneRecent: 2, doneWindowDays: 14 });
   assert.deepEqual(v.byType, [{ label: 'Story', count: 3 }]);
   assert.deepEqual(v.wipByAssignee, [{ label: 'Ana', count: 1 }, { label: 'Sem responsável', count: 1 }]);
   assert.deepEqual(v.oldestWip.map((r) => [r.key, r.ageDays, r.flagged]), [['FRI-2', 13, true], ['FRI-3', 1, false]]);

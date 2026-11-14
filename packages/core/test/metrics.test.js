@@ -11,6 +11,7 @@ function issue(key, category, extra = {}) {
     key, summary: key, type: 'Story', assignee: 'Ana', status: '', category,
     created: new Date('2026-10-01T00:00:00Z'), resolved: null, categoryChanged: null, flagged: false, url: null,
     ...extra,
+    doneAt: extra.doneAt ?? (category === 'done' ? extra.resolved ?? null : null),
   };
 }
 
@@ -32,6 +33,17 @@ test('normalizeIssue mapeia categorias, flag e URL', () => {
   assert.equal(n.url, 'https://x.atlassian.net/browse/FRI-1');
   assert.equal(normalizeIssue({ key: 'A', fields: { status: { statusCategory: { key: 'new' } } } }).category, 'backlog');
   assert.equal(normalizeIssue({ key: 'A', fields: { customfield_1: [] } }, { flaggedFieldId: 'customfield_1' }).flagged, false);
+});
+
+test('conclusão sem resolução usa a entrada em Feito', () => {
+  const base = { status: { name: 'Done', statusCategory: { key: 'done' } }, created: '2026-11-01T00:00:00.000+0000' };
+  const semRes = normalizeIssue({ key: 'A', fields: { ...base, resolutiondate: null, statuscategorychangedate: '2026-11-10T00:00:00.000+0000' } });
+  assert.equal(semRes.doneAt.toISOString(), '2026-11-10T00:00:00.000Z');
+  const comRes = normalizeIssue({ key: 'B', fields: { ...base, resolutiondate: '2026-11-09T00:00:00.000+0000', statuscategorychangedate: '2026-11-10T00:00:00.000+0000' } });
+  assert.equal(comRes.doneAt.toISOString(), '2026-11-09T00:00:00.000Z');
+  const aberta = normalizeIssue({ key: 'C', fields: { ...base, status: { statusCategory: { key: 'indeterminate' } }, resolutiondate: '2026-11-09T00:00:00.000+0000' } });
+  assert.equal(aberta.doneAt, null);
+  assert.equal(currentState([semRes], new Date('2026-11-14T00:00:00Z')).doneRecent, 1);
 });
 
 test('percentil por posto mais próximo', () => {

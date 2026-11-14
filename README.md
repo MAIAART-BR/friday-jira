@@ -46,31 +46,20 @@ Corre os testes do core e do FRIDAY Flow e verifica as cópias do core. Não pre
 
 ## Pôr a correr num Jira (no Mac)
 
-É preciso um site Jira Cloud de desenvolvimento, que é gratuito: https://go.atlassian.com/cloud-dev
+Precisa de `node` (20, 22 ou 24), `npm`, `forge` (`npm install -g @forge/cli`) e de um token API da Atlassian
+(https://id.atlassian.com/manage-profile/security/api-tokens).
 
 ```bash
-npm install -g @forge/cli
+bash scripts/testar-no-jira.sh
 ```
 
-```bash
-forge login
-```
+O script pede o email e o token e guarda-os só nessa janela do Terminal. Depois faz o seguinte:
 
-```bash
-cd apps/friday-flow && npm install && forge register
-```
+1. Usa o site Jira de teste que indicar ou, se carregar em Enter, cria um com `forge site provision`.
+2. Cria o projeto Kanban `FRIDEMO` com 9 issues de teste: 3 em backlog, 4 em curso (uma bloqueada e uma sem responsável) e 2 concluídas. Se correr outra vez, não as duplica.
+3. Regista a app (`forge register`, que troca o `app.id` provisório pelo real), faz o deploy e instala-a no site.
 
-O `forge register` substitui o `app.id` provisório do `manifest.yml` pelo id real.
-
-```bash
-forge deploy
-```
-
-```bash
-forge install
-```
-
-Escolha o produto Jira e o site de desenvolvimento. O FRIDAY Flow aparece no menu lateral de cada projeto.
+No fim, abra o projeto no Jira e escolha **FRIDAY Flow** no menu lateral.
 
 ## O que falta para vender (módulo 1)
 
@@ -88,6 +77,7 @@ Escolha o produto Jira e o site de desenvolvimento. O FRIDAY Flow aparece no men
 - **`asUser`:** cada utilizador só vê as issues a que já tem acesso no Jira.
 - **Licença:** `licensing.enabled: true`. Em produção, a app recusa mostrar dados se a licença não estiver ativa.
 - **Bloqueado = campo «Flagged» do Jira Software.** É o equivalente mais próximo dos bloqueios do BusinessMap. Os motivos de bloqueio ficam para o FRIDAY Health.
+- **Concluído = entrada em «Feito».** Usa a data de resolução quando existe. Muitos fluxos não preenchem a resolução e, nesses casos, conta a data em que a issue passou para «Feito».
 - **Limites da v0.1:**
   - Lê no máximo 1000 issues por projeto e avisa quando corta.
   - A idade do trabalho em curso conta desde a última mudança de categoria de estado. Uma issue que volta de «Em revisão» para «Em curso» não reinicia a contagem, porque fica na mesma categoria.
