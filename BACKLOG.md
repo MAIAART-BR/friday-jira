@@ -71,7 +71,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 
 ### 4. A app na língua do Jira de cada pessoa
 
-- **Pedido do Artur (14/11/2026):** a app adapta-se à língua do Jira.
+- **Pedido do Artur (14/11/2026):** a app adapta-se à língua do Jira. Fica à frente do item 5 (CD3 23) por decisão dele, «desde já».
 - **Como é hoje:** a app já segue a língua que o Jira usa para cada pessoa (`context.locale`, que vem do perfil ou do browser), mas só tem inglês e português. As outras línguas caem para inglês.
 - **Defeito encontrado:** o português da app é de Portugal, mas o Jira Cloud só suporta oficialmente o português do Brasil; o de Portugal está fora da lista desde julho de 2020 ([JRACLOUD-84879](https://jira.atlassian.com/browse/JRACLOUD-84879)). Quase todos os utilizadores de português veem o Jira em pt-BR e recebem o texto da app em pt-PT.
 - **O que fazer:**
