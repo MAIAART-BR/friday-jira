@@ -280,6 +280,8 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
   const overLimit = isBoard ? view.columns.filter((c) => c.max != null && c.count > c.max) : [];
   const byType = isBoard ? [] : view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
   const weeks = (view.throughput || []).map((w) => ({ label: t.weekLabel(w.week), count: w.count }));
+  const thisWeek = weeks.length ? weeks[weeks.length - 1].count : null;
+  const lastWeek = weeks.length > 1 ? weeks[weeks.length - 2].count : null;
 
   // Frase-resumo: o que precisa de atenção, em linguagem simples.
   const firstSlow = aging.rows.find((r) => r.above);
@@ -307,7 +309,8 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
           notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
         <Kpi label={t.kpiBlocked} value={k.blocked ? k.blocked.total : null} alert={k.blocked?.total > 0} tip={t.tipBlocked}
           notes={[k.blocked ? t.blockedInBacklog(k.blocked.backlog) : t.noFlaggedShort, k.blocked?.total > 0 ? t.needsAttention : null]} />
-        <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} tip={t.tipDone(k.doneWindowDays)} />
+        {/* Igual à última barra de «Concluídos por semana», para o cartão e o gráfico contarem o mesmo. */}
+        <Kpi label={t.kpiDone} value={thisWeek} tip={t.tipDone} notes={[lastWeek != null ? t.doneLastWeek(lastWeek) : null]} />
       </Inline>
 
       {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}

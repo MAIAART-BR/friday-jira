@@ -140,7 +140,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - um ícone ⓘ com dica em cada cartão, filtro, gráfico e na tabela;
   - a janela «Sobre o FRIDAY Flow» passa a 4 secções curtas, com as fontes;
   - uma frase no topo diz o que precisa de atenção («2 tickets estão mais lentos do que o habitual (mais de 8 dias). Comece por FRIDEMO-4.»).
-- **Por decidir:** há três períodos à vista (Concluídos 14 dias, Histórico 30 a 180 dias, Concluídos por semana 12 semanas). As dicas explicam cada um, mas unificar talvez seja mais simples.
+- **Decidido (15/11/2026):** o cartão passa a «Concluídos esta semana», igual à última barra de «Concluídos por semana», com a semana passada ao lado. Fica só o Histórico como período à parte.
 
 ### 4 a 6. Módulos seguintes
 
