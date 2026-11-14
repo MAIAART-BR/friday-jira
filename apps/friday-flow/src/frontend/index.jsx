@@ -18,9 +18,10 @@ const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.05
 const MIN_REFERENCE_ITEMS = 10;
 
 // Ícone ⓘ com a explicação ao passar o rato: a ajuda está onde está o número.
+// Abre por cima do ícone: por baixo, ficava tapado pela seta do rato.
 function InfoTip({ text }) {
   return (
-    <Tooltip content={text}>
+    <Tooltip content={text} position="top">
       <Icon glyph="info" label={text} size="small" color="color.icon.subtle" />
     </Tooltip>
   );
@@ -49,7 +50,7 @@ function Kpi({ label, value, alert = false, notes = [], tip }) {
 
 function IconButton({ glyph, label, onClick }) {
   return (
-    <Tooltip content={label}>
+    <Tooltip content={label} position="bottom">
       <Pressable onClick={onClick} xcss={iconButtonStyle}>
         <Icon glyph={glyph} label={label} size="medium" />
       </Pressable>
