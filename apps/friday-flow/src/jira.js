@@ -92,14 +92,14 @@ export async function countIssues(request, query) {
   return typeof body.count === 'number' ? body.count : null;
 }
 
-export async function loadProjectData(request, { projectKey, doneWindowDays }) {
+export async function loadProjectData(request, { projectKey, doneWindowDays, referenceDays = 90 }) {
   const [flaggedFieldId, types] = await Promise.all([findFlaggedFieldId(request), findIssueTypes(request, projectKey)]);
   const fields = flaggedFieldId ? [...FIELDS, flaggedFieldId] : FIELDS;
   const normalize = (raw) => normalizeIssue(raw, { flaggedFieldId });
 
   const [wip, done, typeCounts, blockedBacklog] = await Promise.all([
     searchAll(request, jql.wip(projectKey), fields),
-    searchAll(request, jql.done(projectKey, doneWindowDays), fields),
+    searchAll(request, jql.done(projectKey, Math.max(doneWindowDays, referenceDays)), fields),
     Promise.all(types.map((t) => countIssues(request, jql.backlogOfType(projectKey, t.id)))),
     flaggedFieldId ? countIssues(request, jql.blockedBacklog(projectKey, flaggedFieldId)) : Promise.resolve(0),
   ]);

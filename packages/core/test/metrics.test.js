@@ -120,7 +120,27 @@ test('agingViews: idade desde a entrada em curso ou desde a criação, com ordem
   const v = agingViews(wip, now);
   assert.deepEqual(v.start.rows.map((r) => [r.key, r.ageDays]), [['B', 9], ['A', 2]]);
   assert.deepEqual(v.created.rows.map((r) => [r.key, r.ageDays]), [['A', 60], ['B', 10]]);
-  assert.equal(v.start.p85, 9);
-  assert.equal(v.created.p50, 10);
-  assert.deepEqual(agingViews([], now).start, { p50: null, p85: null, rows: [] });
+  assert.deepEqual(agingViews([], now).start, { limit: null, above: null, rows: [] });
+  // Com o P85 da referência: quantos já o passaram, e quais.
+  const lim = agingViews(wip, now, 25, { start: 5, created: 30 });
+  assert.equal(lim.start.above, 1);
+  assert.deepEqual(lim.start.rows.map((r) => [r.key, r.above]), [['B', true], ['A', false]]);
+  assert.equal(lim.created.above, 1);
+});
+
+test('referenceTimes: cycle (início → fim) e lead (criação → fim) dos concluídos no período', async () => {
+  const { referenceTimes } = await import('../src/metrics.js');
+  const now = new Date('2026-11-14T00:00:00Z');
+  const d = (s) => new Date(`2026-${s}T00:00:00Z`);
+  const done = [
+    { key: 'A', created: d('10-01'), startedAt: d('11-01'), doneAt: d('11-03') }, // cycle 2, lead 33
+    { key: 'B', created: d('11-01'), startedAt: d('11-02'), doneAt: d('11-12') }, // cycle 10, lead 11
+    { key: 'C', created: d('11-05'), startedAt: null, doneAt: d('11-06') }, // sem início: só lead 1
+    { key: 'D', created: d('06-01'), startedAt: d('06-02'), doneAt: d('06-10') }, // fora do período de 30 dias
+  ];
+  const r = referenceTimes(done, now, 30);
+  assert.deepEqual(r.cycle, { p50: 2, p85: 10, n: 2 });
+  assert.deepEqual(r.lead, { p50: 11, p85: 33, n: 3 });
+  assert.equal(referenceTimes(done, now, 180).cycle.n, 3);
+  assert.deepEqual(referenceTimes([], now, 90).cycle, { p50: null, p85: null, n: 0 });
 });

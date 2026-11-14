@@ -88,6 +88,14 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Fontes da ajuda:** The Kanban Guide (sem o backlog) e Reinertsen (2009), sobre o custo das filas de espera (com o backlog).
 - **Também:** espaço por cima do título, que estava colado à barra de separadores do Jira.
 
+### P85 a partir dos concluídos, com período configurável (feito, por testar no Jira)
+
+- **Problema:** o P85 era calculado a partir da idade dos itens em curso, o mesmo erro que o FRIDAY original já tinha corrigido (ver o PROJECT_BOARD do FRIDAY).
+- **Correção:** a referência (SLE) vem dos tickets concluídos no período escolhido. Com o interruptor desligado usa o cycle time (do início ao fim); ligado, o lead time (da criação ao fim). A página mostra quantos tickets em curso já passaram o P85.
+- **Decisão do Artur (14/11/2026):** o período é configurável (30, 60, 90 ou 180 dias; 90 por omissão), com a explicação e as fontes na ajuda (The Kanban Guide 2020: SLE).
+- **Por decidir:** marcar a vermelho, na tabela, os tickets acima do P85. Os dados já vêm calculados (`above`).
+- **Custo no Forge:** o histórico dos concluídos do período, no mesmo pedido em lote. Com 180 dias pode haver centenas de tickets, mas continua dentro da franquia gratuita.
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

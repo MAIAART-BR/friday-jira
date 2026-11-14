@@ -69,6 +69,21 @@ export function columnCategory(index, count) {
  * Quando o ticket entrou no trabalho em curso: a última mudança de estado de fora para dentro das colunas WIP.
  * Sem essa mudança no histórico (criado já em curso, ou histórico em falta), usa a data de criação.
  */
+/** Última entrada, vinda de fora, num conjunto de estados; null se não houver no histórico. */
+export function enteredAt(histories, statusIds) {
+  const set = new Set(statusIds.map(String));
+  let latest = null;
+  for (const h of histories || []) {
+    const t = new Date(h.created);
+    if (Number.isNaN(t.getTime())) continue;
+    for (const it of h.items || []) {
+      if ((it.fieldId || it.field) !== 'status') continue;
+      if (!set.has(String(it.from)) && set.has(String(it.to)) && (!latest || t > latest)) latest = t;
+    }
+  }
+  return latest;
+}
+
 export function startedAt(histories, wipStatusIds, created) {
   const wip = new Set(wipStatusIds.map(String));
   let latest = null;
@@ -124,7 +139,7 @@ export async function fetchStatusHistories(request, issues) {
 const inStatuses = (ids) => `status in (${ids.map(Number).join(', ')})`;
 
 /** Números do quadro: contagem por coluna, trabalho em curso e concluídos recentes carregados, bloqueados contados. */
-export async function loadBoardData(request, board, { projectKey, doneWindowDays }) {
+export async function loadBoardData(request, board, { projectKey, doneWindowDays, referenceDays = 90 }) {
   const [flaggedFieldId, types] = await Promise.all([
     findFlaggedFieldId(request),
     findIssueTypes(request, projectKey, { includeSubtasks: true }),
@@ -144,24 +159,30 @@ export async function loadBoardData(request, board, { projectKey, doneWindowDays
       ? Promise.resolve(c.statusIds.length ? null : 0)
       : countIssues(request, where(inStatuses(c.statusIds)))))),
     wipIds.length ? searchAll(request, where(`${inStatuses(wipIds)} ORDER BY created ASC`), fields) : { issues: [], truncated: false },
-    doneIds.length ? searchAll(request, where(`${inStatuses(doneIds)} AND updated >= -${Number(doneWindowDays)}d`), fields) : { issues: [], truncated: false },
+    // Concluídos: os do cartão «Concluído (14 dias)» e os da referência (período escolhido), numa só pesquisa.
+    doneIds.length ? searchAll(request, where(`${inStatuses(doneIds)} AND updated >= -${Math.max(Number(doneWindowDays), Number(referenceDays))}d`), fields) : { issues: [], truncated: false },
     flaggedNum && openIds.length ? countIssues(request, where(`${inStatuses(openIds)} AND cf[${flaggedNum}] is not EMPTY`)) : Promise.resolve(0),
     // Em aberto por tipo: todos os tickets em aberto do quadro, contados por tipo (sem os carregar).
     openIds.length ? Promise.all(types.map((t) => countIssues(request, where(`${inStatuses(openIds)} AND issuetype = ${Number(t.id)}`)))) : Promise.resolve([]),
   ]);
 
-  // Idade a partir do histórico: quando o ticket entrou nas colunas do meio.
-  const { histories, complete } = await fetchStatusHistories(request, wip.issues);
+  // Histórico dos em curso e dos concluídos, num só pedido: idade, início e fim reais pelas colunas do quadro.
+  const { histories, complete } = await fetchStatusHistories(request, [...wip.issues, ...done.issues]);
   const wipItems = wip.issues.map((raw) => {
     const n = normalize(raw);
     return { ...n, categoryChanged: startedAt(histories.get(String(raw.id)), wipIds, n.created) };
+  });
+  const doneItems = done.issues.map((raw) => {
+    const n = normalize(raw);
+    const h = histories.get(String(raw.id));
+    return { ...n, doneAt: enteredAt(h, doneIds) || n.doneAt, startedAt: enteredAt(h, wipIds) };
   });
 
   return {
     columns: board.columns.map((c, i) => ({ name: c.name, category: c.category, count: columnCounts[i], max: c.max })),
     wip: wipItems,
     ageFromHistory: complete,
-    done: done.issues.map(normalize),
+    done: doneItems,
     blocked,
     openByType: typeCounts.some((c) => c === null) ? null
       : types.map((t, i) => ({ label: t.name, count: typeCounts[i] || 0 })).filter((r) => r.count > 0),
@@ -171,8 +192,9 @@ export async function loadBoardData(request, board, { projectKey, doneWindowDays
 }
 
 /** Vista da página a partir dos dados do quadro. */
-export function buildBoardView(data, { countBy, agingViews }, now = new Date(), doneWindowDays = 14) {
+export function buildBoardView(data, { countBy, agingViews, referenceTimes }, now = new Date(), doneWindowDays = 14, referenceDays = 90) {
   const since = new Date(now.getTime() - doneWindowDays * DAY_MS);
+  const reference = referenceTimes(data.done, now, referenceDays);
   const openColumns = data.columns.filter((c) => c.category !== 'done');
   const countFailed = openColumns.some((c) => c.count === null);
   return {
@@ -188,7 +210,8 @@ export function buildBoardView(data, { countBy, agingViews }, now = new Date(), 
     ageFromHistory: data.ageFromHistory !== false,
     byType: (data.openByType || []).slice().sort((a, b) => b.count - a.count || String(a.label).localeCompare(String(b.label))),
     wipByAssignee: countBy(data.wip, (i) => i.assignee),
-    aging: agingViews(data.wip, now),
+    reference,
+    aging: agingViews(data.wip, now, 25, { start: reference.cycle.p85, created: reference.lead.p85 }),
     generatedAt: now.toISOString(),
   };
 }

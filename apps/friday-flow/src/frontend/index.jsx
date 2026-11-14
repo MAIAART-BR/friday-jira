@@ -12,6 +12,7 @@ const chartStyle = xcss({ minWidth: '320px' });
 const selectStyle = xcss({ minWidth: '240px' });
 // Espaço por cima do título: sem ele, o título fica colado à barra de separadores do Jira.
 const headerStyle = xcss({ paddingTop: 'space.300' });
+const refSelectStyle = xcss({ minWidth: '170px' });
 
 function Kpi({ label, value, alert = false, badge = null, note = null }) {
   return (
@@ -107,10 +108,12 @@ function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [view, setView] = useState(null);
   const [includeBacklog, setIncludeBacklog] = useState(false);
+  const [referenceDays, setReferenceDays] = useState(90);
+  const [referenceOptions, setReferenceOptions] = useState([30, 60, 90, 180]);
 
-  const load = (boardId, remember = false) => {
+  const load = (boardId, remember = false, days = referenceDays) => {
     setView(null);
-    invoke('getFlowView', boardId ? { boardId, remember } : {})
+    invoke('getFlowView', boardId ? { boardId, remember, referenceDays: days } : { referenceDays: days })
       .then(setView)
       .catch(() => setView({ error: 'UNKNOWN' }));
   };
@@ -122,7 +125,9 @@ function App() {
         setBoards(r.boards || []);
         setSelectedId(r.selectedId);
         setIncludeBacklog(r.includeBacklog === true);
-        load(r.selectedId);
+        if (r.referenceOptions) setReferenceOptions(r.referenceOptions);
+        setReferenceDays(r.referenceDays || 90);
+        load(r.selectedId, false, r.referenceDays || 90);
       })
       .catch(() => setView({ error: 'UNKNOWN' }));
   }, []);
@@ -131,6 +136,13 @@ function App() {
     const next = !includeBacklog;
     setIncludeBacklog(next);
     invoke('saveBacklogTime', { includeBacklog: next }).catch(() => {});
+  };
+
+  const chooseReference = (days) => {
+    if (days === referenceDays) return;
+    setReferenceDays(days);
+    invoke('saveReferenceDays', { referenceDays: days }).catch(() => {});
+    load(selectedId, false, days);
   };
 
   const choose = (id) => {
@@ -155,12 +167,41 @@ function App() {
       </Inline>
       </Box>
       {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
-      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} onToggleBacklog={toggleBacklog} />
+      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} onToggleBacklog={toggleBacklog}
+        referenceDays={referenceDays} referenceOptions={referenceOptions} onReference={chooseReference} />
     </Stack>
   );
 }
 
-function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog }) {
+function ReferenceLine({ view, t, includeBacklog, referenceDays, referenceOptions, onReference }) {
+  const options = referenceOptions.map((d) => ({ label: t.refOption(d), value: d }));
+  const ref = includeBacklog ? view.reference.lead : view.reference.cycle;
+  const aging = includeBacklog ? view.aging.created : view.aging.start;
+  let sentence;
+  if (!includeBacklog && view.mode !== 'board') sentence = t.refNoBoard;
+  else if (!ref || ref.n === 0) sentence = t.refNone(referenceDays);
+  else {
+    sentence = t.refSummary({
+      days: referenceDays, n: ref.n, p85: t.days(roundDays(ref.p85)), p50: t.days(roundDays(ref.p50)),
+      metric: includeBacklog ? t.refLead : t.refCycle, above: aging.above,
+    });
+    if (ref.n < 10) sentence += ` ${t.refFew}`;
+  }
+  return (
+    <Stack space="space.075">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <Text color="color.text.subtlest">{t.refLabel}</Text>
+        <Box xcss={refSelectStyle}>
+          <Select inputId="friday-reference" appearance="subtle" spacing="compact" options={options}
+            value={options.find((o) => o.value === referenceDays)} onChange={(o) => o && onReference(o.value)} />
+        </Box>
+      </Inline>
+      <Text>{sentence}</Text>
+    </Stack>
+  );
+}
+
+function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog, referenceDays, referenceOptions, onReference }) {
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
 
@@ -168,7 +209,6 @@ function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog }) {
   const byType = view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
   const wipByAssignee = view.wipByAssignee.map((r) => ({ ...r, label: r.label ?? t.unassigned }));
   const aging = includeBacklog ? view.aging.created : view.aging.start;
-  const [a1, p50, a2, p85, a3] = t.agingSummary(t.days(roundDays(aging.p50)), t.days(roundDays(aging.p85)));
   const isBoard = view.mode === 'board';
 
   return (
@@ -223,7 +263,8 @@ function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog }) {
             <Label labelFor="friday-backlog-time">{t.toggleBacklog}</Label>
           </Inline>
         </Inline>
-        <Text>{a1}<Strong>{p50}</Strong>{a2}<Strong>{p85}</Strong>{a3}</Text>
+        <ReferenceLine view={view} t={t} includeBacklog={includeBacklog} referenceDays={referenceDays}
+          referenceOptions={referenceOptions} onReference={onReference} />
         <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} />
       </Stack>
     </Stack>

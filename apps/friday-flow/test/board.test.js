@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy, columnCategory, startedAt, fetchStatusHistories } from '../src/board.js';
-import { countBy, agingViews } from '../src/core/metrics.js';
+import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy, columnCategory, startedAt, enteredAt, fetchStatusHistories } from '../src/board.js';
+import { countBy, agingViews, referenceTimes } from '../src/core/metrics.js';
 
 const NOW = new Date('2026-11-14T00:00:00Z');
 const response = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body, text: async () => JSON.stringify(body) });
@@ -128,7 +128,7 @@ test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', a
   const { request, calls } = fakeJira({ wip, done, counts });
   const board = await readBoard(request, 1);
   const data = await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 });
-  const v = buildBoardView(data, { countBy, agingViews }, NOW, 14);
+  const v = buildBoardView(data, { countBy, agingViews, referenceTimes }, NOW, 14);
 
   assert.deepEqual(v.columns, [
     { name: 'Backlog', count: 1004, wip: false, max: null },
@@ -154,7 +154,7 @@ test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', a
 test('se uma contagem falhar, mostra «–» e avisa', async () => {
   const { request } = fakeJira({ failCount: true });
   const board = await readBoard(request, 1);
-  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews }, NOW, 14);
+  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews, referenceTimes }, NOW, 14);
   assert.equal(v.columns[0].count, null);
   assert.equal(v.countFailed, true);
 });
@@ -193,8 +193,33 @@ test('a idade na vista vem do histórico', async () => {
   const histories = { 1001: [{ created: '2026-11-04T00:00:00Z', items: [{ fieldId: 'status', from: '10000', to: '10001' }] }] };
   const { request } = fakeJira({ wip, histories, counts: { 'status in (10000)': 0 } });
   const board = await readBoard(request, 1);
-  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews }, NOW, 14);
+  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews, referenceTimes }, NOW, 14);
   assert.equal(v.aging.start.rows[0].ageDays, 10);
   assert.equal(v.aging.created.rows[0].ageDays, 44); // com o backlog: desde a criação, 1/10 // desde 4/11 (entrada em Selected), não 1 dia (mudança de categoria)
   assert.equal(v.ageFromHistory, true);
+});
+
+test('concluídos: início e fim lidos no histórico pelas colunas do quadro, e a referência a partir deles', async () => {
+  const h = (created, from, to) => ({ created, items: [{ fieldId: 'status', from, to }] });
+  assert.equal(enteredAt([h('2026-11-01T00:00:00Z', '3', '10002')], ['10002']).toISOString(), '2026-11-01T00:00:00.000Z');
+  assert.equal(enteredAt([], ['10002']), null);
+
+  const done = [rawIssue(30, 'done', { created: '2026-10-20T00:00:00.000+0000' })];
+  const histories = { 1030: [h('2026-11-02T00:00:00Z', '10000', '10001'), h('2026-11-09T00:00:00Z', '3', '10002')] };
+  const { request } = fakeJira({ wip: [], done, histories, counts: {} });
+  const board = await readBoard(request, 1);
+  const data = await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14, referenceDays: 30 });
+  assert.equal(data.done[0].startedAt.toISOString(), '2026-11-02T00:00:00.000Z');
+  assert.equal(data.done[0].doneAt.toISOString(), '2026-11-09T00:00:00.000Z');
+  const v = buildBoardView(data, { countBy, agingViews, referenceTimes }, NOW, 14, 30);
+  assert.deepEqual(v.reference.cycle, { p50: 7, p85: 7, n: 1 });
+  assert.deepEqual(v.reference.lead, { p50: 20, p85: 20, n: 1 });
+  assert.equal(v.reference.windowDays, 30);
+});
+
+test('a pesquisa dos concluídos cobre o maior dos dois períodos', async () => {
+  const { request, calls } = fakeJira({});
+  const board = await readBoard(request, 1);
+  await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14, referenceDays: 180 });
+  assert.ok(calls.some((c) => c.jql?.includes('status in (10002) AND updated >= -180d')));
 });

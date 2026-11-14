@@ -143,29 +143,51 @@ function startOfWeekUTC(d) {
   return new Date(x.getTime() - dow * DAY_MS);
 }
 
+/** Mediana, P85 e número de valores. */
+export function percentiles(values) {
+  const round1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
+  const v = values.filter((x) => typeof x === 'number' && !Number.isNaN(x));
+  return { p50: round1(percentile(v, 50)), p85: round1(percentile(v, 85)), n: v.length };
+}
+
+/**
+ * Referência histórica (a SLE do The Kanban Guide): quanto tempo levou o trabalho concluído nos últimos `windowDays`.
+ *   cycle — do início (entrada em curso, `startedAt`) ao fim; só para itens com início conhecido;
+ *   lead  — da criação ao fim.
+ */
+export function referenceTimes(done, now = new Date(), windowDays = 90) {
+  const since = new Date(now.getTime() - windowDays * DAY_MS);
+  const recent = done.filter((i) => i.doneAt && i.doneAt >= since && i.doneAt <= now);
+  return {
+    windowDays,
+    cycle: percentiles(recent.filter((i) => i.startedAt).map((i) => daysBetween(i.startedAt, i.doneAt))),
+    lead: percentiles(recent.filter((i) => i.created).map((i) => daysBetween(i.created, i.doneAt))),
+  };
+}
+
 /**
  * Idade do trabalho em curso de duas formas, para o utilizador escolher:
  *   start   — desde a entrada em curso (categoryChanged), como o «Work Item Age» do The Kanban Guide;
  *   created — desde a criação, contando o tempo no backlog.
- * Cada uma com mediana, P85 e as `rows` linhas mais antigas.
+ * Cada uma com as `rows` linhas mais antigas e, com `limits` (o P85 da referência), quantos itens já o passaram.
  */
-export function agingViews(wip, now = new Date(), rows = 25) {
+export function agingViews(wip, now = new Date(), rows = 25, limits = {}) {
   const round1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
-  const view = (from) => {
+  const view = (from, limit) => {
     const aging = wip
       .map((i) => ({ ...i, ageDays: daysBetween(from(i), now) }))
       .sort((a, b) => b.ageDays - a.ageDays);
-    const ages = aging.map((i) => i.ageDays);
     return {
-      p50: round1(percentile(ages, 50)),
-      p85: round1(percentile(ages, 85)),
+      limit: limit ?? null,
+      above: limit == null ? null : aging.filter((i) => i.ageDays > limit).length,
       rows: aging.slice(0, rows).map((i) => ({
         key: i.key, summary: i.summary, assignee: i.assignee, status: i.status, ageDays: round1(i.ageDays), flagged: i.flagged,
+        above: limit != null && i.ageDays > limit,
       })),
     };
   };
   return {
-    start: view((i) => i.categoryChanged || i.created),
-    created: view((i) => i.created || i.categoryChanged),
+    start: view((i) => i.categoryChanged || i.created, limits.start),
+    created: view((i) => i.created || i.categoryChanged, limits.created),
   };
 }
