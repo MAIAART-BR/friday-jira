@@ -1,7 +1,7 @@
 # Pergunta ao suporte da Atlassian: modelo de pagamento
 
 Onde submeter: https://developer.atlassian.com/support → Marketplace (pedido sobre listagens / pricing).
-Enviada em: [DATA] · Número do pedido: [N.º] · Resposta: [RESUMO]
+Enviada em: 14/11/2026 · Número do pedido: ECOHELP-185604 · Resposta: à espera
 
 ---
 
