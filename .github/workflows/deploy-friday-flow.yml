@@ -14,6 +14,10 @@ on:
         description: Atualizar também a instalação no site (só quando as permissões mudam)
         type: boolean
         default: false
+      approve_major:
+        description: Aprovar versão principal nova (pedida pelo Forge quando as permissões mudam; publicada, obriga cada cliente a aprovar a atualização)
+        type: boolean
+        default: false
       site:
         description: Site Jira da instalação (só usado com «Atualizar a instalação»)
         type: string
@@ -60,7 +64,7 @@ jobs:
 
       - name: Deploy
         working-directory: apps/friday-flow
-        run: forge deploy --non-interactive -e "${{ inputs.environment }}"
+        run: forge deploy --non-interactive -e "${{ inputs.environment }}" ${{ inputs.approve_major && '--approve MAJOR_VERSION_RULE' || '' }}
 
       - name: Atualizar a instalação
         if: ${{ inputs.upgrade_install }}

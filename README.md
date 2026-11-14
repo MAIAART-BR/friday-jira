@@ -99,6 +99,7 @@ Precisa de dois secrets no repositório (**Settings → Secrets and variables �
 Opções do fluxo:
 - `environment`: development (por omissão), staging ou production.
 - `upgrade_install`: atualiza também a instalação no site. Só é preciso quando as permissões (`scopes`) mudam.
+- `approve_major`: aprova a versão principal nova que o Forge exige quando as permissões mudam. Com a app publicada, obriga cada cliente a aprovar a atualização. Por isso fica desligado por omissão e é uma decisão de cada vez.
 
 ## O que falta para vender (módulo 1)
 
