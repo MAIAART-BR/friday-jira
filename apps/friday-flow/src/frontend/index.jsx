@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
-  Box, Inline, Stack, Heading, Text, Strong, Lozenge, Link, Spinner, SectionMessage, Select, Label,
+  Box, Inline, Stack, Heading, Text, Strong, Lozenge, Link, Spinner, SectionMessage, Select, Button,
+  Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem,
   DynamicTable, BarChart, useProductContext, xcss,
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
@@ -8,8 +9,7 @@ import { messagesFor, roundDays, daysCell } from './i18n';
 
 const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '120px' });
 const chartStyle = xcss({ minWidth: '320px' });
-const boardBarStyle = xcss({ borderRadius: 'border.radius', borderColor: 'color.border.selected', borderWidth: 'border.width.selected', borderStyle: 'solid' });
-const selectStyle = xcss({ minWidth: '280px' });
+const selectStyle = xcss({ minWidth: '240px' });
 
 function Kpi({ label, value, alert = false, badge = null, note = null }) {
   return (
@@ -26,20 +26,52 @@ function Kpi({ label, value, alert = false, badge = null, note = null }) {
   );
 }
 
-// O seletor de quadro fica logo abaixo do título, com moldura: tem de ser impossível não o ver.
+// Seletor de quadro no cabeçalho, à direita do título: discreto mas sempre à vista.
 function BoardPicker({ boards, selectedId, onChange, t }) {
   const options = boards.map((b) => ({ label: b.name, value: b.id }));
   const value = options.find((o) => o.value === selectedId) || null;
   return (
-    <Box padding="space.150" backgroundColor="color.background.selected" xcss={boardBarStyle}>
-      <Inline space="space.200" alignBlock="center" shouldWrap>
-        <Label labelFor="friday-board">{t.boardLabel}</Label>
-        <Box xcss={selectStyle}>
-          <Select inputId="friday-board" options={options} value={value} onChange={(o) => o && onChange(o.value)} isSearchable={boards.length > 5} />
-        </Box>
-        <Text>{t.boardHelp}</Text>
-      </Inline>
-    </Box>
+    <Inline space="space.100" alignBlock="center">
+      <Text color="color.text.subtlest">{t.boardLabel}</Text>
+      <Box xcss={selectStyle}>
+        <Select inputId="friday-board" appearance="subtle" spacing="compact" options={options} value={value}
+          onChange={(o) => o && onChange(o.value)} isSearchable={boards.length > 5} />
+      </Box>
+    </Inline>
+  );
+}
+
+// Ajuda: definições e fontes (The Kanban Guide; Little, 1961, 2011).
+function HelpButton({ t }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button appearance="subtle" onClick={() => setOpen(true)}>{t.helpButton}</Button>
+      <ModalTransition>
+        {open && (
+          <Modal onClose={() => setOpen(false)} label={t.helpTitle}>
+            <ModalHeader><ModalTitle>{t.helpTitle}</ModalTitle></ModalHeader>
+            <ModalBody>
+              <Stack space="space.200">
+                {t.helpSections.map(([title, body]) => (
+                  <Stack key={title} space="space.050">
+                    <Heading size="xsmall">{title}</Heading>
+                    <Text>{body}</Text>
+                  </Stack>
+                ))}
+                <Stack space="space.050">
+                  <Heading size="xsmall">{t.helpReferences}</Heading>
+                  <List type="unordered">
+                    {t.helpRefs.map((r) => <ListItem key={r}><Text size="small">{r}</Text></ListItem>)}
+                  </List>
+                </Stack>
+              </Stack>
+            </ModalBody>
+            <ModalFooter><Button appearance="primary" onClick={() => setOpen(false)}>{t.helpClose}</Button></ModalFooter>
+          </Modal>
+        )}
+      </ModalTransition>
+    </>
   );
 }
 
@@ -103,8 +135,13 @@ function App() {
 
   return (
     <Stack space="space.300">
-      <Heading size="large">{t.title(boardName || projectKey)}</Heading>
-      {boards && boards.length > 0 && <BoardPicker boards={boards} selectedId={selectedId} onChange={choose} t={t} />}
+      <Inline spread="space-between" alignBlock="center" shouldWrap>
+        <Heading size="large">{t.title(boardName || projectKey)}</Heading>
+        <Inline space="space.100" alignBlock="center">
+          {boards && boards.length > 0 && <BoardPicker boards={boards} selectedId={selectedId} onChange={choose} t={t} />}
+          <HelpButton t={t} />
+        </Inline>
+      </Inline>
       {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
       <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} />
     </Stack>
@@ -126,6 +163,7 @@ function Body({ view, t, siteUrl }) {
       <Text>{t.subtitle(k.doneWindowDays)}</Text>
       {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}
       {isBoard && view.countFailed && <SectionMessage appearance="warning"><Text>{t.countFailed}</Text></SectionMessage>}
+      {isBoard && !view.ageFromHistory && <SectionMessage appearance="information"><Text>{t.ageApprox}</Text></SectionMessage>}
       {!isBoard && view.backlogUnavailable && <SectionMessage appearance="warning"><Text>{t.backlogUnavailable}</Text></SectionMessage>}
       {!view.hasFlaggedField && <SectionMessage appearance="information"><Text>{t.noFlaggedField}</Text></SectionMessage>}
 
@@ -135,7 +173,7 @@ function Body({ view, t, siteUrl }) {
             <Kpi key={c.name} label={c.name} value={c.count} badge={c.wip ? t.wipColumn : null}
               alert={c.max != null && c.count != null && c.count > c.max} note={c.max != null ? t.wipLimit(c.max) : null} />
           ))}
-          <Kpi label={t.kpiWip} value={k.wip} />
+          {view.wipColumnCount >= 2 && <Kpi label={t.kpiWip} value={k.wip} />}
           <Kpi label={t.kpiBlocked} value={k.blocked} alert={k.blocked > 0} />
           <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
         </Inline>

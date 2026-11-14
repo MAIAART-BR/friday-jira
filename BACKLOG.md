@@ -72,6 +72,15 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Custo:** cerca de 1 s a mais por visita (~0,5 GB-s). A franquia gratuita continua a cobrir cerca de 100 000 visitas por mês.
 - **Consequências:** 4 permissões novas (a instalação tem de ser atualizada) e a app passa a guardar a escolha do quadro. A privacidade e a listagem já foram atualizadas.
 
+### WIP pela posição das colunas, idade pelo histórico, ajuda com fontes (feito, por testar no Jira)
+
+- **Porquê:** as categorias de estado do Jira enganam («Selected for Development» é «A fazer», mas já é trabalho assumido).
+- **Decisões do Artur (14/11/2026):**
+  - o WIP é tudo o que está entre a primeira e a última coluna;
+  - uma ajuda com fontes de confiança, referenciadas;
+  - um seletor de quadro mais moderno e limpo.
+- **Custo no Forge:** um pedido a mais por visita (histórico em lote). Se o lote falhar, há um pedido por ticket em curso, no máximo 8 em paralelo. Continua dentro da franquia gratuita.
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

@@ -120,6 +120,9 @@ Textos da listagem, privacidade, termos e o guia do que falta: pasta [`marketpla
 - **Licença:** `licensing.enabled: true`. Em produção, a app recusa mostrar dados se a licença não estiver ativa.
 - **Bloqueado = campo «Flagged» do Jira Software.** É o equivalente mais próximo dos bloqueios do BusinessMap. Os motivos de bloqueio ficam para o FRIDAY Health.
 - **Concluído = entrada em «Feito».** Usa a data de resolução quando existe. Muitos fluxos não preenchem a resolução e, nesses casos, conta a data em que a issue passou para «Feito».
+- **WIP pela posição das colunas:** a primeira coluna do quadro é o backlog, a última é o concluído, e tudo o que está entre elas é trabalho em curso (decisão de 14/11/2026). Não usamos as categorias de estado do Jira, porque «Selected for Development» está em «A fazer» no Jira mas já é trabalho assumido.
+- **Idade a partir do histórico:** conta desde a última vez que o ticket entrou numa coluna do meio. Se o Jira não devolver o histórico, conta desde a criação e a página avisa.
+- **Ajuda com fontes:** o botão «Como contamos» explica cada número, com referências ao The Kanban Guide (2025) e a Little (1961, 2011).
 - **Os números seguem o quadro:** a página tem um seletor de quadro, logo abaixo do título, que lembra a escolha de cada pessoa. Os números usam o filtro, o sub-filtro Kanban e as colunas desse quadro, por isso batem com o que o cliente vê. Nos espaços sem quadro, usa as categorias de estado do Jira.
 - **O que é carregado e o que é contado:** o trabalho em curso e os concluídos nos últimos 14 dias são carregados por inteiro. O backlog é só contado, por tipo, com a contagem do próprio Jira (`/search/approximate-count`), para um backlog grande não esconder o trabalho em curso. Há um limite de segurança de 5000 tickets em curso e concluídos, só por causa do tempo de resposta.
 - **Subtarefas não contam:** só as tarefas mãe (decisão de 14/11/2026).

@@ -3,6 +3,12 @@
 //
 // Do quadro vêm: o filtro (que tickets entram), as colunas (que estados ficam em cada uma) e o sub-filtro
 // dos quadros Kanban. As subtarefas contam se o filtro do quadro as incluir, tal como no quadro.
+//
+// WIP pela posição das colunas, não pelas categorias de estado do Jira (decisão de 14/11/2026):
+//   primeira coluna = backlog; última = concluído; todas as do meio = trabalho em curso.
+// As categorias enganam: «Selected for Development» é «A fazer» no Jira, mas já está depois do backlog.
+// Idade = tempo desde a última entrada numa coluna do meio, lida no histórico de cada ticket
+// (The Kanban Guide: «Work Item Age: time since start for an unfinished item»).
 import { normalizeIssue } from './core/metrics.js';
 import { FIELDS, searchAll, countIssues, findFlaggedFieldId, findIssueTypes, checkProjectKey } from './jira.js';
 
@@ -36,25 +42,83 @@ export async function readBoard(request, boardId) {
   if (!cfgRes.ok) throw new Error(`Jira respondeu ${cfgRes.status} ao ler o quadro`);
   const cfg = await cfgRes.json();
 
-  const [filterRes, statusRes] = await Promise.all([
-    request(`/rest/api/3/filter/${Number(cfg.filter.id)}`),
-    request('/rest/api/3/status'),
-  ]);
+  const filterRes = await request(`/rest/api/3/filter/${Number(cfg.filter.id)}`);
   if (!filterRes.ok) throw new Error(`Jira respondeu ${filterRes.status} ao ler o filtro do quadro`);
-  if (!statusRes.ok) throw new Error(`Jira respondeu ${statusRes.status} ao ler os estados`);
   const filter = await filterRes.json();
-  const categoryOf = new Map((await statusRes.json()).map((s) => [String(s.id), s.statusCategory?.key]));
 
   const parts = [stripOrderBy(filter.jql), stripOrderBy(cfg.subQuery?.query)].filter(Boolean).map((q) => `(${q})`);
-  const columns = (cfg.columnConfig?.columns || []).map((c) => {
-    const statusIds = (c.statuses || []).map((s) => String(s.id));
-    const cats = statusIds.map((s) => categoryOf.get(s));
-    // Categoria da coluna: concluída se todos os estados são «done»; em curso se algum é «indeterminate»; senão, a fazer.
-    const category = statusIds.length && cats.every((k) => k === 'done') ? 'done'
-      : cats.some((k) => k === 'indeterminate') ? 'wip' : 'backlog';
-    return { name: c.name, statusIds, category, min: c.min ?? null, max: c.max ?? null };
-  });
+  const raw = cfg.columnConfig?.columns || [];
+  const columns = raw.map((c, i) => ({
+    name: c.name,
+    statusIds: (c.statuses || []).map((s) => String(s.id)),
+    category: columnCategory(i, raw.length),
+    min: c.min ?? null,
+    max: c.max ?? null,
+  }));
   return { id, baseJql: parts.join(' AND '), columns };
+}
+
+/** Posição → papel: primeira = backlog, última = concluído, meio = WIP. Com 1 coluna, é tudo backlog. */
+export function columnCategory(index, count) {
+  if (count <= 1 || index === 0) return 'backlog';
+  if (index === count - 1) return 'done';
+  return 'wip';
+}
+
+/**
+ * Quando o ticket entrou no trabalho em curso: a última mudança de estado de fora para dentro das colunas WIP.
+ * Sem essa mudança no histórico (criado já em curso, ou histórico em falta), usa a data de criação.
+ */
+export function startedAt(histories, wipStatusIds, created) {
+  const wip = new Set(wipStatusIds.map(String));
+  let latest = null;
+  for (const h of histories || []) {
+    const t = new Date(h.created);
+    if (Number.isNaN(t.getTime())) continue;
+    for (const it of h.items || []) {
+      if ((it.fieldId || it.field) !== 'status') continue;
+      if (!wip.has(String(it.from)) && wip.has(String(it.to)) && (!latest || t > latest)) latest = t;
+    }
+  }
+  return latest || created || null;
+}
+
+const CHANGELOG_CONCURRENCY = 8;
+
+/** Histórico de estados de vários tickets: primeiro em lote; se o Jira recusar, ticket a ticket. Mapa id → histórico. */
+export async function fetchStatusHistories(request, issues) {
+  if (!issues.length) return { histories: new Map(), complete: true };
+  const ids = issues.map((i) => String(i.id));
+  const bulk = await request('/rest/api/3/changelog/bulkfetch', {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ issueIdsOrKeys: ids, fieldIds: ['status'], maxResults: 1000 }),
+  }).catch(() => null);
+  if (bulk?.ok) {
+    const body = await bulk.json();
+    const map = new Map();
+    for (const log of body.issueChangeLogs || []) map.set(String(log.issueId), log.changeHistories || log.histories || []);
+    if (!body.nextPageToken) return { histories: map, complete: true };
+  }
+  // Ticket a ticket, com no máximo CHANGELOG_CONCURRENCY pedidos ao mesmo tempo; lê a última página (as mudanças mais recentes).
+  const map = new Map();
+  let complete = true;
+  let next = 0;
+  const worker = async () => {
+    while (next < issues.length) {
+      const issue = issues[next++];
+      const first = await request(`/rest/api/3/issue/${issue.key}/changelog?startAt=0&maxResults=100`);
+      if (!first.ok) { complete = false; continue; }
+      let page = await first.json();
+      if (page.total > 100) {
+        const last = await request(`/rest/api/3/issue/${issue.key}/changelog?startAt=${page.total - 100}&maxResults=100`);
+        if (last.ok) page = await last.json(); else complete = false;
+      }
+      map.set(String(issue.id), page.values || []);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(CHANGELOG_CONCURRENCY, issues.length) }, worker));
+  return { histories: map, complete };
 }
 
 const inStatuses = (ids) => `status in (${ids.map(Number).join(', ')})`;
@@ -86,9 +150,17 @@ export async function loadBoardData(request, board, { projectKey, doneWindowDays
     openIds.length ? Promise.all(types.map((t) => countIssues(request, where(`${inStatuses(openIds)} AND issuetype = ${Number(t.id)}`)))) : Promise.resolve([]),
   ]);
 
+  // Idade a partir do histórico: quando o ticket entrou nas colunas do meio.
+  const { histories, complete } = await fetchStatusHistories(request, wip.issues);
+  const wipItems = wip.issues.map((raw) => {
+    const n = normalize(raw);
+    return { ...n, categoryChanged: startedAt(histories.get(String(raw.id)), wipIds, n.created) };
+  });
+
   return {
     columns: board.columns.map((c, i) => ({ name: c.name, category: c.category, count: columnCounts[i], max: c.max })),
-    wip: wip.issues.map(normalize),
+    wip: wipItems,
+    ageFromHistory: complete,
     done: done.issues.map(normalize),
     blocked,
     openByType: typeCounts.some((c) => c === null) ? null
@@ -115,6 +187,8 @@ export function buildBoardView(data, { countBy, wipAging, percentile }, now = ne
       doneWindowDays,
     },
     countFailed: countFailed || data.openByType === null,
+    wipColumnCount: data.columns.filter((c) => c.category === 'wip').length,
+    ageFromHistory: data.ageFromHistory !== false,
     byType: (data.openByType || []).slice().sort((a, b) => b.count - a.count || String(a.label).localeCompare(String(b.label))),
     wipByAssignee: countBy(data.wip, (i) => i.assignee),
     agingP50: round1(percentile(ages, 50)),

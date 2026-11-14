@@ -17,7 +17,8 @@ This policy explains what data the FRIDAY Flow app for Jira Cloud ("the app") pr
 When a person opens FRIDAY Flow in a Jira space, the app reads the space's boards and the chosen board's
 configuration (its filter, columns and Kanban sub-filter), and the list of Jira statuses. It then asks Jira for the
 work items that are in progress on that board or were done in the last 14 days, and for counts of the other work
-items on the board. For each work item it loads, it reads only these fields:
+items on the board. For work items in progress it also reads their status change history, to know when each one
+started. For each work item it loads, it reads only these fields:
 
 - key and summary
 - work type

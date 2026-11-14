@@ -14,13 +14,15 @@ const request = (path, init) => api.asUser().requestJira(toRoute(path), init);
 
 export function toRoute(path) {
   if (path === '/rest/api/3/field') return route`/rest/api/3/field`;
-  if (path === '/rest/api/3/status') return route`/rest/api/3/status`;
+  if (path === '/rest/api/3/changelog/bulkfetch') return route`/rest/api/3/changelog/bulkfetch`;
   if (path === '/rest/api/3/search/jql') return route`/rest/api/3/search/jql`;
   if (path === '/rest/api/3/search/approximate-count') return route`/rest/api/3/search/approximate-count`;
   let m = /^\/rest\/api\/3\/project\/([A-Z][A-Z0-9_]+)$/.exec(path);
   if (m) return route`/rest/api/3/project/${checkProjectKey(m[1])}`;
   m = /^\/rest\/api\/3\/filter\/(\d+)$/.exec(path);
   if (m) return route`/rest/api/3/filter/${m[1]}`;
+  m = /^\/rest\/api\/3\/issue\/([A-Z][A-Z0-9_]+-\d+)\/changelog\?startAt=(\d+)&maxResults=100$/.exec(path);
+  if (m) return route`/rest/api/3/issue/${m[1]}/changelog?startAt=${m[2]}&maxResults=100`;
   m = /^\/rest\/agile\/1\.0\/board\/(\d+)\/configuration$/.exec(path);
   if (m) return route`/rest/agile/1.0/board/${m[1]}/configuration`;
   m = /^\/rest\/agile\/1\.0\/board\?projectKeyOrId=([A-Z][A-Z0-9_]+)&startAt=(\d+)&maxResults=50$/.exec(path);
