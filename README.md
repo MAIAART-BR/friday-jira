@@ -1,41 +1,37 @@
 # FRIDAY para Jira
 
-Métricas de fluxo para equipas Kanban no **Jira Cloud**, vendidas por módulos no Atlassian Marketplace.
+A reunião de melhoria das equipas Kanban no **Jira Cloud**, para vender no Atlassian Marketplace.
 Versão para Jira do [FRIDAY](https://github.com/MAIAART-BR/FRIDAY), que lê BusinessMap e Trello.
 
 © Artur Castro. Todos os direitos reservados.
 
 Prioridades e decisões: [`BACKLOG.md`](BACKLOG.md). Nada é implementado sem estar lá.
 
-## Módulos
+## O produto
 
-Cada módulo é uma app Forge própria, com listagem e preço próprios no Marketplace. O cliente compra só o que quer.
-Os módulos integram-se de duas formas:
+**O FRIDAY é a ferramenta da reunião de melhoria das equipas Kanban no Jira.** A cada 2 semanas, a equipa vê no máximo 3 sinais sobre o seu fluxo, cada um com o porquê e a fonte. Escolhe uma experiência, e a app compara sozinha o antes e o depois, a partir do histórico do Jira. Uma vez por mês, gera um resumo para a gestão.
 
-- **No ecrã:** cada módulo instalado acrescenta a sua página ao menu do projeto no Jira. Quem tem os quatro vê os quatro lado a lado.
-- **Nos números:** todos usam o mesmo núcleo de cálculo (`packages/core`). WIP, bloqueado ou lead time querem dizer o mesmo em todos os módulos, por isso os números batem certo entre módulos.
+- **Para quem:** coaches, líderes e Scrum Masters de equipas Kanban de 5 a 30 pessoas.
+- **Porque é diferente:** as ferramentas de métricas (Nave, ActionableAgile, Broken Build) servem analistas e especialistas, e as ferramentas de retrospetiva (TeamRhythm, SprintRetro) são feitas para o sprint e não medem se a ação resultou. Ver [`marketplace/CONCORRENCIA.md`](marketplace/CONCORRENCIA.md).
+- **Regras, não IA:** os mesmos dados dão o mesmo resultado, e cada sinal explica-se.
+- **Um só produto:** grátis até 10 utilizadores, pago acima disso. A ideia de vender módulos separados foi abandonada a 14/11/2026 (ver o backlog).
+- **Estado:**
+  - a direção está **por validar com entrevistas**, com a maqueta em [`maquete/index.html`](maquete/index.html) (dados fictícios);
+  - o que existe hoje no Jira é o painel de fluxo (FRIDAY Flow), que passa a ser a base dos sinais e o separador «Detalhe».
 
-Nenhum módulo depende de outro. Não há dados partilhados entre apps: cada uma lê diretamente do Jira.
-
-| # | Módulo | Pergunta a que responde | Estado |
-|---|---|---|---|
-| 1 | **FRIDAY Flow** | Como está o fluxo agora? (KPIs, WIP por pessoa e por tipo, bloqueados, trabalho em curso mais antigo) | Feito (v0.1), por testar num site Jira |
-| 2 | **FRIDAY Delivery** | Quanto entregamos e em quanto tempo? (throughput semanal, lead time) | Cálculos já no core; falta a app |
-| 3 | **FRIDAY Forecast** | Quando fica pronto? (P50/P85, simulação Monte Carlo) | Por fazer |
-| 4 | **FRIDAY Health** | Onde está o problema? (bloqueios, envelhecimento, guia KMM) | Por fazer |
-
-O FRIDAY Quest (o jogo) fica de fora até haver módulos a vender.
+O FRIDAY Quest (o jogo) fica de fora.
 
 ## Estrutura
 
 ```
 packages/core/        cálculos de fluxo (funções puras, testadas)
-apps/friday-flow/     módulo 1 (app Forge: manifest, resolver, ecrã em UI Kit)
+apps/friday-flow/     a app Forge (manifest, resolver, ecrã em UI Kit); hoje é o painel de fluxo
+maquete/              maqueta navegável do produto, para entrevistas (dados fictícios)
   src/core/           cópia gerada do core, não editar (ver abaixo)
 scripts/sync-core.mjs copia o core para cada app
 ```
 
-Cada app tem de ser autossuficiente no `forge deploy`, por isso leva uma cópia do core.
+A app tem de ser autossuficiente no `forge deploy`, por isso leva uma cópia do core.
 Edite só `packages/core/src` e corra `npm run sync-core`. O `npm test` falha se alguma cópia estiver desatualizada.
 
 ## Testar
@@ -44,7 +40,7 @@ Edite só `packages/core/src` e corra `npm run sync-core`. O `npm test` falha se
 npm test
 ```
 
-Corre os testes do core e do FRIDAY Flow e verifica as cópias do core. Não precisa de conta Atlassian.
+Corre os testes do core e da app e verifica a cópia do core. Não precisa de conta Atlassian.
 
 ## Pôr a correr num Jira (no Mac)
 
@@ -101,14 +97,15 @@ Opções do fluxo:
 - `upgrade_install`: atualiza também a instalação no site. Só é preciso quando as permissões (`scopes`) mudam.
 - `approve_major`: aprova a versão principal nova que o Forge exige quando as permissões mudam. Com a app publicada, obriga cada cliente a aprovar a atualização. Por isso fica desligado por omissão e é uma decisão de cada vez.
 
-## O que falta para vender (módulo 1)
+## O que falta para vender
 
 Textos da listagem, privacidade, termos e o guia do que falta: pasta [`marketplace/`](marketplace/PREPARACAO.md).
 
 - [ ] Testar num site Jira real: quadro Kanban e quadro Scrum, site sem o campo «Flagged». (Mais de 1000 tickets: testado a 14/11/2026.)
 - [ ] Conta de parceiro no Marketplace e escolha do nome. «FRIDAY» pode já estar em uso no Marketplace; verificar antes de criar a listagem.
 - [ ] Política de privacidade, termos (EULA), página de suporte e contacto de segurança. São obrigatórios na listagem.
-- [ ] Preço (Paid via Atlassian). O preço é por número de utilizadores do site, em escalões.
+- [ ] Preço (Paid via Atlassian): grátis até 10 utilizadores, por confirmar com o suporte (ECOHELP-185604).
+- [ ] Entrevistas com a maqueta e, se confirmarem, os sinais, as experiências e o modo reunião (backlog, itens 2 e 5 a 7).
 - [ ] Ícone, capturas de ecrã e textos da listagem, em inglês.
 - [x] Ecrã em inglês e português, escolhido pela língua do perfil de cada utilizador no Jira (`src/frontend/i18n.js`).
 

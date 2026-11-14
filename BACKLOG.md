@@ -2,6 +2,20 @@
 
 Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD3**: o custo do atraso (CoD) dividido pela duração.
 
+## O produto (direção de 14/11/2026, por validar)
+
+O FRIDAY deixa de ser um painel de métricas vendido por módulos e passa a ser **um só produto: a ferramenta da reunião de melhoria das equipas Kanban**. A cada 2 semanas a equipa vê no máximo 3 sinais, cada um com o porquê e com a fonte, escolhe uma experiência e a app mede sozinha se resultou.
+
+- **Porquê:**
+  - o painel de métricas é o terreno do Nave, do ActionableAgile e da Broken Build;
+  - as reuniões de melhoria dentro do Jira vendem (Easy Agile TeamRhythm: 3 317 instalações; SprintRetro: 972 e 547), mas estão feitas para o sprint do Scrum;
+  - ninguém mede se a ação decidida na retrospetiva resultou: o TeamRhythm só acompanha se a ação foi feita.
+
+  Ver `marketplace/CONCORRENCIA.md`, terceira leitura.
+- **Para quem:** coach, líder ou Scrum Master de uma equipa Kanban de 5 a 30 pessoas, sem analista de fluxo.
+- **O que não é:** um quadro de retrospetiva (já há muitos), um painel de investigação para analistas (Nave) nem gráficos para especialistas (ActionableAgile).
+- **Maqueta para as entrevistas:** `maquete/index.html` (dados fictícios).
+
 ## Como se avalia
 
 **Custo do atraso (CoD)** = soma de três componentes, cada uma numa escala relativa (1, 2, 3, 5, 8, 13):
@@ -22,21 +36,22 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 
 | # | Item | V | U | R | CoD | D (sem.) | CD3 | Forge |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Decidir: Flow gratuito ou pago | 3 | 8 | 5 | 16 | 0,2 | **80** | 0 € |
-| 2 | Validar o posicionamento com potenciais clientes | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
+| 1 | Decidir: gratuito ou pago | 3 | 8 | 5 | 16 | 0,2 | **80** | 0 € |
+| 2 | Validar o posicionamento com potenciais clientes (com a maqueta) | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
 | 3 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
 | 4 | A app na língua do Jira de cada pessoa | 3 | 3 | 2 | 8 | 0,5 | **16** | 0 € |
-| 5 | Modo stand-up na tabela | 3 | 1 | 3 | 7 | 0,3 | **23** | 0 € |
-| 6 | Pacote «Confiança» | 5 | 3 | 5 | 13 | 1 | **13** | 0 € |
-| 7 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
-| 8 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
-| 9 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
-| 10 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
+| 5 | Sinais «Esta quinzena» (3 regras determinísticas) | 8 | 3 | 8 | 19 | 1,5 | **12,7** | 0 € |
+| 6 | Experiências com antes e depois | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (guarda poucos KB por equipa) |
+| 7 | Modo reunião | 5 | 2 | 3 | 10 | 0,5 | **20** | 0 € |
+| 8 | Resumo do mês para a gestão | 5 | 2 | 3 | 10 | 1 | **10** | 0 € |
+| 9 | Publicar no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
 | ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
-### 1. Decidir: Flow gratuito ou pago
+**A ordem segue as dependências, não só o CD3.** O modo reunião (7) tem o CD3 mais alto do bloco, mas só tem conteúdo com os sinais (5) e as experiências (6). Os itens 5 a 9 só começam se as entrevistas (2) confirmarem a direção.
 
-- **Hipótese:** um Flow gratuito traz instalações e avaliações; os módulos pagos trazem receita.
+### 1. Decidir: gratuito ou pago
+
+- **Hipótese:** grátis até 10 utilizadores traz instalações e avaliações; o pago acima disso traz receita. Com um só produto, deixa de haver «módulo grátis» e «módulos pagos».
 - **Porquê agora:** bloqueia a publicação (item 3). Se o modelo de pagamento não puder ser mudado depois, uma escolha errada obriga a uma listagem nova.
 - **O que fazer:** confirmar o que diz a página «Why can't I change the payment model» da Atlassian e ver os preços dos concorrentes (ver `marketplace/PREPARACAO.md`). A decisão é do Artur.
 - **Sinal de que acertámos:** instalações e avaliações nos primeiros 2 meses (se gratuito); primeira venda (se pago).
@@ -45,8 +60,9 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 
 ### 2. Validar o posicionamento com potenciais clientes
 
-- **Hipótese (revista a 14/11/2026):** há equipas e empresas que querem o diagnóstico do fluxo que o Nave dá (o próximo passo e porquê, a saúde, os riscos e as tendências), mas que **não podem tirar os dados da Atlassian nem usar IA de terceiros**, ou que não querem negociar o preço com um vendedor. O FRIDAY seria esse diagnóstico, explicado e determinístico, a correr só na Atlassian, com preço público.
-- **Hipótese anterior, enfraquecida:** «números que batem com o quadro e se explicam sozinhos» é condição mínima (a Broken Build já mostra os tickets por trás dos números), não razão para comprar. O «intérprete do fluxo» também já existe no Nave (ver `marketplace/CONCORRENCIA.md`, segunda leitura).
+- **Hipótese em vigor (14/11/2026, terceira):** os coaches e os líderes de equipas Kanban querem saber se a melhoria decidida na reunião resultou, e pagam por uma ferramenta que lhes dá os sinais, a experiência e o antes e depois sem fazerem contas. Ver «O produto», no topo.
+- **Hipótese anterior (segunda):** há equipas e empresas que querem o diagnóstico do fluxo que o Nave dá (o próximo passo e porquê, a saúde, os riscos e as tendências), mas que **não podem tirar os dados da Atlassian nem usar IA de terceiros**, ou que não querem negociar o preço com um vendedor. O FRIDAY seria esse diagnóstico, explicado e determinístico, a correr só na Atlassian, com preço público.
+- **Primeira hipótese, enfraquecida:** «números que batem com o quadro e se explicam sozinhos» é condição mínima (a Broken Build já mostra os tickets por trás dos números), não razão para comprar. O «intérprete do fluxo» também já existe no Nave (ver `marketplace/CONCORRENCIA.md`, segunda leitura).
 - **O que já se sabe (14/11/2026, `marketplace/CONCORRENCIA.md`):**
   - as queixas recorrentes nas avaliações são números em que não se confia, configuração que falha, apps difíceis de encontrar e lentidão;
   - o suporte rápido é o que mais se elogia;
@@ -54,13 +70,14 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - «diz-me o que fazer» também já existe (o painel de melhoria do processo do Nave).
 - **Porquê agora:** define o texto da listagem, o preço (item 1) e o que vem a seguir. Publicar sem isto é publicar mais uma app de gráficos.
 - **O que fazer:**
+  0. **Maqueta (14/11/2026):** mostrar `maquete/index.html` (Esta quinzena, Experiências, Modo reunião, Resumo do mês) e perguntar pela última reunião de melhoria que fizeram: o que decidiram e se souberam se resultou.
   1. Mostrar o ecrã atual a 5 pessoas que gerem equipas Kanban em Jira e perguntar o que fariam com ele amanhã, o que usam hoje e quanto pagariam. Incluir pessoas de empresas com regras de dados apertadas e perguntar se já foram impedidas de usar o Nave ou outra app parecida por causa dos dados ou da IA.
   2. Experimentar a versão atual do ActionableAgile, do Nave e do WIP Aging da Broken Build no site de teste, para confirmar o que ainda é verdade nas queixas.
   3. Reescrever a frase da listagem com as palavras dos entrevistados.
 - **Depende de:** nada. Pode correr em paralelo com o item 1.
 - **Nicho de operações e suporte de TI (pesquisa de 14/11/2026, `marketplace/NICHO-OPERACOES.md`):** a dor é reconhecida no ramo (o envelhecimento do backlog é um KPI da HDI e da MetricNet, e há perguntas recorrentes na Atlassian Community), mas a disposição para pagar não está demonstrada: as apps que atacam esta dor diretamente têm 1 a 35 instalações.
 - **Sinal de que acertámos:** pelo menos 3 das 5 pessoas descrevem sem ajuda um ganho concreto («isto poupa-me X»). Se nenhuma o fizer, repensar o produto antes de publicar.
-- **Candidato a funcionalidade, só se a validação o confirmar:** carregar num número e ver os tickets que o compõem, com o motivo de cada um contar.
+- **Ver os tickets por trás de cada número:** passou para o item 5 (cada sinal tem a lista dos tickets).
 
 ### 3. Testar com dados reais
 
@@ -83,31 +100,55 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Risco:** as traduções feitas pelo Claude precisam de revisão por quem fala a língua, sobretudo a ajuda com conceitos Kanban. Um texto estranho reduz a confiança.
 - **Custo no Forge:** 0 €. O texto vai no código do ecrã.
 
-### 5. Modo stand-up na tabela
+### 5. Sinais «Esta quinzena»
 
-- **Hipótese:** a equipa abre o FRIDAY todos os dias se a tabela servir para a reunião diária.
-- **O que fazer:** ordenar da direita para a esquerda (do mais perto do fim ao mais longe) e, dentro de cada coluna, do mais antigo ao mais novo; os bloqueados e os lentos primeiro («walk the board», The Kanban Guide).
-- **Evidência:** uma avaliação de 4★ do ActionableAgile («parte integrante dos stand-ups»). É fraca.
-- **Depende de:** item 2. Mostrar nas entrevistas antes de fazer.
-- **Sinal de que acertámos:** nas entrevistas, alguém diz que a usaria na reunião diária.
+- **Hipótese:** a equipa percebe e aceita o próximo passo quando vê, numa só frase, o que mudou, o porquê e a fonte.
+- **O que fazer:** no máximo 3 sinais por quinzena, por ordem de impacto, cada um com: o que vemos, porquê, o que experimentar, como saber se resultou, a fonte e a lista de tickets por trás. Primeiras regras candidatas:
+  1. o WIP a subir com o tempo habitual a subir (Lei de Little);
+  2. uma coluna que recebe mais do que entrega (Reinertsen, 2009);
+  3. tickets acima do tempo habitual numa coluna;
+  4. bloqueios antigos ou a durar mais;
+  5. bons sinais, para manter o que resulta.
+- **Regras sem IA:** os mesmos dados dão o mesmo resultado, e cada sinal explica-se.
+- **Reaproveita:** a idade face ao habitual, os bloqueados, os concluídos por semana, a frase-resumo e o pacote «Confiança» (ver os tickets por trás de cada número), que deixa de ser um item à parte.
+- **Depende de:** 2. As regras finais saem das entrevistas.
+- **Sinal de que acertámos:** nas entrevistas, as pessoas reconhecem os sinais e dizem o que fariam a seguir.
 
-### 6. Pacote «Confiança»
+### 6. Experiências com antes e depois
 
-- **Hipótese:** números que se explicam sozinhos evitam a desinstalação, que é a queixa nº 1 das avaliações (`marketplace/CONCORRENCIA.md`).
+- **Hipótese:** é isto que o FRIDAY tem e os outros não: a equipa sabe se a mudança resultou, sem fazer contas.
 - **O que fazer:**
-  - **«Porquê este número?»:** carregar num cartão e ver os tickets que o compõem, com o motivo de cada um contar;
-  - **«Como contei»:** uma linha por baixo dos cartões com o quadro, as colunas em curso, o histórico e o número de concluídos;
-  - **«Este número está errado?»:** contacto de suporte já preenchido com o quadro e as contagens, sem dados dos tickets.
-- **Depende de:** item 2 (maqueta nas entrevistas) e de um canal de suporte com prazo de resposta.
-- **Custo no Forge:** um pedido a mais para listar os bloqueados do backlog; o resto já está carregado.
-- **Sinal de que acertámos:** nas entrevistas, a lista de tickets muda a resposta a «confiava nestes números?».
+  - registar a hipótese, a métrica, a duração e quem acompanha;
+  - comparar o período antes e depois a partir do histórico do Jira;
+  - com menos de 10 concluídos, dizer «ainda não dá para saber».
+- **Custo no Forge:** guarda as experiências por quadro, com poucos KB por equipa, dentro da franquia gratuita. Atualizar a política de privacidade.
+- **Depende de:** 5.
+- **Risco:** comparar antes e depois não prova a causa, porque outras coisas mudam ao mesmo tempo. A app tem de o dizer, e não pode prometer mais do que isso.
+- **Sinal de que acertámos:** uma equipa faz a segunda experiência.
 
-### 7. Publicar o Flow no Marketplace
+### 7. Modo reunião
 
-- **Hipótese:** há equipas Kanban à procura disto no Marketplace.
-- **Depende de:** 1, 2, 3 e 4; 5 e 6 se as entrevistas os confirmarem.
-- **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production, submissão (ver `marketplace/PREPARACAO.md`).
-- **Sinal de que acertámos:** a primeira instalação de alguém que não conhecemos.
+- **O que fazer:** ecrã inteiro para projetar, com 3 passos (a experiência anterior resultou? os sinais; a próxima experiência) e um temporizador de 30 minutos.
+- **Base:** a Service Delivery Review do Método Kanban (Anderson e Carmichael, 2016).
+- **Depende de:** 5 e 6.
+- **Sinal de que acertámos:** a terceira reunião feita na app. É o indicador de quem fica.
+
+### 8. Resumo do mês para a gestão
+
+- **O que fazer:** texto pronto a copiar com as entregas, o tempo habitual, as experiências e o resultado de cada uma, os riscos e o próximo passo.
+- **Responde a:** à dor de PM do Artur («mostrar a saúde do projeto, riscos e tendências»).
+- **Depende de:** 6.
+
+### 9. Publicar no Marketplace
+
+- **Hipótese:** coaches e líderes de equipas Kanban procuram uma forma de saber se a melhoria resultou.
+- **Depende de:** 1 a 4 e pelo menos 5 a 7.
+- **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production e submissão (ver `marketplace/PREPARACAO.md`). A listagem tem de ser reescrita para o produto novo.
+- **Para aprender com quem instala:**
+  - escrever ao contacto técnico de cada nova experiência;
+  - ler os motivos de desinstalação nos relatórios de parceiro;
+  - medir a ativação (a primeira experiência registada) e a permanência (a terceira reunião).
+- **Sinal de que acertámos:** a primeira instalação de alguém que não conhecemos, e essa equipa faz uma segunda experiência.
 
 ### Limite de 1000 tickets esconde o trabalho em curso (confirmado e corrigido)
 
@@ -199,18 +240,13 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - uma frase no topo diz o que precisa de atenção («2 tickets estão mais lentos do que o habitual (mais de 8 dias). Comece por FRIDEMO-4.»).
 - **Decidido (15/11/2026):** o cartão passa a «Concluídos esta semana», igual à última barra de «Concluídos por semana», com a semana passada ao lado. Fica só o Histórico como período à parte.
 
-### 8 a 10. Módulos seguintes
-
-Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados dos itens 2 e 7.
-
-- **Delivery:** os cálculos de throughput e lead time já estão no núcleo, por isso é o mais curto.
-- **Forecast:** o ActionableAgile, o Nave e a Broken Build já fazem Monte Carlo, por isso diferencia menos do que se pensava. Mesmo assim, é um dos pontos mais elogiados nas avaliações. É o mais longo: precisa de histórico de mudanças de estado e de simulação Monte Carlo, e o custo no Forge tem de ser calculado antes de começar.
-- **Health:** depende do guia KMM do FRIDAY original.
-
 ## Rejeitados
 
 | Item | Data | Porquê |
 |---|---|---|
+| Venda por módulos (Flow, Delivery, Forecast, Health como apps separadas) | 14/11/2026 | A Broken Build já vende uma app por gráfico, grátis até 10 utilizadores e a 0,55 $ por utilizador. Passa a haver um só produto, e o que for útil desses módulos entra como sinais. |
+| Previsão Monte Carlo (antigo Forecast) | 14/11/2026 | O ActionableAgile, o Nave e a Broken Build já a têm. Pode voltar se as entrevistas o pedirem. |
+| Modo stand-up na tabela | 14/11/2026 | Fica em espera: o produto passa a servir a reunião quinzenal, não a diária. |
 | Memória de 256 MB e limite de 25 s na função | 14/11/2026 | Poupança zero dentro da franquia gratuita, mais o risco de falta de memória; o `forge lint` não aceita o limite de tempo em funções de páginas. |
 
 ## Para acrescentar um item

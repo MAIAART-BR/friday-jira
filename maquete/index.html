@@ -1,0 +1,372 @@
+<title>FRIDAY Melhoria Contínua</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: uma página de app dentro do Jira — cabeçalho, separadores, coluna única de cartões com o que pede atenção primeiro. */
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --line: #dfe2e7;
+  --fg: #1c2b41;
+  --muted: #5b6779;
+  --accent: #1d5fd6;
+  --accent-soft: #e8f0fd;
+  --warn: #8a5a00;
+  --warn-soft: #fff3d6;
+  --bad: #b3261e;
+  --bad-soft: #fde8e6;
+  --ok: #1d7a4f;
+  --ok-soft: #e3f5ec;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16191f; --surface: #1f232b; --line: #343a45; --fg: #e3e7ee; --muted: #9aa4b4;
+    --accent: #7aa7ff; --accent-soft: #1f2d48; --warn: #f2c35b; --warn-soft: #3a2f14;
+    --bad: #ff8a80; --bad-soft: #3d1f1d; --ok: #6fd3a0; --ok-soft: #173327; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16191f; --surface: #1f232b; --line: #343a45; --fg: #e3e7ee; --muted: #9aa4b4;
+  --accent: #7aa7ff; --accent-soft: #1f2d48; --warn: #f2c35b; --warn-soft: #3a2f14;
+  --bad: #ff8a80; --bad-soft: #3d1f1d; --ok: #6fd3a0; --ok-soft: #173327; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.demo-note { background: var(--warn-soft); color: var(--warn); border-radius: var(--radius); padding: 8px 12px; font-size: 13px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 16px; margin: 0; text-wrap: balance; }
+h3 { font-size: 14px; margin: 0; }
+.sub { color: var(--muted); font-size: 13px; }
+.board { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.board select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+nav { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+nav a {
+  padding: 8px 12px; color: var(--muted); text-decoration: none; font-weight: 500; border-bottom: 2px solid transparent;
+  white-space: nowrap; margin-bottom: -1px;
+}
+nav a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+nav a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lead { font-size: 16px; font-weight: 500; margin: 0; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+.card.quiet { background: var(--surface); border-color: transparent; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.pill { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.info { background: var(--accent-soft); color: var(--accent); }
+dl.why { display: grid; grid-template-columns: 9.5em 1fr; gap: 6px 12px; margin: 0; }
+dl.why dt { color: var(--muted); font-size: 13px; }
+dl.why dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { dl.why { grid-template-columns: 1fr; } dl.why dd { margin-bottom: 6px; } }
+.src { font-size: 12px; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: inherit; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--fg); cursor: pointer;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+button:hover { filter: brightness(0.97); }
+.num { font-variant-numeric: tabular-nums; }
+.ba { display: grid; grid-template-columns: 5.5em 1fr 4.5em; gap: 4px 10px; align-items: center; font-size: 13px; }
+.bar { height: 10px; border-radius: 5px; background: var(--line); }
+.bar > span { display: block; height: 100%; border-radius: 5px; background: var(--muted); }
+.bar.after > span { background: var(--accent); }
+.muted { color: var(--muted); }
+.steps { display: flex; gap: 6px; flex-wrap: wrap; }
+.steps span { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--surface); color: var(--muted); }
+.steps span.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.timer { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.meeting { border: 2px solid var(--accent); }
+label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+input, textarea, select.field {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; width: 100%;
+}
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form .full { grid-column: 1 / -1; }
+@media (max-width: 560px) { .form { grid-template-columns: 1fr; } }
+.report { white-space: pre-wrap; font-size: 14px; background: var(--surface); border-radius: var(--radius); padding: 16px; margin: 0; font-family: var(--font); }
+svg text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.chart-wrap { overflow-x: auto; }
+footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <div class="demo-note" role="note">Maquete para entrevistas. Os números são fictícios e nenhuma destas funções está pronta.</div>
+
+  <header>
+    <div>
+      <h1>FRIDAY</h1>
+      <div class="sub">Melhoria contínua do fluxo, dentro do Jira</div>
+    </div>
+    <div class="board">
+      <label for="quadro" style="flex-direction:row;align-items:center;gap:8px">Quadro
+        <select id="quadro"><option>Pagamentos (PAG)</option><option>Mobile (MOB)</option></select>
+      </label>
+    </div>
+  </header>
+
+  <nav aria-label="Seções">
+    <a href="#quinzena">Esta quinzena</a>
+    <a href="#experiencias">Experiências</a>
+    <a href="#reuniao">Modo reunião</a>
+    <a href="#resumo">Resumo do mês</a>
+  </nav>
+
+  <!-- ESTA QUINZENA -->
+  <section id="v-quinzena" class="stack">
+    <p class="lead">2 sinais pedem atenção. A experiência em curso termina em 3 dias.</p>
+
+    <article class="card">
+      <div class="row"><h2>Mais trabalho aberto, e cada item demora mais</h2><span class="pill bad">Atenção</span></div>
+      <dl class="why">
+        <dt>O que vemos</dt><dd>Nas últimas 4 semanas, o trabalho em curso subiu de <b class="num">6</b> para <b class="num">10</b> itens. O tempo habitual (85% dos itens) passou de <b class="num">8</b> para <b class="num">13 dias</b>.</dd>
+        <dt>Por quê</dt><dd>Com mais itens abertos ao mesmo tempo, cada um espera mais pela sua vez. Mais trabalho em curso, com a mesma capacidade de entrega, significa itens mais lentos.</dd>
+        <dt>Experimente</dt><dd>Limitar a 8 itens em curso durante 2 semanas. Quando chegar a 8, a equipe termina antes de começar outro.</dd>
+        <dt>Como saber se deu certo</dt><dd>O tempo habitual volta para menos de 10 dias, sem cair o número de entregas por semana.</dd>
+      </dl>
+      <div class="src">Base: Lei de Little (Little, 1961; 2011); The Kanban Guide (Vacanti e Coleman, 2025).</div>
+      <div class="actions"><button type="button">Ver os 10 itens</button><button type="button" class="primary" data-go="reuniao">Levar para a reunião</button></div>
+    </article>
+
+    <article class="card">
+      <div class="row"><h2>«Em revisão» recebe mais do que entrega</h2><span class="pill bad">Atenção</span></div>
+      <dl class="why">
+        <dt>O que vemos</dt><dd>Entram <b class="num">1,2</b> itens por dia em «Em revisão» e saem <b class="num">0,6</b>. Hoje há <b class="num">5</b> itens esperando, e 3 estão lá há mais tempo que o habitual.</dd>
+        <dt>Por quê</dt><dd>Quando uma etapa recebe mais do que consegue entregar, a fila nessa etapa só cresce. Começar mais trabalho antes dela aumenta a fila, não as entregas.</dd>
+        <dt>Experimente</dt><dd>Antes de puxar um item novo, quem estiver livre ajuda na revisão.</dd>
+        <dt>Como saber se deu certo</dt><dd>Saem pelo menos tantos itens quanto entram em «Em revisão» durante 2 semanas.</dd>
+      </dl>
+      <div class="src">Base: Reinertsen (2009), sobre filas no desenvolvimento de produto.</div>
+      <div class="actions"><button type="button">Ver os 5 itens</button><button type="button" class="primary" data-go="reuniao">Levar para a reunião</button></div>
+    </article>
+
+    <article class="card">
+      <div class="row"><h2>Bloqueios resolvidos mais depressa</h2><span class="pill ok">Bom sinal</span></div>
+      <dl class="why">
+        <dt>O que vemos</dt><dd>Um bloqueio durava em média <b class="num">4,1 dias</b> em setembro e agora dura <b class="num">1,8 dias</b>, desde a experiência «Bloqueio tem dono no mesmo dia».</dd>
+        <dt>Por quê importa</dt><dd>Vale manter o que está funcionando. Se parar, o sinal volta a aparecer aqui.</dd>
+      </dl>
+    </article>
+
+    <article class="card quiet">
+      <div class="row"><h3>Experiência em curso: limite de 4 em «Em revisão»</h3><span class="pill info">Termina em 17/11</span></div>
+      <div class="ba">
+        <span class="muted">Antes</span><div class="bar"><span style="width:100%"></span></div><span class="num">13 dias</span>
+        <span class="muted">Até agora</span><div class="bar after"><span style="width:84.6%"></span></div><span class="num">11 dias</span>
+      </div>
+      <div class="sub">Tempo habitual. Com 9 itens concluídos desde o início, ainda é cedo para concluir: a FRIDAY espera por pelo menos 10.</div>
+    </article>
+  </section>
+
+  <!-- EXPERIÊNCIAS -->
+  <section id="v-experiencias" class="stack" hidden>
+    <p class="lead">A equipe fez 3 experiências desde setembro: 1 deu certo, 1 inconclusiva e 1 em curso.</p>
+
+    <article class="card">
+      <div class="row"><h2>Limite de 4 em «Em revisão»</h2><span class="pill info">Em curso</span></div>
+      <div class="sub">03/11 a 17/11 · Hipótese: se limitarmos a revisão a 4 itens, o tempo habitual cai para menos de 10 dias.</div>
+      <div class="ba">
+        <span class="muted">Antes</span><div class="bar"><span style="width:100%"></span></div><span class="num">13 dias</span>
+        <span class="muted">Até agora</span><div class="bar after"><span style="width:84.6%"></span></div><span class="num">11 dias</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="row"><h2>Bloqueio tem dono no mesmo dia</h2><span class="pill ok">Deu certo</span></div>
+      <div class="sub">29/09 a 27/10 · Hipótese: se cada bloqueio tiver um responsável no mesmo dia, ele dura menos de 2 dias.</div>
+      <div class="ba">
+        <span class="muted">Antes</span><div class="bar"><span style="width:100%"></span></div><span class="num">4,1 dias</span>
+        <span class="muted">Depois</span><div class="bar after"><span style="width:43.9%"></span></div><span class="num">1,8 dias</span>
+      </div>
+      <div class="sub">Duração média do bloqueio. 4 semanas antes e 4 depois; 14 bloqueios no período.</div>
+    </article>
+
+    <article class="card">
+      <div class="row"><h2>Separar bugs urgentes numa raia própria</h2><span class="pill warn">Inconclusiva</span></div>
+      <div class="sub">01/09 a 22/09 · Hipótese: com uma raia para urgentes, os outros itens deixam de passar do tempo habitual.</div>
+      <div class="ba">
+        <span class="muted">Antes</span><div class="bar"><span style="width:100%"></span></div><span class="num">5 itens</span>
+        <span class="muted">Depois</span><div class="bar after"><span style="width:80%"></span></div><span class="num">4 itens</span>
+      </div>
+      <div class="sub">Itens acima do tempo habitual. A diferença é pequena e só 7 itens foram concluídos: ainda não dá para saber.</div>
+    </article>
+  </section>
+
+  <!-- MODO REUNIÃO -->
+  <section id="v-reuniao" class="stack" hidden>
+    <article class="card meeting">
+      <div class="row">
+        <div class="steps" id="steps"><span class="on">1 · Resultou?</span><span>2 · Sinais</span><span>3 · Próxima experiência</span></div>
+        <div class="timer" id="timer" aria-live="off">30:00</div>
+      </div>
+
+      <div id="step1" class="stack">
+        <h2>A experiência anterior deu certo?</h2>
+        <p class="muted" style="margin:0">Limite de 4 em «Em revisão» (03/11 a 17/11)</p>
+        <div class="ba">
+          <span class="muted">Antes</span><div class="bar"><span style="width:100%"></span></div><span class="num">13 dias</span>
+          <span class="muted">Até agora</span><div class="bar after"><span style="width:84.6%"></span></div><span class="num">11 dias</span>
+        </div>
+        <p style="margin:0">Melhorou, mas ainda está acima da meta de 10 dias e há poucos itens concluídos. O que a equipe decide?</p>
+        <div class="actions"><button type="button">Manter mais 2 semanas</button><button type="button">Ajustar</button><button type="button">Abandonar</button></div>
+      </div>
+
+      <div id="step2" class="stack" hidden>
+        <h2>Os sinais desta quinzena</h2>
+        <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+          <li><b>Mais trabalho aberto, e cada item demora mais:</b> 6 → 10 itens em curso; tempo habitual 8 → 13 dias.</li>
+          <li><b>«Em revisão» recebe mais do que entrega:</b> entram 1,2 por dia, saem 0,6.</li>
+          <li><b>Bom sinal:</b> bloqueios duram 1,8 dias (eram 4,1).</li>
+        </ol>
+        <p class="muted" style="margin:0">Escolham um só sinal para atacar. Os outros ficam para a próxima reunião.</p>
+      </div>
+
+      <div id="step3" class="stack" hidden>
+        <h2>A próxima experiência</h2>
+        <form class="form" id="exp-form">
+          <label class="full" for="hip">Hipótese
+            <textarea id="hip" rows="2">Se limitarmos o trabalho em curso a 8 itens, o tempo habitual volta para menos de 10 dias.</textarea>
+          </label>
+          <label for="metrica">Como medir
+            <select id="metrica" class="field"><option>Tempo habitual (85%)</option><option>Itens acima do habitual</option><option>Entregas por semana</option><option>Duração dos bloqueios</option></select>
+          </label>
+          <label for="duracao">Duração
+            <select id="duracao" class="field"><option>2 semanas</option><option>3 semanas</option><option>4 semanas</option></select>
+          </label>
+          <label class="full" for="dono">Quem acompanha
+            <input id="dono" value="Ana (coach da equipe)">
+          </label>
+          <div class="full actions"><button type="submit" class="primary">Começar experiência</button><span id="exp-ok" class="sub" hidden>Experiência registrada. A FRIDAY compara antes e depois automaticamente.</span></div>
+        </form>
+      </div>
+
+      <div class="actions" style="justify-content:space-between">
+        <button type="button" id="prev">Anterior</button>
+        <button type="button" id="next" class="primary">Próximo</button>
+      </div>
+    </article>
+  </section>
+
+  <!-- RESUMO DO MÊS -->
+  <section id="v-resumo" class="stack" hidden>
+    <p class="lead">Pronto para enviar à gestão. Copie e cole no e-mail ou no relatório.</p>
+    <article class="card">
+      <div class="row"><h2>Tempo habitual por semana</h2><span class="sub">85% dos itens concluídos em até</span></div>
+      <div class="chart-wrap">
+        <svg viewBox="0 0 560 150" width="100%" role="img" aria-label="Tempo habitual por semana, de 8 dias, subindo até 13, e caindo para 9 nas últimas semanas" id="spark"></svg>
+      </div>
+    </article>
+    <article class="card">
+      <div class="row"><h2>Outubro de 2026 · Equipe Pagamentos</h2><button type="button" id="copy">Copiar texto</button></div>
+<pre class="report" id="report">Entregamos 38 itens em outubro (setembro: 31).
+O tempo habitual caiu de 13 para 9 dias: 85% dos itens ficam prontos em até 9 dias.
+
+Experiências do mês
+• Bloqueio tem dono no mesmo dia: deu certo. Os bloqueios passaram de 4,1 para 1,8 dias.
+• Limite de 4 em «Em revisão»: em curso até 17/11. Resultado parcial: 13 → 11 dias.
+
+Riscos
+• 3 itens estão acima do tempo habitual. O mais antigo é o PAG-212, com 21 dias.
+• PAG-212 está bloqueado há 6 dias à espera do fornecedor de cartões.
+
+Próximo passo
+• Limitar o trabalho em curso a 8 itens, para voltar a menos de 10 dias.</pre>
+      <span class="sub" id="copy-ok" hidden>Texto copiado.</span>
+    </article>
+  </section>
+
+  <footer>FRIDAY · maquete v0.1 · As fontes citadas: Little, J. D. C. (1961), Operations Research 9(3); Little (2011), Operations Research 59(3); Reinertsen, D. (2009), The Principles of Product Development Flow; Vacanti e Coleman (2025), The Kanban Guide.</footer>
+</div>
+
+<script>
+(function () {
+  var views = ["quinzena", "experiencias", "reuniao", "resumo"];
+  function show() {
+    var v = (location.hash || "").replace("#", "");
+    if (views.indexOf(v) < 0) v = "quinzena";
+    views.forEach(function (name) {
+      document.getElementById("v-" + name).hidden = name !== v;
+      var a = document.querySelector('nav a[href="#' + name + '"]');
+      if (name === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("hashchange", show);
+  show();
+  document.querySelectorAll("[data-go]").forEach(function (b) {
+    b.addEventListener("click", function () { location.hash = b.getAttribute("data-go"); });
+  });
+
+  // Modo reunião: 3 passos e temporizador de 30 minutos que começa no primeiro clique.
+  var step = 1, left = 30 * 60, ticking = null;
+  var timer = document.getElementById("timer");
+  function render() {
+    [1, 2, 3].forEach(function (n) { document.getElementById("step" + n).hidden = n !== step; });
+    document.querySelectorAll("#steps span").forEach(function (s, i) { s.className = i + 1 === step ? "on" : ""; });
+    document.getElementById("prev").disabled = step === 1;
+    document.getElementById("next").hidden = step === 3;
+  }
+  function tick() {
+    left = Math.max(0, left - 1);
+    var m = Math.floor(left / 60), s = left % 60;
+    timer.textContent = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+    if (left === 0) clearInterval(ticking);
+  }
+  function start() { if (!ticking) ticking = setInterval(tick, 1000); }
+  document.getElementById("next").addEventListener("click", function () { start(); step = Math.min(3, step + 1); render(); });
+  document.getElementById("prev").addEventListener("click", function () { step = Math.max(1, step - 1); render(); });
+  document.getElementById("exp-form").addEventListener("submit", function (e) { e.preventDefault(); document.getElementById("exp-ok").hidden = false; });
+  render();
+
+  // Gráfico: tempo habitual (dias) nas últimas 12 semanas, numa só escala.
+  var vals = [8, 8, 9, 10, 11, 13, 13, 12, 11, 10, 9, 9];
+  var W = 560, H = 150, L = 34, R = 12, T = 12, B = 26, max = 14;
+  var x = function (i) { return L + i * (W - L - R) / (vals.length - 1); };
+  var y = function (v) { return T + (1 - v / max) * (H - T - B); };
+  var ns = "http://www.w3.org/2000/svg", svg = document.getElementById("spark");
+  function el(tag, attrs, text) {
+    var n = document.createElementNS(ns, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text) n.textContent = text;
+    svg.appendChild(n); return n;
+  }
+  [0, 5, 10].forEach(function (g) {
+    el("line", { x1: L, x2: W - R, y1: y(g), y2: y(g), stroke: "var(--line)", "stroke-width": 1 });
+    el("text", { x: L - 8, y: y(g) + 4, "text-anchor": "end" }, String(g));
+  });
+  el("line", { x1: L, x2: W - R, y1: y(10), y2: y(10), stroke: "var(--ok)", "stroke-width": 1, "stroke-dasharray": "4 4" });
+  el("text", { x: W - R, y: y(10) - 6, "text-anchor": "end" }, "meta: 10 dias");
+  var pts = vals.map(function (v, i) { return x(i) + "," + y(v); }).join(" ");
+  el("polygon", { points: x(0) + "," + y(0) + " " + pts + " " + x(vals.length - 1) + "," + y(0), fill: "var(--accent-soft)", stroke: "none" });
+  el("polyline", { points: pts, fill: "none", stroke: "var(--accent)", "stroke-width": 2 });
+  el("circle", { cx: x(vals.length - 1), cy: y(vals[vals.length - 1]), r: 4, fill: "var(--accent)" });
+  el("text", { x: x(vals.length - 1) - 6, y: y(vals[vals.length - 1]) - 8, "text-anchor": "end" }, "9 dias");
+  el("text", { x: x(0), y: H - 6, "text-anchor": "start" }, "há 12 semanas");
+  el("text", { x: x(vals.length - 1), y: H - 6, "text-anchor": "end" }, "esta semana");
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var text = document.getElementById("report").textContent, ok = document.getElementById("copy-ok");
+    function done() { ok.hidden = false; }
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { selectReport(); });
+    } catch (e) { selectReport(); }
+    function selectReport() {
+      var r = document.createRange(); r.selectNodeContents(document.getElementById("report"));
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      ok.textContent = "Texto selecionado: use Copiar do seu navegador."; ok.hidden = false;
+    }
+  });
+})();
+</script>

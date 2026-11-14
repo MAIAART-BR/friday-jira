@@ -109,3 +109,28 @@ Fontes: os sites getnave.com (`/process-improvement`, `/ai-investigator`, `/exec
 
   Isto interessa a empresas com regras de dados apertadas, como bancos, setor público e empresas como a CTT, que não podem sincronizar o histórico do Jira para uma cloud externa nem enviá-lo a um modelo de IA. Também interessa a equipas pequenas que não querem uma conversa comercial.
 - **Por confirmar:** quanto pesa esta restrição na decisão de compra. Ninguém foi entrevistado.
+
+## Ferramentas de retrospetiva com dados (terceira leitura, 14/11/2026)
+
+Fontes: listagens no Marketplace (versão mais recente) e pesquisa web na documentação da Easy Agile. O site de ajuda da Easy Agile não estava acessível a partir desta sessão.
+
+| App | Instalações | O que faz | Kanban? | Mede se a ação resultou? |
+|---|---|---|---|---|
+| Easy Agile TeamRhythm (v48.297, 13/11/2026) | 3 317 | Planeamento, story map, retrospetivas. «Team Insights»: IA analisa cycle time, throughput, WIP e CFD e sugere próximos passos que se juntam à retro. As ações viram tickets do Jira e as incompletas voltam a aparecer. | Funciona em quadros Kanban, com termos de Scrum que ainda aparecem. Os relatórios são por utilizador; ainda não há relatório partilhado da equipa. | **Não.** Acompanha se a ação foi feita. O modelo da Easy Agile tem um campo «critério de sucesso», preenchido à mão. Dados da Easy Agile: as equipas concluem 40 a 50% das ações, e 65% depois de as ações incompletas voltarem a aparecer. |
+| SprintRetro e SprintRetro Pro (v6.6.0 e v4.6.0, 22/10/2026) | 972 + 547 | Retros, quadro branco, métricas do sprint, saúde da equipa, IA facilitadora, acompanhamento e «qualidade» das ações. | Não encontrei suporte para Kanban: as métricas são de sprint (velocity, scope change, carryover). | **Não.** Pontua a qualidade da ação, não o efeito no fluxo. |
+| AgileBox (DevSamurai) | 765 | Planning poker, retros, daily. | Não verificado. | Não verificado. |
+| Agile Retrospectives for Jira | 838 | Quadro de retro configurável, votos, ações em tickets. | Não referido. | Não. |
+
+### O que sobra
+- **Ocupado:** o «sinal com explicação, levado para a retro» já existe no TeamRhythm, com IA e de um fornecedor grande (120 000 utilizadores declarados).
+- **Por ocupar, tanto quanto vi:**
+  1. **medir se a experiência resultou,** com antes e depois a partir do histórico do Jira;
+  2. **uma reunião pensada para Kanban, sem sprint** (a Service Delivery Review);
+  3. **regras explicáveis sem IA.**
+
+  O Nave tem antes e depois, mas para analistas e com venda negociada.
+- **Riscos:**
+  - o TeamRhythm pode acrescentar a medição do efeito, porque já tem os dados e as ações;
+  - não sei se as equipas querem mesmo saber se a ação resultou, ou só querem fazer a retro.
+
+  É isto que as entrevistas têm de responder.
