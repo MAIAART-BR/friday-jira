@@ -104,7 +104,7 @@ Opções do fluxo:
 
 Textos da listagem, privacidade, termos e o guia do que falta: pasta [`marketplace/`](marketplace/PREPARACAO.md).
 
-- [ ] Testar num site Jira real: quadro Kanban e quadro Scrum, projeto com mais de 1000 issues, site sem o campo «Flagged».
+- [ ] Testar num site Jira real: quadro Kanban e quadro Scrum, site sem o campo «Flagged». (Mais de 1000 tickets: testado a 14/11/2026.)
 - [ ] Conta de parceiro no Marketplace e escolha do nome. «FRIDAY» pode já estar em uso no Marketplace; verificar antes de criar a listagem.
 - [ ] Política de privacidade, termos (EULA), página de suporte e contacto de segurança. São obrigatórios na listagem.
 - [ ] Preço (Paid via Atlassian). O preço é por número de utilizadores do site, em escalões.
@@ -119,7 +119,7 @@ Textos da listagem, privacidade, termos e o guia do que falta: pasta [`marketpla
 - **Licença:** `licensing.enabled: true`. Em produção, a app recusa mostrar dados se a licença não estiver ativa.
 - **Bloqueado = campo «Flagged» do Jira Software.** É o equivalente mais próximo dos bloqueios do BusinessMap. Os motivos de bloqueio ficam para o FRIDAY Health.
 - **Concluído = entrada em «Feito».** Usa a data de resolução quando existe. Muitos fluxos não preenchem a resolução e, nesses casos, conta a data em que a issue passou para «Feito».
-- **Limites da v0.1:**
-  - Lê no máximo 1000 issues por projeto e avisa quando corta.
-  - A idade do trabalho em curso conta desde a última mudança de categoria de estado. Uma issue que volta de «Em revisão» para «Em curso» não reinicia a contagem, porque fica na mesma categoria.
-  - Uma issue que sai de «Feito» e volta a «Em curso» reinicia a contagem.
+- **O que é carregado e o que é contado:** o trabalho em curso e os concluídos nos últimos 14 dias são carregados por inteiro. O backlog é só contado, por tipo, com a contagem do próprio Jira (`/search/approximate-count`), para um backlog grande não esconder o trabalho em curso. Há um limite de segurança de 5000 tickets em curso e concluídos, só por causa do tempo de resposta.
+- **Subtarefas não contam:** só as tarefas mãe (decisão de 14/11/2026).
+- **Bloqueado inclui o backlog:** um ticket com flag no backlog conta como bloqueado; os concluídos com flag não contam (decisão de 14/11/2026).
+- **Idade do trabalho em curso:** conta desde a última mudança de categoria de estado. Voltar de «Em revisão» para «Em curso» não reinicia a contagem, porque é a mesma categoria; reabrir um ticket concluído reinicia.

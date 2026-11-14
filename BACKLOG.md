@@ -28,7 +28,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 | 4 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
 | 5 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
 | 6 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
-| ? | Limite de 1000 tickets esconde o trabalho em curso | por avaliar | | | | | | 0 € |
+| ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
 ### 1. Decidir: Flow gratuito ou pago
 
@@ -52,12 +52,15 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production, submissão (ver `marketplace/PREPARACAO.md`).
 - **Sinal de que acertámos:** a primeira instalação de alguém que não conhecemos.
 
-### Limite de 1000 tickets esconde o trabalho em curso (suspeita, por confirmar)
+### Limite de 1000 tickets esconde o trabalho em curso (confirmado e corrigido)
 
-- **Problema previsto:** com mais de 1000 tickets abertos, a app guarda os 1000 criados mais recentemente. Num projeto com muito backlog novo, os tickets em curso (mais antigos) ficam de fora e o WIP, os bloqueados e a idade aparecem a zero ou errados.
-- **Como confirmar:** `node scripts/criar-cenarios-jira.mjs --volume` no projeto de teste.
-- **Correção provável:** pedir primeiro todo o trabalho em curso e os concluídos recentes, e só contar o backlog (sem o carregar).
-- **Avaliar o CoD depois do teste.** Se se confirmar, afeta qualquer cliente com backlog grande e é provável que passe à frente da publicação.
+- **Confirmado a 14/11/2026:** com 1014 tickets no projeto de teste, o FRIDAY Flow mostrava 0 em curso e 0 bloqueados, quando havia 7 e 2.
+- **Correção:** o trabalho em curso e os concluídos recentes são carregados por inteiro; o backlog só é contado, por tipo.
+- **Decisões do Artur na mesma altura:**
+  - só as tarefas mãe contam, as subtarefas não;
+  - bloqueado no backlog conta como bloqueado;
+  - contar tudo, sem exceções.
+- **Custo no Forge:** mais alguns pedidos ao Jira por visita (um por tipo de ticket), dentro da franquia gratuita.
 
 ### 4 a 6. Módulos seguintes
 
