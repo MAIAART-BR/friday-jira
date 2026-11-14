@@ -133,6 +133,15 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   4. «WIP por responsável» retirado.
   5. Bloqueados com a parte do backlog à vista («3 · 1 no backlog»).
 
+### Ajuda junto a cada número e frase-resumo (feito, por validar pelo Artur)
+
+- **Pedido do Artur (15/11/2026):** a ajuda era uma janela com 11 secções que ninguém lê à primeira; as explicações têm de aparecer ao passar o rato.
+- **Feito:**
+  - um ícone ⓘ com dica em cada cartão, filtro, gráfico e na tabela;
+  - a janela «Sobre o FRIDAY Flow» passa a 4 secções curtas, com as fontes;
+  - uma frase no topo diz o que precisa de atenção («2 tickets estão mais lentos do que o habitual (mais de 8 dias). Comece por FRIDEMO-4.»).
+- **Por decidir:** há três períodos à vista (Concluídos 14 dias, Histórico 30 a 180 dias, Concluídos por semana 12 semanas). As dicas explicam cada um, mas unificar talvez seja mais simples.
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

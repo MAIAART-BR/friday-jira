@@ -17,11 +17,29 @@ const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.05
 // Abaixo disto, o tempo habitual é fraco: o cartão não fica vermelho (pedido dos agentes de revisão, 15/11/2026).
 const MIN_REFERENCE_ITEMS = 10;
 
-function Kpi({ label, value, alert = false, notes = [] }) {
+// Ícone ⓘ com a explicação ao passar o rato: a ajuda está onde está o número.
+function InfoTip({ text }) {
+  return (
+    <Tooltip content={text}>
+      <Icon glyph="info" label={text} size="small" color="color.icon.subtle" />
+    </Tooltip>
+  );
+}
+
+function LabelWithTip({ children, tip }) {
+  return (
+    <Inline space="space.050" alignBlock="center">
+      {children}
+      <InfoTip text={tip} />
+    </Inline>
+  );
+}
+
+function Kpi({ label, value, alert = false, notes = [], tip }) {
   return (
     <Box padding="space.150" backgroundColor={alert ? 'color.background.danger' : 'color.background.neutral'} xcss={kpiStyle}>
       <Stack space="space.050">
-        <Text size="small">{label}</Text>
+        <LabelWithTip tip={tip}><Text size="small">{label}</Text></LabelWithTip>
         <Heading size="large">{value == null ? '–' : String(value)}</Heading>
         {notes.filter(Boolean).map((n) => <Text key={n} size="small" color="color.text.subtlest">{n}</Text>)}
       </Stack>
@@ -103,7 +121,7 @@ function FilterBar({ t, boards, selectedId, onBoard, includeBacklog, onAgeFrom, 
     <Inline space="space.300" alignBlock="center" shouldWrap>
       {boards && boards.length > 0 && (
         <Inline space="space.100" alignBlock="center">
-          <Label labelFor="friday-board">{t.boardLabel}</Label>
+          <LabelWithTip tip={t.tipBoard}><Label labelFor="friday-board">{t.boardLabel}</Label></LabelWithTip>
           <Box xcss={selectStyle}>
             <Select inputId="friday-board" appearance="subtle" spacing="compact" options={boardOptions}
               value={boardOptions.find((o) => o.value === selectedId) || null} onChange={(o) => o && onBoard(o.value)} isSearchable={boards.length > 5} />
@@ -111,14 +129,14 @@ function FilterBar({ t, boards, selectedId, onBoard, includeBacklog, onAgeFrom, 
         </Inline>
       )}
       <Inline space="space.100" alignBlock="center">
-        <Text weight="bold">{t.ageFromLabel}</Text>
+        <LabelWithTip tip={t.tipAge}><Text weight="bold">{t.ageFromLabel}</Text></LabelWithTip>
         <ButtonGroup label={t.ageFromLabel}>
           <Button isSelected={!includeBacklog} onClick={() => onAgeFrom(false)}>{t.ageFromStart}</Button>
           <Button isSelected={includeBacklog} onClick={() => onAgeFrom(true)}>{t.ageFromCreated}</Button>
         </ButtonGroup>
       </Inline>
       <Inline space="space.100" alignBlock="center">
-        <Label labelFor="friday-reference">{t.refLabel}</Label>
+        <LabelWithTip tip={t.tipHistory}><Label labelFor="friday-reference">{t.refLabel}</Label></LabelWithTip>
         <Box xcss={refSelectStyle}>
           <Select inputId="friday-reference" appearance="subtle" spacing="compact" options={refOptions}
             value={refOptions.find((o) => o.value === referenceDays)} onChange={(o) => o && onReference(o.value)} />
@@ -263,6 +281,15 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
   const byType = isBoard ? [] : view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
   const weeks = (view.throughput || []).map((w) => ({ label: t.weekLabel(w.week), count: w.count }));
 
+  // Frase-resumo: o que precisa de atenção, em linguagem simples.
+  const firstSlow = aging.rows.find((r) => r.above);
+  let summary;
+  if (k.wip === 0) summary = t.summaryNoWip;
+  else if (!hasRef) summary = t.summaryNoRef;
+  else if (aging.above > 0 && firstSlow) summary = t.summarySlow(aging.above, limit, firstSlow.key);
+  else summary = t.summaryOk(limit);
+  if (k.blocked?.total > 0) summary += t.summaryBlocked(k.blocked.total);
+
   let refLine;
   if (!includeBacklog && !isBoard) refLine = t.refNoBoard;
   else if (!hasRef) refLine = t.refNone(referenceDays);
@@ -271,14 +298,16 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
 
   return (
     <Stack space="space.300">
+      <Heading size="medium">{summary}</Heading>
       <Inline space="space.150" shouldWrap>
-        <Kpi label={t.kpiWip} value={k.wip} notes={[isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null]} />
+        <Kpi label={t.kpiWip} value={k.wip} tip={t.tipWip(isBoard ? view.workflow?.start : null, view.workflow?.end)}
+          notes={[isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null]} />
         <Kpi label={t.kpiAbove} value={hasRef ? aging.above : null} alert={aboveAlert}
-          notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, hasRef ? t.kpiAboveExplain : null,
-            aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
-        <Kpi label={t.kpiBlocked} value={k.blocked ? k.blocked.total : null} alert={k.blocked?.total > 0}
+          tip={hasRef ? t.tipSlower(limit, referenceDays) : t.tipSlowerNone}
+          notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
+        <Kpi label={t.kpiBlocked} value={k.blocked ? k.blocked.total : null} alert={k.blocked?.total > 0} tip={t.tipBlocked}
           notes={[k.blocked ? t.blockedInBacklog(k.blocked.backlog) : t.noFlaggedShort, k.blocked?.total > 0 ? t.needsAttention : null]} />
-        <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
+        <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} tip={t.tipDone(k.doneWindowDays)} />
       </Inline>
 
       {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}
@@ -291,26 +320,24 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
       <Inline space="space.300" shouldWrap>
         <Box xcss={chartStyle}>
           <Stack space="space.100">
-            <Heading size="small">{isBoard ? t.ageByColumn : t.byType}</Heading>
+            <LabelWithTip tip={isBoard ? t.tipAgeChart : t.tipByType}><Heading size="small">{isBoard ? t.ageByColumn : t.byType}</Heading></LabelWithTip>
             {isBoard && bandData && <StackBarChart data={bandData} xAccessor="column" yAccessor="count" colorAccessor="band" height={260} />}
             {isBoard && !bandData && (countData.length ? <BarChart data={countData} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noWip}</Text>)}
             {!isBoard && (byType.length ? <BarChart data={byType} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>)}
-            <Text size="small" color="color.text.subtlest">{isBoard ? t.ageByColumnHelp : t.byTypeHelp}</Text>
             {isBoard && <Text size="small">{view.backlogCount == null ? t.backlogUnknown : t.backlogNote(view.backlogCount)}</Text>}
             {overLimit.map((c) => <Text key={c.name} size="small">{t.overLimit(c.name, c.count, c.max)}</Text>)}
           </Stack>
         </Box>
         <Box xcss={chartStyle}>
           <Stack space="space.100">
-            <Heading size="small">{t.throughputTitle}</Heading>
+            <LabelWithTip tip={t.tipThroughput}><Heading size="small">{t.throughputTitle}</Heading></LabelWithTip>
             <BarChart data={weeks} xAccessor="label" yAccessor="count" height={260} />
-            <Text size="small" color="color.text.subtlest">{t.throughputHelp}</Text>
           </Stack>
         </Box>
       </Inline>
 
       <Stack space="space.100">
-        <Heading size="small">{t.oldestWip}</Heading>
+        <LabelWithTip tip={t.tipTable}><Heading size="small">{t.oldestWip}</Heading></LabelWithTip>
         <Text>{refLine}</Text>
         <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} isBoard={isBoard} />
       </Stack>
