@@ -87,6 +87,8 @@ Opções do fluxo:
 
 ## O que falta para vender (módulo 1)
 
+Textos da listagem, privacidade, termos e o guia do que falta: pasta [`marketplace/`](marketplace/PREPARACAO.md).
+
 - [ ] Testar num site Jira real: quadro Kanban e quadro Scrum, projeto com mais de 1000 issues, site sem o campo «Flagged».
 - [ ] Conta de parceiro no Marketplace e escolha do nome. «FRIDAY» pode já estar em uso no Marketplace; verificar antes de criar a listagem.
 - [ ] Política de privacidade, termos (EULA), página de suporte e contacto de segurança. São obrigatórios na listagem.
