@@ -81,6 +81,13 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - um seletor de quadro mais moderno e limpo.
 - **Custo no Forge:** um pedido a mais por visita (histórico em lote). Se o lote falhar, há um pedido por ticket em curso, no máximo 8 em paralelo. Continua dentro da franquia gratuita.
 
+### Idade com ou sem o tempo no backlog (feito, por testar no Jira)
+
+- **Decisão do Artur (14/11/2026):** cada pessoa escolhe se a idade conta o tempo no backlog, porque o backlog também tem custo.
+- **Como funciona:** um interruptor «Contar o tempo no backlog» junto à tabela; a escolha fica guardada por pessoa e espaço. As duas idades são calculadas de uma vez, por isso mudar o interruptor não volta a pedir dados ao Jira.
+- **Fontes da ajuda:** The Kanban Guide (sem o backlog) e Reinertsen (2009), sobre o custo das filas de espera (com o backlog).
+- **Também:** espaço por cima do título, que estava colado à barra de separadores do Jira.
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

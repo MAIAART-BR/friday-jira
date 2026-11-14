@@ -4,7 +4,7 @@ import { kvs } from '@forge/kvs';
 import { loadProjectData, checkProjectKey, SAFETY_MAX } from './jira.js';
 import { buildFlowView, DONE_WINDOW_DAYS } from './flow.js';
 import { listBoards, readBoard, loadBoardData, buildBoardView } from './board.js';
-import { countBy, wipAging, percentile } from './core/metrics.js';
+import { countBy, agingViews } from './core/metrics.js';
 
 const resolver = new Resolver();
 
@@ -41,6 +41,8 @@ export function licenseIsInactive(context) {
 
 // Quadro escolhido por cada pessoa, em cada espaço. Uma escrita só quando a pessoa muda de quadro.
 const choiceKey = (context, projectKey) => `board:${context.accountId || 'anon'}:${projectKey}`;
+// Contar o tempo no backlog na idade (escolha de cada pessoa, em cada espaço).
+const backlogTimeKey = (context, projectKey) => `agebacklog:${context.accountId || 'anon'}:${projectKey}`;
 
 function guard(context) {
   if (licenseIsInactive(context)) return { error: 'LICENSE_INACTIVE' };
@@ -53,14 +55,17 @@ resolver.define('getBoards', async ({ context }) => {
   const g = guard(context);
   if (g.error) return g;
   try {
-    const boards = await listBoards(request, g.projectKey);
+    const [boards, includeBacklog] = await Promise.all([
+      listBoards(request, g.projectKey),
+      kvs.get(backlogTimeKey(context, g.projectKey)).catch(() => undefined),
+    ]);
     const saved = boards.length ? await kvs.get(choiceKey(context, g.projectKey)).catch(() => undefined) : undefined;
     const selectedId = boards.some((b) => b.id === saved) ? saved : boards[0]?.id ?? null;
-    return { projectKey: g.projectKey, boards, selectedId };
+    return { projectKey: g.projectKey, boards, selectedId, includeBacklog: includeBacklog === true };
   } catch (e) {
     console.error(e);
     // Sem acesso aos quadros (por exemplo, um espaço que não é de software): segue sem quadro.
-    return { projectKey: g.projectKey, boards: [], selectedId: null };
+    return { projectKey: g.projectKey, boards: [], selectedId: null, includeBacklog: false };
   }
 });
 
@@ -79,7 +84,7 @@ resolver.define('getFlowView', async ({ payload, context }) => {
         truncated: data.truncated,
         limit: SAFETY_MAX,
         hasFlaggedField: data.hasFlaggedField,
-        ...buildBoardView(data, { countBy, wipAging, percentile }, new Date(), DONE_WINDOW_DAYS),
+        ...buildBoardView(data, { countBy, agingViews }, new Date(), DONE_WINDOW_DAYS),
       };
     }
     const data = await loadProjectData(request, { projectKey, doneWindowDays: DONE_WINDOW_DAYS });
@@ -95,6 +100,13 @@ resolver.define('getFlowView', async ({ payload, context }) => {
     console.error(e);
     return { error: payload?.boardId ? 'BOARD_FAILED' : 'LOAD_FAILED' };
   }
+});
+
+resolver.define('saveBacklogTime', async ({ payload, context }) => {
+  const g = guard(context);
+  if (g.error) return g;
+  await kvs.set(backlogTimeKey(context, g.projectKey), payload?.includeBacklog === true);
+  return { ok: true };
 });
 
 export const handler = resolver.getDefinitions();

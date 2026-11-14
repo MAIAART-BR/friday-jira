@@ -171,13 +171,10 @@ export async function loadBoardData(request, board, { projectKey, doneWindowDays
 }
 
 /** Vista da página a partir dos dados do quadro. */
-export function buildBoardView(data, { countBy, wipAging, percentile }, now = new Date(), doneWindowDays = 14) {
+export function buildBoardView(data, { countBy, agingViews }, now = new Date(), doneWindowDays = 14) {
   const since = new Date(now.getTime() - doneWindowDays * DAY_MS);
-  const aging = wipAging(data.wip, now);
-  const ages = aging.map((i) => i.ageDays);
   const openColumns = data.columns.filter((c) => c.category !== 'done');
   const countFailed = openColumns.some((c) => c.count === null);
-  const round1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
   return {
     columns: openColumns.map((c) => ({ name: c.name, count: c.count, wip: c.category === 'wip', max: c.max })),
     kpis: {
@@ -191,11 +188,7 @@ export function buildBoardView(data, { countBy, wipAging, percentile }, now = ne
     ageFromHistory: data.ageFromHistory !== false,
     byType: (data.openByType || []).slice().sort((a, b) => b.count - a.count || String(a.label).localeCompare(String(b.label))),
     wipByAssignee: countBy(data.wip, (i) => i.assignee),
-    agingP50: round1(percentile(ages, 50)),
-    agingP85: round1(percentile(ages, 85)),
-    oldestWip: aging.slice(0, 25).map((i) => ({
-      key: i.key, summary: i.summary, assignee: i.assignee, status: i.status, ageDays: round1(i.ageDays), flagged: i.flagged,
-    })),
+    aging: agingViews(data.wip, now),
     generatedAt: now.toISOString(),
   };
 }

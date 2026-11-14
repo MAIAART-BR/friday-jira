@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
-  Box, Inline, Stack, Heading, Text, Strong, Lozenge, Link, Spinner, SectionMessage, Select, Button,
+  Box, Inline, Stack, Heading, Text, Strong, Lozenge, Link, Spinner, SectionMessage, Select, Button, Toggle, Label,
   Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem,
   DynamicTable, BarChart, useProductContext, xcss,
 } from '@forge/react';
@@ -10,6 +10,8 @@ import { messagesFor, roundDays, daysCell } from './i18n';
 const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '120px' });
 const chartStyle = xcss({ minWidth: '320px' });
 const selectStyle = xcss({ minWidth: '240px' });
+// Espaço por cima do título: sem ele, o título fica colado à barra de separadores do Jira.
+const headerStyle = xcss({ paddingTop: 'space.300' });
 
 function Kpi({ label, value, alert = false, badge = null, note = null }) {
   return (
@@ -75,14 +77,14 @@ function HelpButton({ t }) {
   );
 }
 
-function AgingTable({ rows, siteUrl, t }) {
+function AgingTable({ rows, siteUrl, t, includeBacklog }) {
   const head = {
     cells: [
       { key: 'key', content: t.colIssue },
       { key: 'summary', content: t.colSummary },
       { key: 'assignee', content: t.colAssignee },
       { key: 'status', content: t.colStatus },
-      { key: 'age', content: t.colAge },
+      { key: 'age', content: includeBacklog ? t.colAgeCreated : t.colAge },
     ],
   };
   const tableRows = rows.map((r) => ({
@@ -104,6 +106,7 @@ function App() {
   const [boards, setBoards] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [view, setView] = useState(null);
+  const [includeBacklog, setIncludeBacklog] = useState(false);
 
   const load = (boardId, remember = false) => {
     setView(null);
@@ -118,10 +121,17 @@ function App() {
         if (r.error) { setView(r); return; }
         setBoards(r.boards || []);
         setSelectedId(r.selectedId);
+        setIncludeBacklog(r.includeBacklog === true);
         load(r.selectedId);
       })
       .catch(() => setView({ error: 'UNKNOWN' }));
   }, []);
+
+  const toggleBacklog = () => {
+    const next = !includeBacklog;
+    setIncludeBacklog(next);
+    invoke('saveBacklogTime', { includeBacklog: next }).catch(() => {});
+  };
 
   const choose = (id) => {
     if (id === selectedId) return;
@@ -135,6 +145,7 @@ function App() {
 
   return (
     <Stack space="space.300">
+      <Box xcss={headerStyle}>
       <Inline spread="space-between" alignBlock="center" shouldWrap>
         <Heading size="large">{t.title(boardName || projectKey)}</Heading>
         <Inline space="space.100" alignBlock="center">
@@ -142,20 +153,22 @@ function App() {
           <HelpButton t={t} />
         </Inline>
       </Inline>
+      </Box>
       {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
-      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} />
+      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} onToggleBacklog={toggleBacklog} />
     </Stack>
   );
 }
 
-function Body({ view, t, siteUrl }) {
+function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog }) {
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
 
   const k = view.kpis;
   const byType = view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
   const wipByAssignee = view.wipByAssignee.map((r) => ({ ...r, label: r.label ?? t.unassigned }));
-  const [a1, p50, a2, p85, a3] = t.agingSummary(t.days(roundDays(view.agingP50)), t.days(roundDays(view.agingP85)));
+  const aging = includeBacklog ? view.aging.created : view.aging.start;
+  const [a1, p50, a2, p85, a3] = t.agingSummary(t.days(roundDays(aging.p50)), t.days(roundDays(aging.p85)));
   const isBoard = view.mode === 'board';
 
   return (
@@ -203,9 +216,15 @@ function Body({ view, t, siteUrl }) {
       </Inline>
 
       <Stack space="space.100">
-        <Heading size="small">{t.oldestWip}</Heading>
+        <Inline spread="space-between" alignBlock="center" shouldWrap>
+          <Heading size="small">{t.oldestWip}</Heading>
+          <Inline space="space.050" alignBlock="center">
+            <Toggle id="friday-backlog-time" isChecked={includeBacklog} onChange={onToggleBacklog} />
+            <Label labelFor="friday-backlog-time">{t.toggleBacklog}</Label>
+          </Inline>
+        </Inline>
         <Text>{a1}<Strong>{p50}</Strong>{a2}<Strong>{p85}</Strong>{a3}</Text>
-        <AgingTable rows={view.oldestWip} siteUrl={siteUrl} t={t} />
+        <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} />
       </Stack>
     </Stack>
   );

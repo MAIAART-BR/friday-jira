@@ -142,3 +142,30 @@ function startOfWeekUTC(d) {
   const dow = (x.getUTCDay() + 6) % 7; // segunda = 0
   return new Date(x.getTime() - dow * DAY_MS);
 }
+
+/**
+ * Idade do trabalho em curso de duas formas, para o utilizador escolher:
+ *   start   — desde a entrada em curso (categoryChanged), como o «Work Item Age» do The Kanban Guide;
+ *   created — desde a criação, contando o tempo no backlog.
+ * Cada uma com mediana, P85 e as `rows` linhas mais antigas.
+ */
+export function agingViews(wip, now = new Date(), rows = 25) {
+  const round1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
+  const view = (from) => {
+    const aging = wip
+      .map((i) => ({ ...i, ageDays: daysBetween(from(i), now) }))
+      .sort((a, b) => b.ageDays - a.ageDays);
+    const ages = aging.map((i) => i.ageDays);
+    return {
+      p50: round1(percentile(ages, 50)),
+      p85: round1(percentile(ages, 85)),
+      rows: aging.slice(0, rows).map((i) => ({
+        key: i.key, summary: i.summary, assignee: i.assignee, status: i.status, ageDays: round1(i.ageDays), flagged: i.flagged,
+      })),
+    };
+  };
+  return {
+    start: view((i) => i.categoryChanged || i.created),
+    created: view((i) => i.created || i.categoryChanged),
+  };
+}

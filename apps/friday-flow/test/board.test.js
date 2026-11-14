@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy, columnCategory, startedAt, fetchStatusHistories } from '../src/board.js';
-import { countBy, wipAging, percentile } from '../src/core/metrics.js';
+import { countBy, agingViews } from '../src/core/metrics.js';
 
 const NOW = new Date('2026-11-14T00:00:00Z');
 const response = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body, text: async () => JSON.stringify(body) });
@@ -128,7 +128,7 @@ test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', a
   const { request, calls } = fakeJira({ wip, done, counts });
   const board = await readBoard(request, 1);
   const data = await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 });
-  const v = buildBoardView(data, { countBy, wipAging, percentile }, NOW, 14);
+  const v = buildBoardView(data, { countBy, agingViews }, NOW, 14);
 
   assert.deepEqual(v.columns, [
     { name: 'Backlog', count: 1004, wip: false, max: null },
@@ -138,7 +138,7 @@ test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', a
   assert.equal(v.wipColumnCount, 2);
   assert.deepEqual(v.kpis, { wip: 7, blocked: 2, doneRecent: 1, doneWindowDays: 14 });
   assert.deepEqual(v.byType, [{ label: 'Task', count: 1009 }, { label: 'Bug', count: 1 }, { label: 'Sub-task', count: 1 }]);
-  assert.equal(v.oldestWip.length, 7);
+  assert.equal(v.aging.start.rows.length, 7);
   assert.equal(v.countFailed, false);
 
   // Todas as pesquisas usam o filtro do quadro; nenhuma tem o ORDER BY do filtro a meio.
@@ -154,7 +154,7 @@ test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', a
 test('se uma contagem falhar, mostra «–» e avisa', async () => {
   const { request } = fakeJira({ failCount: true });
   const board = await readBoard(request, 1);
-  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, wipAging, percentile }, NOW, 14);
+  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews }, NOW, 14);
   assert.equal(v.columns[0].count, null);
   assert.equal(v.countFailed, true);
 });
@@ -193,7 +193,8 @@ test('a idade na vista vem do histórico', async () => {
   const histories = { 1001: [{ created: '2026-11-04T00:00:00Z', items: [{ fieldId: 'status', from: '10000', to: '10001' }] }] };
   const { request } = fakeJira({ wip, histories, counts: { 'status in (10000)': 0 } });
   const board = await readBoard(request, 1);
-  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, wipAging, percentile }, NOW, 14);
-  assert.equal(v.oldestWip[0].ageDays, 10); // desde 4/11 (entrada em Selected), não 1 dia (mudança de categoria)
+  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews }, NOW, 14);
+  assert.equal(v.aging.start.rows[0].ageDays, 10);
+  assert.equal(v.aging.created.rows[0].ageDays, 44); // com o backlog: desde a criação, 1/10 // desde 4/11 (entrada em Selected), não 1 dia (mudança de categoria)
   assert.equal(v.ageFromHistory, true);
 });

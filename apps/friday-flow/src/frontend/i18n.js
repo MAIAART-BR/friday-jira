@@ -14,7 +14,8 @@ const en = {
   helpReferences: 'References',
   helpSections: [
     ['Work in progress (WIP)', '“Work started but not finished” (Vacanti & Coleman, 2025). In FRIDAY Flow, WIP is every work item in the columns between the first column (backlog) and the last one (done) of the selected board. We do not use Jira’s status categories for this: a column such as “Selected for Development” is To Do in Jira, but the team has already committed to that work.'],
-    ['Work item age', '“Time since start for an unfinished item” (Vacanti & Coleman, 2025). In FRIDAY Flow, age counts from the last time the work item moved into a WIP column, read from its history. Reopening a done item starts its age again.'],
+    ['Work item age', '“Time since start for an unfinished item” (Vacanti & Coleman, 2025). By default, FRIDAY Flow counts age from the last time the work item moved into a WIP column, read from its history; reopening a done item starts its age again. Age stops when the item reaches the last column.'],
+    ['Include time in backlog', 'Some teams count age from the moment a work item is created, because work waiting in the backlog also has a cost: invisible, unmanaged queues are a root cause of poor product development performance (Reinertsen, 2009). Turn on “Include time in backlog” to count from creation. Each person chooses, and the choice is remembered in each space.'],
     ['Median and P85', 'Half of the work in progress is at most the median age; 85% is at most the P85 age. Items older than the P85 are the first ones to look at.'],
     ['Why WIP matters', 'Little’s Law: in a stable system, the average number of items in the system equals the average arrival rate times the average time each item spends in it (Little, 1961, 2011). With the same delivery rate, more work in progress means each item takes longer to finish.'],
     ['Blocked', 'Work items flagged in Jira, in any column except the last one.'],
@@ -24,6 +25,7 @@ const en = {
   helpRefs: [
     'Little, J. D. C. (1961). A proof for the queuing formula: L = λW. Operations Research, 9(3), 383–387. https://doi.org/10.1287/opre.9.3.383',
     'Little, J. D. C. (2011). Little’s law as viewed on its 50th anniversary. Operations Research, 59(3), 536–549. https://doi.org/10.1287/opre.1110.0940',
+    'Reinertsen, D. G. (2009). The principles of product development flow: Second generation lean product development. Celeritas Publishing.',
     'Vacanti, D., & Coleman, J. (2025). The Kanban Guide (May 2025). https://kanbanguides.org/',
   ],
   boardLabel: 'Board',
@@ -52,6 +54,8 @@ const en = {
   colAssignee: 'Assignee',
   colStatus: 'Status',
   colAge: 'Days in progress',
+  colAgeCreated: 'Days since created',
+  toggleBacklog: 'Include time in backlog',
   blocked: 'Blocked',
   emptyTable: 'No work in progress.',
   days: (n) => (n == null ? '–' : n < 1 ? 'less than 1 day' : n === 1 ? '1 day' : `${n} days`),
@@ -77,7 +81,8 @@ const pt = {
   helpReferences: 'Referências',
   helpSections: [
     ['Trabalho em curso (WIP)', '«Trabalho começado mas não terminado» (Vacanti & Coleman, 2025). No FRIDAY Flow, o WIP é tudo o que está nas colunas entre a primeira (backlog) e a última (concluído) do quadro escolhido. Não usamos as categorias de estado do Jira: uma coluna como «Selected for Development» está em «A fazer» no Jira, mas a equipa já se comprometeu com esse trabalho.'],
-    ['Idade do item', '«Tempo desde o início, para um item não terminado» (Vacanti & Coleman, 2025). No FRIDAY Flow, a idade conta desde a última vez que o ticket entrou numa coluna de WIP, lida no histórico do ticket. Reabrir um ticket concluído recomeça a idade.'],
+    ['Idade do item', '«Tempo desde o início, para um item não terminado» (Vacanti & Coleman, 2025). Por omissão, o FRIDAY Flow conta a idade desde a última vez que o ticket entrou numa coluna de WIP, lida no histórico do ticket; reabrir um ticket concluído recomeça a idade. A idade para quando o ticket chega à última coluna.'],
+    ['Contar o tempo no backlog', 'Algumas equipas contam a idade desde a criação do ticket, porque o trabalho à espera no backlog também tem custo: filas de espera invisíveis e mal geridas são uma causa de fundo do mau desempenho no desenvolvimento de produto (Reinertsen, 2009). Ligue «Contar o tempo no backlog» para contar desde a criação. Cada pessoa escolhe, e a escolha fica guardada em cada espaço.'],
     ['Mediana e P85', 'Metade do trabalho em curso tem até a idade mediana; 85% tem até a idade P85. Os itens mais velhos do que o P85 são os primeiros a olhar.'],
     ['Porque o WIP importa', 'Lei de Little: num sistema estável, o número médio de itens no sistema é igual à taxa média de chegada vezes o tempo médio que cada item lá passa (Little, 1961, 2011). Com a mesma taxa de entrega, mais trabalho em curso faz cada item demorar mais a terminar.'],
     ['Bloqueado', 'Tickets com «Flagged» no Jira, em qualquer coluna exceto a última.'],
@@ -87,6 +92,7 @@ const pt = {
   helpRefs: [
     'Little, J. D. C. (1961). A proof for the queuing formula: L = λW. Operations Research, 9(3), 383–387. https://doi.org/10.1287/opre.9.3.383',
     'Little, J. D. C. (2011). Little’s law as viewed on its 50th anniversary. Operations Research, 59(3), 536–549. https://doi.org/10.1287/opre.1110.0940',
+    'Reinertsen, D. G. (2009). The principles of product development flow: Second generation lean product development. Celeritas Publishing.',
     'Vacanti, D., & Coleman, J. (2025). The Kanban Guide (May 2025). https://kanbanguides.org/',
   ],
   boardLabel: 'Quadro',
@@ -115,6 +121,8 @@ const pt = {
   colAssignee: 'Responsável',
   colStatus: 'Estado',
   colAge: 'Dias em curso',
+  colAgeCreated: 'Dias desde a criação',
+  toggleBacklog: 'Contar o tempo no backlog',
   blocked: 'Bloqueado',
   emptyTable: 'Não há trabalho em curso.',
   days: (n) => (n == null ? '–' : n < 1 ? 'menos de 1 dia' : n === 1 ? '1 dia' : `${n} dias`),

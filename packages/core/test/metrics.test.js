@@ -108,3 +108,19 @@ test('throughputByWeek inclui semanas a zero e respeita os limites', () => {
     { week: '2026-11-09', count: 1 },
   ]);
 });
+
+test('agingViews: idade desde a entrada em curso ou desde a criação, com ordem própria', async () => {
+  const { agingViews } = await import('../src/metrics.js');
+  const now = new Date('2026-11-14T00:00:00Z');
+  const wip = [
+    // A: criado há 60 dias, em curso há 2 · B: criado há 10, em curso há 9
+    issue('A', 'wip', { created: new Date('2026-09-15T00:00:00Z'), categoryChanged: new Date('2026-11-12T00:00:00Z') }),
+    issue('B', 'wip', { created: new Date('2026-11-04T00:00:00Z'), categoryChanged: new Date('2026-11-05T00:00:00Z') }),
+  ];
+  const v = agingViews(wip, now);
+  assert.deepEqual(v.start.rows.map((r) => [r.key, r.ageDays]), [['B', 9], ['A', 2]]);
+  assert.deepEqual(v.created.rows.map((r) => [r.key, r.ageDays]), [['A', 60], ['B', 10]]);
+  assert.equal(v.start.p85, 9);
+  assert.equal(v.created.p50, 10);
+  assert.deepEqual(agingViews([], now).start, { p50: null, p85: null, rows: [] });
+});

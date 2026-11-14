@@ -9,7 +9,7 @@ This policy explains what data the FRIDAY Flow app for Jira Cloud ("the app") pr
 
 - The app runs entirely on Atlassian's Forge platform. It does not send data to any server outside Atlassian.
 - The app does not store your work items. It reads them when you open the page and discards them once the page is built.
-- The only thing it stores is which board each person last chose in each space (see "What the app stores").
+- The only things it stores are two display choices per person and space: the selected board and whether age includes time in backlog (see "What the app stores").
 - The app uses no cookies, analytics or tracking of its own.
 
 ## What the app reads
@@ -32,9 +32,10 @@ It does not read comments, descriptions, attachments, worklogs or user email add
 
 ## What the app stores
 
-For each person and each Jira space, the app stores the ID of the board that person last selected in FRIDAY Flow,
-together with that person's Atlassian account ID, so the page opens on the same board next time. It is stored in
-Forge storage, on Atlassian's infrastructure, and is written only when the person changes board. Nothing else is stored.
+For each person and each Jira space, the app stores two display choices, together with that person's Atlassian
+account ID, so the page opens the same way next time: the ID of the board last selected in FRIDAY Flow, and whether
+the person chose to include time in backlog in work item age. They are stored in Forge storage, on Atlassian's
+infrastructure, and are written only when the person changes one of them. Nothing else is stored.
 
 ## How the data is used
 
@@ -54,7 +55,7 @@ for how Atlassian handles data: https://www.atlassian.com/legal/privacy-policy
 
 ## Your rights
 
-The only personal data the app stores is your Atlassian account ID next to the board you last selected. To have it
+The only personal data the app stores is your Atlassian account ID next to your two display choices. To have it
 deleted, write to [SUPPORT_EMAIL]; it is also removed when the app is uninstalled, under Atlassian's Forge data
 retention rules.
 

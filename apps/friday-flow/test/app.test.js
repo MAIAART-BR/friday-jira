@@ -84,7 +84,7 @@ test('defeito dos 1000: um backlog grande e recente já não esconde o trabalho 
   assert.deepEqual(v.kpis, { open: 1011, backlog: 1004, wip: 7, blocked: 2, doneRecent: 2, doneWindowDays: 14 });
   assert.deepEqual(v.byType, [{ label: 'Story', count: 1009 }, { label: 'Bug', count: 2 }]);
   assert.deepEqual(v.wipByAssignee, [{ label: 'Ana', count: 6 }, { label: null, count: 1 }]);
-  assert.equal(v.oldestWip.length, 7);
+  assert.equal(v.aging.start.rows.length, 7);
   assert.equal(v.backlogUnavailable, false);
   assert.equal(data.truncated, false);
 });

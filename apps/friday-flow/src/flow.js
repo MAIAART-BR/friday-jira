@@ -1,8 +1,7 @@
 // Monta os dados da página «FRIDAY Flow» a partir do que jira.js carregou e contou.
-import { countBy, wipAging, percentile } from './core/metrics.js';
+import { countBy, agingViews } from './core/metrics.js';
 
 export const DONE_WINDOW_DAYS = 14;
-const AGING_ROWS = 25;
 const DAY_MS = 86400000;
 
 /**
@@ -12,8 +11,6 @@ const DAY_MS = 86400000;
 export function buildFlowView({ wip, done, backlogByType, blockedBacklog }, now = new Date()) {
   const since = new Date(now.getTime() - DONE_WINDOW_DAYS * DAY_MS);
   const backlog = backlogByType ? backlogByType.reduce((s, r) => s + r.count, 0) : null;
-  const aging = wipAging(wip, now);
-  const ages = aging.map((i) => i.ageDays);
 
   // Em aberto por tipo = em curso (carregados) + backlog (contado), somados por nome de tipo.
   const byTypeMap = new Map();
@@ -37,20 +34,8 @@ export function buildFlowView({ wip, done, backlogByType, blockedBacklog }, now 
     // Sem a contagem do backlog, o gráfico só teria o trabalho em curso: melhor não o mostrar.
     byType: backlogByType ? byType : [],
     wipByAssignee: countBy(wip, (i) => i.assignee),
-    agingP50: round1(percentile(ages, 50)),
-    agingP85: round1(percentile(ages, 85)),
-    oldestWip: aging.slice(0, AGING_ROWS).map((i) => ({
-      key: i.key,
-      summary: i.summary,
-      assignee: i.assignee,
-      status: i.status,
-      ageDays: round1(i.ageDays),
-      flagged: i.flagged,
-    })),
+    aging: agingViews(wip, now),
     generatedAt: now.toISOString(),
   };
 }
 
-function round1(x) {
-  return x == null ? null : Math.round(x * 10) / 10;
-}
