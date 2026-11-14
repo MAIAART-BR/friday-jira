@@ -70,7 +70,7 @@ test('do Jira à vista: KPIs, gráficos e envelhecimento', async () => {
   const v = buildFlowView(issues, new Date('2026-11-14T00:00:00Z'));
   assert.deepEqual(v.kpis, { open: 3, backlog: 1, wip: 2, blocked: 1, doneRecent: 2, doneWindowDays: 14 });
   assert.deepEqual(v.byType, [{ label: 'Story', count: 3 }]);
-  assert.deepEqual(v.wipByAssignee, [{ label: 'Ana', count: 1 }, { label: 'Sem responsável', count: 1 }]);
+  assert.deepEqual(v.wipByAssignee, [{ label: 'Ana', count: 1 }, { label: null, count: 1 }]);
   assert.deepEqual(v.oldestWip.map((r) => [r.key, r.ageDays, r.flagged]), [['FRI-2', 13, true], ['FRI-3', 1, false]]);
   assert.equal(v.agingP85, 13);
 });

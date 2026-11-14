@@ -28,7 +28,8 @@ test('normalizeIssue mapeia categorias, flag e URL', () => {
   };
   const n = normalizeIssue(raw, { flaggedFieldId: 'customfield_10021', siteUrl: 'https://x.atlassian.net/' });
   assert.equal(n.category, 'wip');
-  assert.equal(n.assignee, 'Sem responsável');
+  assert.equal(n.assignee, null);
+  assert.equal(normalizeIssue({ key: 'A', fields: {} }).type, null);
   assert.equal(n.flagged, true);
   assert.equal(n.url, 'https://x.atlassian.net/browse/FRI-1');
   assert.equal(normalizeIssue({ key: 'A', fields: { status: { statusCategory: { key: 'new' } } } }).category, 'backlog');
@@ -65,6 +66,11 @@ test('currentState conta backlog, WIP, bloqueados abertos e concluídos na janel
   assert.deepEqual(currentState(issues, NOW), {
     open: 3, backlog: 1, wip: 2, blocked: 1, doneRecent: 1, doneWindowDays: 14,
   });
+});
+
+test('countBy põe «sem valor» no fim dos empates', () => {
+  const r = countBy([issue('A', 'wip', { assignee: null }), issue('B', 'wip', { assignee: 'Zé' }), issue('C', 'wip', { assignee: 'Ana' })], (i) => i.assignee);
+  assert.deepEqual(r, [{ label: 'Ana', count: 1 }, { label: 'Zé', count: 1 }, { label: null, count: 1 }]);
 });
 
 test('countBy ordena por contagem e depois por nome', () => {

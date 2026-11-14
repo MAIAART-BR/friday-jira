@@ -16,8 +16,9 @@ export function normalizeIssue(raw, opts = {}) {
   return {
     key: raw.key,
     summary: f.summary || '',
-    type: f.issuetype?.name || 'Sem tipo',
-    assignee: f.assignee?.displayName || 'Sem responsável',
+    // null = sem tipo / sem responsável. O texto a mostrar é escolhido no ecrã, na língua do utilizador.
+    type: f.issuetype?.name || null,
+    assignee: f.assignee?.displayName || null,
     status: f.status?.name || '',
     category: categoryOf(f.status?.statusCategory?.key),
     created: toDate(f.created),
@@ -82,16 +83,18 @@ export function currentState(issues, now = new Date(), { doneWindowDays = 14 } =
   return { open: backlog + wip, backlog, wip, blocked, doneRecent, doneWindowDays };
 }
 
-/** Contagem por chave, ordenada por quantidade (desc) e depois pelo nome. */
+/** Contagem por chave, ordenada por quantidade (desc), com «sem valor» (null) no fim dos empates e depois pelo nome. */
 export function countBy(issues, keyFn) {
   const counts = new Map();
   for (const i of issues) {
-    const k = keyFn(i);
+    const k = keyFn(i) ?? null;
     counts.set(k, (counts.get(k) || 0) + 1);
   }
   return [...counts.entries()]
     .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+    .sort((a, b) => b.count - a.count
+      || (a.label === null) - (b.label === null)
+      || String(a.label).localeCompare(String(b.label)));
 }
 
 /**

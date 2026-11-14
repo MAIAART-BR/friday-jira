@@ -25,9 +25,9 @@ export function licenseIsInactive(context) {
 }
 
 resolver.define('getFlowView', async ({ context }) => {
-  if (licenseIsInactive(context)) return { error: 'A licença do FRIDAY Flow não está ativa neste site.' };
+  if (licenseIsInactive(context)) return { error: 'LICENSE_INACTIVE' };
   const projectKey = context?.extension?.project?.key;
-  if (!projectKey) return { error: 'Abra o FRIDAY a partir de um projeto do Jira.' };
+  if (!projectKey) return { error: 'NO_PROJECT' };
   try {
     const { issues, truncated, hasFlaggedField } = await loadProjectIssues(request, {
       projectKey,
@@ -36,7 +36,7 @@ resolver.define('getFlowView', async ({ context }) => {
     return { projectKey, truncated, hasFlaggedField, ...buildFlowView(issues) };
   } catch (e) {
     console.error(e);
-    return { error: 'Não foi possível ler as issues do projeto. Tente de novo dentro de momentos.' };
+    return { error: 'LOAD_FAILED' };
   }
 });
 

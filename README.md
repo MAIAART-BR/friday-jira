@@ -76,7 +76,7 @@ No fim, abra o projeto no Jira e escolha **FRIDAY Flow** no menu lateral.
 - [ ] Política de privacidade, termos (EULA), página de suporte e contacto de segurança. São obrigatórios na listagem.
 - [ ] Preço (Paid via Atlassian). O preço é por número de utilizadores do site, em escalões.
 - [ ] Ícone, capturas de ecrã e textos da listagem, em inglês.
-- [ ] Tradução do ecrã para inglês. Hoje está só em português.
+- [x] Ecrã em inglês e português, escolhido pela língua do perfil de cada utilizador no Jira (`src/frontend/i18n.js`).
 
 ## Decisões técnicas
 
