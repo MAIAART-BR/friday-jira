@@ -5,6 +5,8 @@ Versão para Jira do [FRIDAY](https://github.com/MAIAART-BR/FRIDAY), que lê Bus
 
 © Artur Castro. Todos os direitos reservados.
 
+Prioridades e decisões: [`BACKLOG.md`](BACKLOG.md). Nada é implementado sem estar lá.
+
 ## Módulos
 
 Cada módulo é uma app Forge própria, com listagem e preço próprios no Marketplace. O cliente compra só o que quer.
