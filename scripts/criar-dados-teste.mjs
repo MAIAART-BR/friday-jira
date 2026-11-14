@@ -7,6 +7,13 @@ const email = (process.env.JIRA_EMAIL || '').trim();
 const token = process.env.JIRA_TOKEN || '';
 const projectKey = (process.env.PROJECT_KEY || 'FRIDEMO').trim().toUpperCase();
 const LABEL = 'friday-teste';
+const WAIT_TRIES = Number(process.env.WAIT_TRIES || 20);
+const WAIT_MS = Number(process.env.WAIT_MS || 30000);
+
+function isSiteStarting(r) {
+  const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data || '');
+  return !r.ok && (r.status === 404 || r.status === 503) && /temporarily unavailable/i.test(text);
+}
 
 if (!site || !email || !token) {
   console.error('Faltam JIRA_SITE, JIRA_EMAIL ou JIRA_TOKEN.');
@@ -50,7 +57,20 @@ const PLAN = [
 async function main() {
   console.log(`Site: ${base} · Projeto: ${projectKey}`);
 
-  const me = await jira('GET', '/rest/api/3/myself');
+  // Um site acabado de criar responde «Site temporarily unavailable» durante alguns minutos.
+  let me = await jira('GET', '/rest/api/3/myself');
+  for (let tentativa = 1; isSiteStarting(me) && tentativa <= WAIT_TRIES; tentativa += 1) {
+    if (tentativa === 1) console.log('O site ainda não está disponível (se acabou de ser criado, é normal). Vou esperar até 10 minutos...');
+    console.log(`  à espera... (${tentativa}/${WAIT_TRIES})`);
+    await new Promise((r) => setTimeout(r, WAIT_MS));
+    me = await jira('GET', '/rest/api/3/myself');
+  }
+  if (isSiteStarting(me)) {
+    console.error(`\n✗ O site ${base} continua indisponível.`);
+    console.error('  Abra esse endereço no browser. Se não abrir, o endereço está errado ou o site ainda não foi criado.');
+    console.error('  Quando abrir no browser, corra o script de novo e escreva esse endereço (não carregue em Enter).');
+    process.exit(1);
+  }
   if (!me.ok) fail('Ler o utilizador', me);
   console.log(`✓ Ligado como ${me.data.displayName}`);
 
