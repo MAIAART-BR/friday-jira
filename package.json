@@ -5,6 +5,6 @@
   "description": "FRIDAY para Jira: métricas de fluxo por módulos (apps Forge).",
   "scripts": {
     "sync-core": "node scripts/sync-core.mjs",
-    "test": "node scripts/sync-core.mjs --check && npm test --prefix packages/core && npm test --prefix apps/friday-flow && node --test scripts/validar-csv.test.mjs"
+    "test": "node scripts/sync-core.mjs --check && npm test --prefix packages/core && npm test --prefix apps/friday-flow && node --test scripts/validar-csv.test.mjs scripts/cenarios-csv.test.mjs"
   }
 }

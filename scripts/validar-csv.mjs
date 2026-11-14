@@ -206,7 +206,7 @@ function main() {
   const s = summarize(cards, now, opts.window);
 
   console.log(`\nCartões: ${s.total} · Backlog ${s.backlog} · Em curso ${s.wip} · Bloqueados ${s.blocked} · Concluídos ${s.doneTotal} (${s.doneRecent} nos últimos ${opts.window} dias)`);
-  if (badDates) console.log(`⚠ ${badDates} datas não foram reconhecidas. Se forem mês/dia/ano, use --us-dates.`);
+  if (badDates) console.log(`⚠ ${badDates === 1 ? '1 data não foi reconhecida' : `${badDates} datas não foram reconhecidas`}. Se as datas forem mês/dia/ano, use --us-dates.`);
   console.log('\nIdade do trabalho em curso (dias desde o início):');
   console.log(`  Mediana ${round1(s.agingP50)} · P85 ${round1(s.agingP85)}`);
   console.log(`Cycle time dos concluídos (início → fim, ${s.cycleCount} cartões):`);
