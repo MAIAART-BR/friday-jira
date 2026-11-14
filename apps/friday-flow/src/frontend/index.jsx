@@ -1,33 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
-  Box, Inline, Stack, Heading, Text, Lozenge, Link, Spinner, SectionMessage, Select, Button, ButtonGroup,
+  Box, Inline, Stack, Heading, Text, Lozenge, Link, Spinner, SectionMessage, Select, Button, ButtonGroup, Label,
   Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem, Icon, Pressable, Tooltip,
-  DynamicTable, BarChart, useProductContext, xcss,
+  DynamicTable, BarChart, StackBarChart, useProductContext, xcss,
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 import { messagesFor, roundDays, daysCell } from './i18n';
 
-const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '150px' });
-const chartStyle = xcss({ minWidth: '320px' });
-const selectStyle = xcss({ minWidth: '240px' });
+const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '170px' });
+const chartStyle = xcss({ minWidth: '340px' });
+const selectStyle = xcss({ minWidth: '220px' });
+const refSelectStyle = xcss({ minWidth: '160px' });
 // Espaço por cima do título: sem ele, o título fica colado à barra de separadores do Jira.
 const headerStyle = xcss({ paddingTop: 'space.300' });
-const refSelectStyle = xcss({ minWidth: '170px' });
 const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.050', backgroundColor: 'color.background.neutral.subtle' });
+// Abaixo disto, a referência é fraca: o cartão não fica vermelho (pedido dos agentes de revisão, 15/11/2026).
+const MIN_REFERENCE_ITEMS = 10;
 
-function Kpi({ label, value, alert = false, note = null }) {
+function Kpi({ label, value, alert = false, notes = [] }) {
   return (
     <Box padding="space.150" backgroundColor={alert ? 'color.background.danger' : 'color.background.neutral'} xcss={kpiStyle}>
       <Stack space="space.050">
         <Text size="small">{label}</Text>
         <Heading size="large">{value == null ? '–' : String(value)}</Heading>
-        {note && <Text size="small" color="color.text.subtlest">{note}</Text>}
+        {notes.filter(Boolean).map((n) => <Text key={n} size="small" color="color.text.subtlest">{n}</Text>)}
       </Stack>
     </Box>
   );
 }
 
-// Botão-ícone com dica ao passar o rato.
 function IconButton({ glyph, label, onClick }) {
   return (
     <Tooltip content={label}>
@@ -38,22 +39,6 @@ function IconButton({ glyph, label, onClick }) {
   );
 }
 
-// Seletor de quadro no cabeçalho, à direita do título: discreto mas sempre à vista.
-function BoardPicker({ boards, selectedId, onChange, t }) {
-  const options = boards.map((b) => ({ label: b.name, value: b.id }));
-  const value = options.find((o) => o.value === selectedId) || null;
-  return (
-    <Inline space="space.100" alignBlock="center">
-      <Text color="color.text.subtlest">{t.boardLabel}</Text>
-      <Box xcss={selectStyle}>
-        <Select inputId="friday-board" appearance="subtle" spacing="compact" options={options} value={value}
-          onChange={(o) => o && onChange(o.value)} isSearchable={boards.length > 5} />
-      </Box>
-    </Inline>
-  );
-}
-
-// Ajuda: definições e fontes.
 function HelpModal({ t, onClose }) {
   return (
     <Modal onClose={onClose} label={t.helpTitle}>
@@ -79,7 +64,6 @@ function HelpModal({ t, onClose }) {
   );
 }
 
-// Definição do fluxo: onde o trabalho começa e acaba neste quadro (para toda a equipa).
 function WorkflowModal({ t, workflow, onSave, onReset, onClose }) {
   const options = workflow.columns.map((name) => ({ label: name, value: name }));
   const [start, setStart] = useState(workflow.start);
@@ -92,11 +76,11 @@ function WorkflowModal({ t, workflow, onSave, onReset, onClose }) {
         <Stack space="space.200">
           <Text>{t.settingsIntro}</Text>
           <Stack space="space.050">
-            <Text weight="medium">{t.settingsStart}</Text>
+            <Label labelFor="friday-wf-start">{t.settingsStart}</Label>
             <Select inputId="friday-wf-start" options={options} value={options.find((o) => o.value === start)} onChange={(o) => o && setStart(o.value)} />
           </Stack>
           <Stack space="space.050">
-            <Text weight="medium">{t.settingsEnd}</Text>
+            <Label labelFor="friday-wf-end">{t.settingsEnd}</Label>
             <Select inputId="friday-wf-end" options={options} value={options.find((o) => o.value === end)} onChange={(o) => o && setEnd(o.value)} />
           </Stack>
           {!valid && <SectionMessage appearance="warning"><Text>{t.settingsInvalid}</Text></SectionMessage>}
@@ -111,13 +95,46 @@ function WorkflowModal({ t, workflow, onSave, onReset, onClose }) {
   );
 }
 
-function AgingTable({ rows, siteUrl, t, includeBacklog }) {
+// Barra de filtros: tudo o que muda a página inteira, junto e por baixo do título.
+function FilterBar({ t, boards, selectedId, onBoard, includeBacklog, onAgeFrom, referenceDays, referenceOptions, onReference }) {
+  const boardOptions = (boards || []).map((b) => ({ label: b.name, value: b.id }));
+  const refOptions = referenceOptions.map((d) => ({ label: t.refOption(d), value: d }));
+  return (
+    <Inline space="space.300" alignBlock="center" shouldWrap>
+      {boards && boards.length > 0 && (
+        <Inline space="space.100" alignBlock="center">
+          <Label labelFor="friday-board">{t.boardLabel}</Label>
+          <Box xcss={selectStyle}>
+            <Select inputId="friday-board" appearance="subtle" spacing="compact" options={boardOptions}
+              value={boardOptions.find((o) => o.value === selectedId) || null} onChange={(o) => o && onBoard(o.value)} isSearchable={boards.length > 5} />
+          </Box>
+        </Inline>
+      )}
+      <Inline space="space.100" alignBlock="center">
+        <Text color="color.text.subtle">{t.ageFromLabel}</Text>
+        <ButtonGroup label={t.ageFromLabel}>
+          <Button isSelected={!includeBacklog} onClick={() => onAgeFrom(false)}>{t.ageFromStart}</Button>
+          <Button isSelected={includeBacklog} onClick={() => onAgeFrom(true)}>{t.ageFromCreated}</Button>
+        </ButtonGroup>
+      </Inline>
+      <Inline space="space.100" alignBlock="center">
+        <Label labelFor="friday-reference">{t.refLabel}</Label>
+        <Box xcss={refSelectStyle}>
+          <Select inputId="friday-reference" appearance="subtle" spacing="compact" options={refOptions}
+            value={refOptions.find((o) => o.value === referenceDays)} onChange={(o) => o && onReference(o.value)} />
+        </Box>
+      </Inline>
+    </Inline>
+  );
+}
+
+function AgingTable({ rows, siteUrl, t, includeBacklog, isBoard }) {
   const head = {
     cells: [
       { key: 'key', content: t.colIssue },
       { key: 'summary', content: t.colSummary },
+      { key: 'where', content: isBoard ? t.colColumn : t.colStatus },
       { key: 'assignee', content: t.colAssignee },
-      { key: 'status', content: t.colStatus },
       { key: 'age', content: includeBacklog ? t.colAgeCreated : t.colAge },
     ],
   };
@@ -125,10 +142,12 @@ function AgingTable({ rows, siteUrl, t, includeBacklog }) {
     key: r.key,
     cells: [
       { key: 'key', content: siteUrl ? <Link href={`${siteUrl}/browse/${r.key}`} openNewTab>{r.key}</Link> : r.key },
-      { key: 'summary', content: r.flagged ? <Inline space="space.050"><Lozenge appearance="removed">{t.blocked}</Lozenge><Text>{r.summary}</Text></Inline> : r.summary },
+      { key: 'summary', content: r.flagged ? <Inline space="space.050"><Lozenge appearance="moved">{t.blocked}</Lozenge><Text>{r.summary}</Text></Inline> : r.summary },
+      { key: 'where', content: isBoard ? (r.column ?? r.status) : r.status },
       { key: 'assignee', content: r.assignee ?? t.unassigned },
-      { key: 'status', content: r.status },
-      { key: 'age', content: daysCell(r.ageDays) },
+      { key: 'age', content: r.above
+        ? <Inline space="space.050" alignBlock="center"><Text>{daysCell(r.ageDays)}</Text><Lozenge appearance="removed">{t.aboveTag}</Lozenge></Inline>
+        : daysCell(r.ageDays) },
     ],
   }));
   return <DynamicTable head={head} rows={tableRows} emptyView={t.emptyTable} />;
@@ -171,20 +190,17 @@ function App() {
     setIncludeBacklog(fromCreation);
     invoke('saveBacklogTime', { includeBacklog: fromCreation }).catch(() => {});
   };
-
   const chooseReference = (days) => {
     if (days === referenceDays) return;
     setReferenceDays(days);
     invoke('saveReferenceDays', { referenceDays: days }).catch(() => {});
     load(selectedId, false, days);
   };
-
-  const choose = (id) => {
+  const chooseBoard = (id) => {
     if (id === selectedId) return;
     setSelectedId(id);
     load(id, true);
   };
-
   const saveWorkflow = (start, end) => {
     setModal(null);
     invoke('saveWorkflow', { boardId: selectedId, start, end }).then(() => load(selectedId)).catch(() => load(selectedId));
@@ -205,15 +221,15 @@ function App() {
         <Inline spread="space-between" alignBlock="center" shouldWrap>
           <Heading size="large">{t.title(boardName || projectKey)}</Heading>
           <Inline space="space.100" alignBlock="center">
-            {boards && boards.length > 0 && <BoardPicker boards={boards} selectedId={selectedId} onChange={choose} t={t} />}
             {canEditWorkflow && <IconButton glyph="settings" label={t.settingsTooltip} onClick={() => setModal('workflow')} />}
             <IconButton glyph="question-circle" label={t.helpTooltip} onClick={() => setModal('help')} />
           </Inline>
         </Inline>
       </Box>
-      {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
-      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} onAgeFrom={chooseAgeFrom}
+      <FilterBar t={t} boards={boards} selectedId={selectedId} onBoard={chooseBoard} includeBacklog={includeBacklog} onAgeFrom={chooseAgeFrom}
         referenceDays={referenceDays} referenceOptions={referenceOptions} onReference={chooseReference} />
+      {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
+      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} referenceDays={referenceDays} />
       <ModalTransition>
         {modal === 'help' && <HelpModal t={t} onClose={() => setModal(null)} />}
         {modal === 'workflow' && canEditWorkflow && (
@@ -224,63 +240,46 @@ function App() {
   );
 }
 
-// Controlo de duas opções: idade desde o início do trabalho ou desde a criação.
-function AgeFrom({ t, includeBacklog, onChange }) {
-  return (
-    <Inline space="space.100" alignBlock="center">
-      <Text color="color.text.subtlest">{t.ageFromLabel}</Text>
-      <ButtonGroup label={t.ageFromLabel}>
-        <Button isSelected={!includeBacklog} onClick={() => onChange(false)}>{t.ageFromStart}</Button>
-        <Button isSelected={includeBacklog} onClick={() => onChange(true)}>{t.ageFromCreated}</Button>
-      </ButtonGroup>
-    </Inline>
-  );
-}
-
-function ReferenceLine({ view, t, includeBacklog, referenceDays, referenceOptions, onReference }) {
-  const options = referenceOptions.map((d) => ({ label: t.refOption(d), value: d }));
-  const ref = includeBacklog ? view.reference.lead : view.reference.cycle;
-  const aging = includeBacklog ? view.aging.created : view.aging.start;
-  let sentence;
-  if (!includeBacklog && view.mode !== 'board') sentence = t.refNoBoard;
-  else if (!ref || ref.n === 0) sentence = t.refNone(referenceDays);
-  else {
-    sentence = t.refSummary({
-      days: referenceDays, n: ref.n, p85: t.days(roundDays(ref.p85)), p50: t.days(roundDays(ref.p50)),
-      metric: includeBacklog ? t.refLead : t.refCycle, above: aging.above,
-    });
-    if (ref.n < 10) sentence += ` ${t.refFew}`;
-  }
-  return (
-    <Stack space="space.075">
-      <Inline space="space.100" alignBlock="center" shouldWrap>
-        <Text color="color.text.subtlest">{t.refLabel}</Text>
-        <Box xcss={refSelectStyle}>
-          <Select inputId="friday-reference" appearance="subtle" spacing="compact" options={options}
-            value={options.find((o) => o.value === referenceDays)} onChange={(o) => o && onReference(o.value)} />
-        </Box>
-      </Inline>
-      <Text>{sentence}</Text>
-    </Stack>
-  );
-}
-
-function Body({ view, t, siteUrl, includeBacklog, onAgeFrom, referenceDays, referenceOptions, onReference }) {
+function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
 
   const k = view.kpis;
-  const byType = view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
-  const wipByAssignee = view.wipByAssignee.map((r) => ({ ...r, label: r.label ?? t.unassigned }));
+  const isBoard = view.mode === 'board';
   const aging = includeBacklog ? view.aging.created : view.aging.start;
   const ref = includeBacklog ? view.reference.lead : view.reference.cycle;
-  const isBoard = view.mode === 'board';
-  const byColumn = isBoard ? view.columns.map((c) => ({ label: c.max != null ? t.columnWithLimit(c.name, c.max) : c.name, count: c.count ?? 0 })) : [];
-  const overLimit = isBoard ? view.columns.filter((c) => c.max != null && c.count != null && c.count > c.max) : [];
+  const hasRef = ref && ref.n > 0 && !(isBoard === false && !includeBacklog);
+  const strongRef = hasRef && ref.n >= MIN_REFERENCE_ITEMS;
+  const limit = hasRef ? t.days(Math.max(1, Math.round(ref.p85))) : null;
+  const aboveAlert = strongRef && aging.above > 0;
+
+  const bands = isBoard ? (includeBacklog ? view.bands.created : view.bands.start) : null;
+  const bandLabel = { ok: t.bandOk, slow: t.bandSlow, late: t.bandLate };
+  const columnLabel = (c) => (c.max != null ? t.columnWithLimit(c.name, c.count ?? 0, c.max) : c.name);
+  const labelOf = Object.fromEntries((view.columns || []).map((c) => [c.name, columnLabel(c)]));
+  const bandData = bands ? bands.map((r) => ({ column: labelOf[r.column] || r.column, band: bandLabel[r.band], count: r.count })) : null;
+  const countData = isBoard ? view.columns.map((c) => ({ label: columnLabel(c), count: c.count })) : [];
+  const overLimit = isBoard ? view.columns.filter((c) => c.max != null && c.count > c.max) : [];
+  const byType = isBoard ? [] : view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
+  const weeks = (view.throughput || []).map((w) => ({ label: t.weekLabel(w.week), count: w.count }));
+
+  let refLine;
+  if (!includeBacklog && !isBoard) refLine = t.refNoBoard;
+  else if (!hasRef) refLine = t.refNone(referenceDays);
+  else refLine = t.refShort({ p85: limit, days: referenceDays, n: ref.n, metric: includeBacklog ? t.refLead : t.refCycle })
+    + (strongRef ? '' : ` ${t.refFew}`);
 
   return (
     <Stack space="space.300">
-      <Text>{t.subtitle(k.doneWindowDays)}</Text>
+      <Inline space="space.150" shouldWrap>
+        <Kpi label={t.kpiWip} value={k.wip} notes={[isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null]} />
+        <Kpi label={t.kpiAbove} value={hasRef ? aging.above : null} alert={aboveAlert}
+          notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
+        <Kpi label={t.kpiBlocked} value={k.blocked ? k.blocked.total : null} alert={k.blocked?.total > 0}
+          notes={[k.blocked ? t.blockedInBacklog(k.blocked.backlog) : t.noFlaggedShort, k.blocked?.total > 0 ? t.needsAttention : null]} />
+        <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
+      </Inline>
+
       {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}
       {isBoard && view.countFailed && <SectionMessage appearance="warning"><Text>{t.countFailed}</Text></SectionMessage>}
       {isBoard && view.workflow?.overrideIgnored && <SectionMessage appearance="warning"><Text>{t.workflowIgnored}</Text></SectionMessage>}
@@ -288,49 +287,31 @@ function Body({ view, t, siteUrl, includeBacklog, onAgeFrom, referenceDays, refe
       {!isBoard && view.backlogUnavailable && <SectionMessage appearance="warning"><Text>{t.backlogUnavailable}</Text></SectionMessage>}
       {!view.hasFlaggedField && <SectionMessage appearance="information"><Text>{t.noFlaggedField}</Text></SectionMessage>}
 
-      <Inline space="space.150" shouldWrap>
-        <Kpi label={t.kpiWip} value={k.wip}
-          note={isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null} />
-        <Kpi label={t.kpiAbove} value={ref && ref.n > 0 && aging.above != null ? aging.above : null} alert={aging.above > 0}
-          note={ref && ref.n > 0 ? t.kpiAboveNote(t.days(roundDays(ref.p85))) : t.kpiAboveNone} />
-        <Kpi label={t.kpiBlocked} value={k.blocked} alert={k.blocked > 0} />
-        <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
-      </Inline>
-
       <Inline space="space.300" shouldWrap>
-        {isBoard && (
-          <Box xcss={chartStyle}>
-            <Stack space="space.100">
-              <Heading size="small">{t.byColumn}</Heading>
-              {byColumn.length ? <BarChart data={byColumn} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>}
-              {overLimit.map((c) => <Text key={c.name} size="small">{t.overLimit(c.name, c.count, c.max)}</Text>)}
-            </Stack>
-          </Box>
-        )}
-        {!isBoard && (
-          <Box xcss={chartStyle}>
-            <Stack space="space.100">
-              <Heading size="small">{t.byType}</Heading>
-              {byType.length ? <BarChart data={byType} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>}
-            </Stack>
-          </Box>
-        )}
         <Box xcss={chartStyle}>
           <Stack space="space.100">
-            <Heading size="small">{t.wipByAssignee}</Heading>
-            {wipByAssignee.length ? <BarChart data={wipByAssignee} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noWip}</Text>}
+            <Heading size="small">{isBoard ? t.ageByColumn : t.byType}</Heading>
+            {isBoard && bandData && <StackBarChart data={bandData} xAccessor="column" yAccessor="count" colorAccessor="band" height={260} />}
+            {isBoard && !bandData && (countData.length ? <BarChart data={countData} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noWip}</Text>)}
+            {!isBoard && (byType.length ? <BarChart data={byType} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>)}
+            <Text size="small" color="color.text.subtlest">{isBoard ? t.ageByColumnHelp : t.byTypeHelp}</Text>
+            {isBoard && <Text size="small">{view.backlogCount == null ? t.backlogUnknown : t.backlogNote(view.backlogCount)}</Text>}
+            {overLimit.map((c) => <Text key={c.name} size="small">{t.overLimit(c.name, c.count, c.max)}</Text>)}
+          </Stack>
+        </Box>
+        <Box xcss={chartStyle}>
+          <Stack space="space.100">
+            <Heading size="small">{t.throughputTitle}</Heading>
+            <BarChart data={weeks} xAccessor="label" yAccessor="count" height={260} />
+            <Text size="small" color="color.text.subtlest">{t.throughputHelp}</Text>
           </Stack>
         </Box>
       </Inline>
 
       <Stack space="space.100">
-        <Inline spread="space-between" alignBlock="center" shouldWrap>
-          <Heading size="small">{t.oldestWip}</Heading>
-          <AgeFrom t={t} includeBacklog={includeBacklog} onChange={onAgeFrom} />
-        </Inline>
-        <ReferenceLine view={view} t={t} includeBacklog={includeBacklog} referenceDays={referenceDays}
-          referenceOptions={referenceOptions} onReference={onReference} />
-        <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} />
+        <Heading size="small">{t.oldestWip}</Heading>
+        <Text>{refLine}</Text>
+        <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} isBoard={isBoard} />
       </Stack>
     </Stack>
   );

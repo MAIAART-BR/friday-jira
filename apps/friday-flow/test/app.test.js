@@ -54,8 +54,10 @@ function fakeJira({ wip = [], done = [], backlog = {}, blockedBacklog = 0, failC
 
 test('JQL: chave validada, subtarefas excluídas, campo Flagged por número', () => {
   assert.throws(() => checkProjectKey('FRI" OR 1=1'));
-  assert.match(jql.wip('FRI'), /statusCategory = "In Progress" AND issuetype not in subTaskIssueTypes\(\)/);
-  assert.match(jql.done('FRI', 14), /statusCategory = Done AND updated >= -14d AND issuetype not in subTaskIssueTypes\(\)/);
+  // Subtarefas contam, como no Jira (decisão de 15/11/2026); concluídos ordenados, para um corte não ser ao acaso.
+  assert.match(jql.wip('FRI'), /statusCategory = "In Progress" ORDER BY created ASC$/);
+  assert.match(jql.done('FRI', 14), /statusCategory = Done AND updated >= -14d ORDER BY updated DESC$/);
+  assert.ok(!jql.wip('FRI').includes('subTaskIssueTypes'));
   assert.equal(jql.backlogOfType('FRI', '10001'), 'project = "FRI" AND statusCategory = "To Do" AND issuetype = 10001');
   assert.match(jql.blockedBacklog('FRI', 'customfield_10021'), /cf\[10021\] is not EMPTY/);
   assert.throws(() => jql.blockedBacklog('FRI', 'summary'));
@@ -81,9 +83,8 @@ test('defeito dos 1000: um backlog grande e recente já não esconde o trabalho 
   const { request } = fakeJira({ wip, done, backlog: { 1: 1003, 2: 1 }, blockedBacklog: 1 });
   const data = await loadProjectData(request, { projectKey: 'FRI', doneWindowDays: 14 });
   const v = buildFlowView(data, NOW);
-  assert.deepEqual(v.kpis, { open: 1011, backlog: 1004, wip: 7, blocked: 2, doneRecent: 2, doneWindowDays: 14 });
+  assert.deepEqual(v.kpis, { open: 1011, backlog: 1004, wip: 7, blocked: { total: 2, backlog: 1 }, doneRecent: 2, doneWindowDays: 14 });
   assert.deepEqual(v.byType, [{ label: 'Story', count: 1009 }, { label: 'Bug', count: 2 }]);
-  assert.deepEqual(v.wipByAssignee, [{ label: 'Ana', count: 6 }, { label: null, count: 1 }]);
   assert.equal(v.aging.start.rows.length, 7);
   assert.equal(v.backlogUnavailable, false);
   assert.equal(data.truncated, false);
@@ -119,7 +120,8 @@ test('sem campo Flagged, não pede a contagem de bloqueados', async () => {
   const { request, calls } = fakeJira({ flagged: false, backlog: { 1: 2 } });
   const data = await loadProjectData(request, { projectKey: 'FRI', doneWindowDays: 14 });
   assert.equal(data.hasFlaggedField, false);
-  assert.equal(data.blockedBacklog, 0);
+  assert.equal(data.blockedBacklog, null);
+  assert.equal(buildFlowView(data, NOW).kpis.blocked, null, 'sem campo Flagged: «–», não 0');
   assert.ok(!calls.some((c) => c.jql?.includes('is not EMPTY')));
 });
 

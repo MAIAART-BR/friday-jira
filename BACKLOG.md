@@ -107,6 +107,32 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - ajuda e definições como ícones, com dica ao passar o rato.
 - **Por rever com o Artur:** no modo quadro, o gráfico «Em aberto por tipo» deu lugar ao «Por coluna».
 
+### Revisão por 5 agentes e decisões de 15/11/2026 (feito, por validar pelo Artur)
+
+**Como se decidiu:** 5 agentes reviram o dashboard (clareza, métricas Kanban, cliente do Marketplace, texto e acessibilidade, correção dos dados). Foi adotado o que 3 ou mais encontraram de forma independente. Os defeitos objetivos foram adotados sempre.
+
+- **Adotado (3+ votos):**
+  - a tabela marca e mostra primeiro os tickets acima da referência, com a coluna do quadro;
+  - a idade por coluna em bandas (habitual, a ficar lento, acima), só com as colunas em curso, e o backlog numa nota;
+  - uma barra de filtros única (quadro, idade, referência);
+  - uma linha curta da referência, sem jargão;
+  - o alerta vermelho só com 10 ou mais concluídos;
+  - um nome por conceito.
+- **Defeitos corrigidos:**
+  - uma só fonte para o WIP (os carregados);
+  - uma contagem falhada aparece como «–», não 0;
+  - os concluídos vêm ordenados (ORDER BY);
+  - o histórico cortado deixa de ser silencioso;
+  - acabaram os pedidos por tipo sem uso no modo quadro;
+  - sem campo Flagged, aparece «–»;
+  - o texto («menos de 1 dia», rótulos das listas, «por omissão», sem «vosso»).
+- **Decisões do Artur:**
+  1. As colunas Done | Released nunca contam como em curso: as colunas «Concluído» no Jira encostadas à última passam a concluído.
+  2. As subtarefas contam como o quadro as mostra; sem quadro, contam todas (os mesmos números que o Jira).
+  3. Concluídos por semana (12 semanas), com uma explicação curta.
+  4. «WIP por responsável» retirado.
+  5. Bloqueados com a parte do backlog à vista («3 · 1 no backlog»).
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

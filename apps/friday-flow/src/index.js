@@ -4,7 +4,7 @@ import { kvs } from '@forge/kvs';
 import { loadProjectData, checkProjectKey, SAFETY_MAX } from './jira.js';
 import { buildFlowView, DONE_WINDOW_DAYS } from './flow.js';
 import { listBoards, readBoard, loadBoardData, buildBoardView } from './board.js';
-import { countBy, agingViews, referenceTimes } from './core/metrics.js';
+import { agingViews, referenceTimes, weeklyThroughput } from './core/metrics.js';
 
 const resolver = new Resolver();
 
@@ -15,6 +15,7 @@ const request = (path, init) => api.asUser().requestJira(toRoute(path), init);
 export function toRoute(path) {
   if (path === '/rest/api/3/field') return route`/rest/api/3/field`;
   if (path === '/rest/api/3/changelog/bulkfetch') return route`/rest/api/3/changelog/bulkfetch`;
+  if (path === '/rest/api/3/status') return route`/rest/api/3/status`;
   if (path === '/rest/api/3/search/jql') return route`/rest/api/3/search/jql`;
   if (path === '/rest/api/3/search/approximate-count') return route`/rest/api/3/search/approximate-count`;
   let m = /^\/rest\/api\/3\/project\/([A-Z][A-Z0-9_]+)$/.exec(path);
@@ -86,14 +87,14 @@ resolver.define('getFlowView', async ({ payload, context }) => {
       if (payload.remember) await kvs.set(choiceKey(context, projectKey), Number(payload.boardId)).catch((e) => console.error(e));
       const override = await kvs.get(workflowKey(payload.boardId)).catch(() => undefined);
       const board = await readBoard(request, payload.boardId, override || null);
-      const data = await loadBoardData(request, board, { projectKey, doneWindowDays: DONE_WINDOW_DAYS, referenceDays });
+      const data = await loadBoardData(request, board, { doneWindowDays: DONE_WINDOW_DAYS, referenceDays });
       return {
         mode: 'board',
         projectKey,
         truncated: data.truncated,
         limit: SAFETY_MAX,
         hasFlaggedField: data.hasFlaggedField,
-        ...buildBoardView(data, { countBy, agingViews, referenceTimes }, new Date(), DONE_WINDOW_DAYS, referenceDays),
+        ...buildBoardView(data, { agingViews, referenceTimes, weeklyThroughput }, new Date(), DONE_WINDOW_DAYS, referenceDays),
       };
     }
     const data = await loadProjectData(request, { projectKey, doneWindowDays: DONE_WINDOW_DAYS, referenceDays });

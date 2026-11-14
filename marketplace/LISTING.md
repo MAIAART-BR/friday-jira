@@ -16,25 +16,25 @@ See your team's flow at a glance: work in progress, blocked items and aging work
 <!-- field: summary (max 250) -->
 ## Summary
 
-FRIDAY Flow adds a flow dashboard to every Jira space that follows your board's own filter and columns: work per column, blocked and recently done work, WIP per assignee, and the oldest work in progress. No data leaves Atlassian.
+FRIDAY Flow adds a flow dashboard to every Jira space that follows your board: work in progress, items older than your usual time, blocked work, done per week, and where work gets stuck. No data leaves Atlassian.
 
 <!-- field: highlight1-title (max 50) -->
 ## Highlight 1
 
-Your current flow, in one screen
+Your flow in four numbers
 
 <!-- field: highlight1-caption (max 220) -->
-Five numbers that matter for a Kanban team: open, backlog, in progress, blocked and done in the last 14 days. Plus work in progress by type and by assignee, so overload is visible before it hurts delivery.
+In progress, above your usual time, blocked and done: the four numbers a Kanban team acts on, counted from your own board's filter and columns, plus how many items you finish each week.
 
 Screenshot: the full FRIDAY Flow page with the KPI cards and both charts.
 
 <!-- field: highlight2-title (max 50) -->
 ## Highlight 2
 
-Spot work that is getting old
+See where work gets stuck
 
 <!-- field: highlight2-caption (max 220) -->
-The oldest items in progress come first, with blocked ones flagged. Median and 85th percentile age show what "normal" looks like for your team, so stuck work stands out.
+Each column shows its items by age compared with your team's own history. Items older than 85% of past work come first in the table, so you know what to look at today.
 
 Screenshot: the "Oldest work in progress" table with a blocked item and the age summary.
 
@@ -55,13 +55,14 @@ FRIDAY Flow brings the questions a Kanban team asks every day into Jira: How muc
 
 Open FRIDAY Flow from any Jira space and pick a board. The numbers follow that board's filter and columns, so they match what your team sees on the board:
 
-- Work in each column, with WIP limits, plus blocked work and work done in the last 14 days
-- Open work by type and work in progress by assignee
-- The oldest work in progress, with median and 85th percentile age
+- Work in progress, blocked work and work done in the last 14 days
+- How many items are older than your usual time (85% of the work finished in the period you choose)
+- Age of work in progress by column, with WIP limits, and work done per week
+- The items in progress for longest, with the ones over the usual time first
 
-Blocked work comes from Jira's own "Flagged" field. Done work counts from the moment a work item reaches a Done status, even when the workflow does not set a resolution.
+Blocked work comes from Jira's "Flagged" field.
 
-There is nothing to configure. The app only reads work items and boards, keeps no copy of your work items and runs entirely on Atlassian's platform.
+Nothing to configure: the app only reads work items and boards, keeps no copy of them and runs entirely on Atlassian's platform.
 
 Available in English and Portuguese, following each person's Jira language.
 

@@ -1,5 +1,5 @@
 // Monta os dados da página «FRIDAY Flow» a partir do que jira.js carregou e contou.
-import { countBy, agingViews, referenceTimes } from './core/metrics.js';
+import { countBy, agingViews, referenceTimes, weeklyThroughput } from './core/metrics.js';
 
 export const DONE_WINDOW_DAYS = 14;
 const DAY_MS = 86400000;
@@ -8,7 +8,7 @@ const DAY_MS = 86400000;
  * @param {{wip: object[], done: object[], backlogByType: {label: string, count: number}[] | null,
  *          blockedBacklog: number | null}} data
  */
-export function buildFlowView({ wip, done, backlogByType, blockedBacklog }, now = new Date(), referenceDays = 90) {
+export function buildFlowView({ wip, done, backlogByType, blockedBacklog, hasFlaggedField = true }, now = new Date(), referenceDays = 90) {
   const since = new Date(now.getTime() - DONE_WINDOW_DAYS * DAY_MS);
   // Sem quadro não há colunas para ler o início no histórico: só há referência de lead time (criação → fim).
   const reference = referenceTimes(done, now, referenceDays);
@@ -27,17 +27,18 @@ export function buildFlowView({ wip, done, backlogByType, blockedBacklog }, now 
       open: backlog === null ? null : backlog + wip.length,
       backlog,
       wip: wip.length,
-      // Bloqueados = em curso com flag + backlog com flag (decisão de 14/11/2026). Concluídos não contam.
-      blocked: wip.filter((i) => i.flagged).length + (blockedBacklog ?? 0),
+      // Bloqueados = em curso com flag + backlog com flag (decisão de 14/11/2026), mostrados à parte. Sem campo Flagged: null.
+      blocked: hasFlaggedField && blockedBacklog !== null
+        ? { total: wip.filter((i) => i.flagged).length + blockedBacklog, backlog: blockedBacklog } : null,
       doneRecent: done.filter((i) => i.doneAt && i.doneAt >= since).length,
       doneWindowDays: DONE_WINDOW_DAYS,
     },
     backlogUnavailable: backlog === null,
     // Sem a contagem do backlog, o gráfico só teria o trabalho em curso: melhor não o mostrar.
     byType: backlogByType ? byType : [],
-    wipByAssignee: countBy(wip, (i) => i.assignee),
     reference,
     aging: agingViews(wip, now, 25, { start: reference.cycle.p85, created: reference.lead.p85 }),
+    throughput: weeklyThroughput(done.map((i) => i.doneAt), now),
     generatedAt: now.toISOString(),
   };
 }

@@ -181,9 +181,10 @@ export function agingViews(wip, now = new Date(), rows = 25, limits = {}) {
     return {
       limit: limit ?? null,
       above: limit == null ? null : aging.filter((i) => i.ageDays > limit).length,
-      rows: aging.slice(0, rows).map((i) => ({
-        key: i.key, summary: i.summary, assignee: i.assignee, status: i.status, ageDays: round1(i.ageDays), flagged: i.flagged,
-        above: limit != null && i.ageDays > limit,
+      // Todos os que passaram a referência (são os mais velhos, vêm primeiro) e, depois, até `rows` linhas.
+      rows: aging.slice(0, Math.max(rows, limit == null ? 0 : aging.filter((i) => i.ageDays > limit).length)).map((i) => ({
+        key: i.key, summary: i.summary, assignee: i.assignee, status: i.status, column: i.column ?? null,
+        ageDays: round1(i.ageDays), flagged: i.flagged, above: limit != null && i.ageDays > limit,
       })),
     };
   };
@@ -191,4 +192,13 @@ export function agingViews(wip, now = new Date(), rows = 25, limits = {}) {
     start: view((i) => i.categoryChanged || i.created, limits.start),
     created: view((i) => i.created || i.categoryChanged, limits.created),
   };
+}
+
+/**
+ * Entregas por semana (semanas a começar à segunda-feira, UTC), das mais antigas para as mais recentes, com as semanas a zero.
+ * Recebe as datas de conclusão (o throughput do The Kanban Guide).
+ */
+export function weeklyThroughput(doneDates, now = new Date(), weeks = 12) {
+  const asIssues = doneDates.filter(Boolean).map((d) => ({ category: 'done', doneAt: d }));
+  return throughputByWeek(asIssues, now, weeks);
 }

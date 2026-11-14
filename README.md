@@ -125,6 +125,7 @@ Textos da listagem, privacidade, termos e o guia do que falta: pasta [`marketpla
 - **Ajuda com fontes:** o botão «Como contamos» explica cada número, com referências ao The Kanban Guide (2025) e a Little (1961, 2011).
 - **Os números seguem o quadro:** a página tem um seletor de quadro, logo abaixo do título, que lembra a escolha de cada pessoa. Os números usam o filtro, o sub-filtro Kanban e as colunas desse quadro, por isso batem com o que o cliente vê. Nos espaços sem quadro, usa as categorias de estado do Jira.
 - **O que é carregado e o que é contado:** o trabalho em curso e os concluídos nos últimos 14 dias são carregados por inteiro. O backlog é só contado, por tipo, com a contagem do próprio Jira (`/search/approximate-count`), para um backlog grande não esconder o trabalho em curso. Há um limite de segurança de 5000 tickets em curso e concluídos, só por causa do tempo de resposta.
-- **Subtarefas não contam:** só as tarefas mãe (decisão de 14/11/2026).
-- **Bloqueado inclui o backlog:** um ticket com flag no backlog conta como bloqueado; os concluídos com flag não contam (decisão de 14/11/2026).
+- **Subtarefas:** contam como o quadro as mostra; sem quadro, contam todas, como no Jira (decisão de 15/11/2026).
+- **Bloqueados incluem o backlog,** mostrado à parte no cartão («3 · 1 no backlog»); os concluídos com flag não contam.
+- **Done | Released:** as colunas com estados «Concluído» encostadas à última coluna nunca contam como em curso (decisão de 15/11/2026).
 - **Idade do trabalho em curso:** conta desde a última mudança de categoria de estado. Voltar de «Em revisão» para «Em curso» não reinicia a contagem, porque é a mesma categoria; reabrir um ticket concluído reinicia.

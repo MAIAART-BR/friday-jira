@@ -5,7 +5,7 @@
 //   - concluídos nos últimos N dias: todos os tickets;
 //   - backlog: só contado, por tipo, com /search/approximate-count (a contagem que o próprio Jira mostra),
 //     para um backlog grande não esconder o trabalho em curso.
-// Subtarefas não contam em nada: só as tarefas mãe (decisão de 14/11/2026).
+// Subtarefas contam, como no Jira: o utilizador tem de ver os mesmos números (decisão de 15/11/2026).
 import { normalizeIssue } from './core/metrics.js';
 
 export const FIELDS = [
@@ -14,7 +14,6 @@ export const FIELDS = [
 /** Limite de segurança, só para o tempo de resposta. Em curso + concluídos acima disto é muito improvável. */
 export const SAFETY_MAX = 5000;
 const PAGE_SIZE = 100;
-const NOT_SUBTASK = 'issuetype not in subTaskIssueTypes()';
 const JSON_HEADERS = { Accept: 'application/json', 'Content-Type': 'application/json' };
 
 export function checkProjectKey(projectKey) {
@@ -23,12 +22,12 @@ export function checkProjectKey(projectKey) {
 }
 
 export const jql = {
-  wip: (k) => `project = "${checkProjectKey(k)}" AND statusCategory = "In Progress" AND ${NOT_SUBTASK} ORDER BY created ASC`,
+  wip: (k) => `project = "${checkProjectKey(k)}" AND statusCategory = "In Progress" ORDER BY created ASC`,
   // «updated» e não «resolved»: há fluxos que levam a Feito sem preencher a resolução.
   // Apanha um pouco a mais; o filtro exato pela data de conclusão é feito em buildFlowView.
-  done: (k, days) => `project = "${checkProjectKey(k)}" AND statusCategory = Done AND updated >= -${Number(days)}d AND ${NOT_SUBTASK}`,
+  done: (k, days) => `project = "${checkProjectKey(k)}" AND statusCategory = Done AND updated >= -${Number(days)}d ORDER BY updated DESC`,
   backlogOfType: (k, typeId) => `project = "${checkProjectKey(k)}" AND statusCategory = "To Do" AND issuetype = ${Number(typeId)}`,
-  blockedBacklog: (k, fieldId) => `project = "${checkProjectKey(k)}" AND statusCategory = "To Do" AND ${NOT_SUBTASK} AND cf[${fieldNumber(fieldId)}] is not EMPTY`,
+  blockedBacklog: (k, fieldId) => `project = "${checkProjectKey(k)}" AND statusCategory = "To Do" AND cf[${fieldNumber(fieldId)}] is not EMPTY`,
 };
 
 function fieldNumber(fieldId) {
@@ -93,15 +92,15 @@ export async function countIssues(request, query) {
 }
 
 export async function loadProjectData(request, { projectKey, doneWindowDays, referenceDays = 90 }) {
-  const [flaggedFieldId, types] = await Promise.all([findFlaggedFieldId(request), findIssueTypes(request, projectKey)]);
+  const [flaggedFieldId, types] = await Promise.all([findFlaggedFieldId(request), findIssueTypes(request, projectKey, { includeSubtasks: true })]);
   const fields = flaggedFieldId ? [...FIELDS, flaggedFieldId] : FIELDS;
   const normalize = (raw) => normalizeIssue(raw, { flaggedFieldId });
 
   const [wip, done, typeCounts, blockedBacklog] = await Promise.all([
     searchAll(request, jql.wip(projectKey), fields),
-    searchAll(request, jql.done(projectKey, Math.max(doneWindowDays, referenceDays)), fields),
+    searchAll(request, jql.done(projectKey, Math.max(doneWindowDays, referenceDays, 12 * 7)), fields),
     Promise.all(types.map((t) => countIssues(request, jql.backlogOfType(projectKey, t.id)))),
-    flaggedFieldId ? countIssues(request, jql.blockedBacklog(projectKey, flaggedFieldId)) : Promise.resolve(0),
+    flaggedFieldId ? countIssues(request, jql.blockedBacklog(projectKey, flaggedFieldId)) : Promise.resolve(null),
   ]);
 
   const countFailed = typeCounts.some((c) => c === null);

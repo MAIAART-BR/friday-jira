@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy, columnCategory, classifyColumns, startedAt, enteredAt, fetchStatusHistories } from '../src/board.js';
-import { countBy, agingViews, referenceTimes } from '../src/core/metrics.js';
+import { listBoards, readBoard, loadBoardData, buildBoardView, ageBands, stripOrderBy, columnCategory, classifyColumns, startedAt, enteredAt, fetchStatusHistories } from '../src/board.js';
+import { agingViews, referenceTimes, weeklyThroughput } from '../src/core/metrics.js';
+const DEPS = { agingViews, referenceTimes, weeklyThroughput };
 
 const NOW = new Date('2026-11-14T00:00:00Z');
 const response = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body, text: async () => JSON.stringify(body) });
@@ -12,7 +13,7 @@ function rawIssue(n, catKey, extra = {}) {
     key: `FRI-${n}`,
     fields: {
       summary: `Issue ${n}`, issuetype: { name: 'Task' }, assignee: { displayName: 'Ana' },
-      status: { name: catKey, statusCategory: { key: catKey } },
+      status: { id: { new: '10000', indeterminate: '3', done: '10002' }[catKey], name: catKey, statusCategory: { key: catKey } },
       created: '2026-10-01T00:00:00.000+0000', resolutiondate: null, statuscategorychangedate: '2026-11-01T00:00:00.000+0000',
       ...extra,
     },
@@ -102,11 +103,11 @@ test('lê o quadro: filtro + sub-filtro, colunas pela posição (não pela categ
   assert.deepEqual(b.columns.map((c) => [c.name, c.category, c.max]), [
     ['Backlog', 'backlog', null], ['Selected for Development', 'wip', null], ['In Progress', 'wip', 5], ['Done', 'done', null],
   ]);
-  assert.ok(!calls.some((c) => c.path === '/rest/api/3/status'), 'já não precisa das categorias de estado');
+  assert.ok(calls.some((c) => c.path === '/rest/api/3/status'), 'lê as categorias, só para o fim (Done | Released)');
   await assert.rejects(readBoard(request, 'x'), /Quadro inválido/);
 });
 
-test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', async () => {
+test('números do quadro: colunas em curso exatas, backlog contado, bloqueados separados, uma só fonte', async () => {
   const wip = [
     rawIssue(1, 'indeterminate', { customfield_1: [{ value: 'Impediment' }] }),
     ...Array.from({ length: 6 }, (_, i) => rawIssue(10 + i, 'indeterminate')),
@@ -115,48 +116,42 @@ test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', a
     rawIssue(20, 'done', { resolutiondate: '2026-11-12T00:00:00.000+0000' }),
     rawIssue(21, 'done', { resolutiondate: null, statuscategorychangedate: '2026-10-01T00:00:00.000+0000' }),
   ];
-  const counts = {
-    'status in (10000)': 1004,
-    'status in (10001)': 0,
-    'status in (3)': 7,
-    'cf[1] is not EMPTY': 2,
-    'issuetype = 1': 1009,
-    'issuetype = 2': 1,
-    'issuetype = 3': 1,
-  };
-  // As chaves não se confundem: «status in (3)» não aparece em «status in (10000, 10001, 3)».
+  // A contagem do Jira para «In Progress» diz 9, mas os carregados são 7: o gráfico tem de usar os carregados.
+  const counts = { 'status in (10000) AND cf[1]': 1, 'status in (10000)': 1004, 'status in (3)': 9 };
   const { request, calls } = fakeJira({ wip, done, counts });
   const board = await readBoard(request, 1);
-  const data = await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 });
-  const v = buildBoardView(data, { countBy, agingViews, referenceTimes }, NOW, 14);
+  const data = await loadBoardData(request, board, { doneWindowDays: 14 });
+  const v = buildBoardView(data, DEPS, NOW, 14);
 
   assert.deepEqual(v.columns, [
-    { name: 'Backlog', count: 1004, wip: false, max: null },
-    { name: 'Selected for Development', count: 0, wip: true, max: null },
-    { name: 'In Progress', count: 7, wip: true, max: 5 },
+    { name: 'Selected for Development', count: 0, max: null },
+    { name: 'In Progress', count: 7, max: 5 },
   ]);
-  assert.equal(v.wipColumnCount, 2);
-  assert.deepEqual(v.kpis, { wip: 7, blocked: 2, doneRecent: 1, doneWindowDays: 14 });
-  assert.deepEqual(v.byType, [{ label: 'Task', count: 1009 }, { label: 'Bug', count: 1 }, { label: 'Sub-task', count: 1 }]);
+  assert.equal(v.backlogCount, 1004);
+  assert.deepEqual(v.kpis, { wip: 7, blocked: { total: 2, backlog: 1 }, doneRecent: 1, doneWindowDays: 14 });
   assert.equal(v.aging.start.rows.length, 7);
+  assert.equal(v.aging.start.rows[0].column, 'In Progress');
   assert.equal(v.countFailed, false);
+  assert.equal(v.throughput.length, 12);
 
-  // Todas as pesquisas usam o filtro do quadro; nenhuma tem o ORDER BY do filtro a meio.
+  // Todas as pesquisas usam o filtro do quadro; nenhuma tem o ORDER BY do filtro a meio; não há pedidos por tipo.
   for (const c of calls.filter((x) => x.jql)) {
     assert.ok(c.jql.startsWith('(project = FRI) AND (fixVersion in unreleasedVersions() OR fixVersion is EMPTY) AND '), c.jql);
     assert.ok(!/Rank/.test(c.jql), c.jql);
-    assert.ok(!c.jql.includes('subTaskIssueTypes'), 'o quadro decide as subtarefas, não a app');
+    assert.ok(!c.jql.includes('issuetype ='), 'já não conta por tipo no modo quadro');
   }
-  // A coluna Done não é contada: o quadro esconde os concluídos antigos à sua maneira.
-  assert.ok(!calls.some((c) => c.jql?.endsWith('status in (10002)')));
+  // As colunas em curso já não são contadas pelo Jira (vêm dos carregados).
+  assert.ok(!calls.some((c) => c.path.endsWith('approximate-count') && c.jql.endsWith('status in (3)')));
 });
 
-test('se uma contagem falhar, mostra «–» e avisa', async () => {
-  const { request } = fakeJira({ failCount: true });
+test('se a contagem do backlog falhar: backlog «–» e aviso; as colunas em curso continuam certas', async () => {
+  const { request } = fakeJira({ wip: [rawIssue(1, 'indeterminate')], failCount: true });
   const board = await readBoard(request, 1);
-  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews, referenceTimes }, NOW, 14);
-  assert.equal(v.columns[0].count, null);
+  const v = buildBoardView(await loadBoardData(request, board, { doneWindowDays: 14 }), DEPS, NOW, 14);
+  assert.equal(v.backlogCount, null);
   assert.equal(v.countFailed, true);
+  assert.deepEqual(v.columns.map((c) => c.count), [0, 1]);
+  assert.equal(v.kpis.blocked, null, 'sem contagem de bloqueados no backlog: «–», não um número errado');
 });
 
 test('idade: última entrada nas colunas WIP; reabrir recomeça; sem histórico usa a criação', () => {
@@ -193,7 +188,7 @@ test('a idade na vista vem do histórico', async () => {
   const histories = { 1001: [{ created: '2026-11-04T00:00:00Z', items: [{ fieldId: 'status', from: '10000', to: '10001' }] }] };
   const { request } = fakeJira({ wip, histories, counts: { 'status in (10000)': 0 } });
   const board = await readBoard(request, 1);
-  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, agingViews, referenceTimes }, NOW, 14);
+  const v = buildBoardView(await loadBoardData(request, board, { doneWindowDays: 14 }), { agingViews, referenceTimes, weeklyThroughput }, NOW, 14);
   assert.equal(v.aging.start.rows[0].ageDays, 10);
   assert.equal(v.aging.created.rows[0].ageDays, 44); // com o backlog: desde a criação, 1/10 // desde 4/11 (entrada em Selected), não 1 dia (mudança de categoria)
   assert.equal(v.ageFromHistory, true);
@@ -208,20 +203,60 @@ test('concluídos: início e fim lidos no histórico pelas colunas do quadro, e 
   const histories = { 1030: [h('2026-11-02T00:00:00Z', '10000', '10001'), h('2026-11-09T00:00:00Z', '3', '10002')] };
   const { request } = fakeJira({ wip: [], done, histories, counts: {} });
   const board = await readBoard(request, 1);
-  const data = await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14, referenceDays: 30 });
+  const data = await loadBoardData(request, board, { doneWindowDays: 14, referenceDays: 30 });
   assert.equal(data.done[0].startedAt.toISOString(), '2026-11-02T00:00:00.000Z');
   assert.equal(data.done[0].doneAt.toISOString(), '2026-11-09T00:00:00.000Z');
-  const v = buildBoardView(data, { countBy, agingViews, referenceTimes }, NOW, 14, 30);
+  const v = buildBoardView(data, { agingViews, referenceTimes, weeklyThroughput }, NOW, 14, 30);
   assert.deepEqual(v.reference.cycle, { p50: 7, p85: 7, n: 1 });
   assert.deepEqual(v.reference.lead, { p50: 20, p85: 20, n: 1 });
   assert.equal(v.reference.windowDays, 30);
 });
 
-test('a pesquisa dos concluídos cobre o maior dos dois períodos', async () => {
+test('a pesquisa dos concluídos cobre o maior período (cartão, referência, 12 semanas) e vem ordenada', async () => {
   const { request, calls } = fakeJira({});
   const board = await readBoard(request, 1);
-  await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14, referenceDays: 180 });
-  assert.ok(calls.some((c) => c.jql?.includes('status in (10002) AND updated >= -180d')));
+  await loadBoardData(request, board, { doneWindowDays: 14, referenceDays: 180 });
+  assert.ok(calls.some((c) => c.jql?.includes('status in (10002) AND updated >= -180d ORDER BY updated DESC')));
+  const again = fakeJira({});
+  await loadBoardData(again.request, await readBoard(again.request, 1), { doneWindowDays: 14, referenceDays: 30 });
+  assert.ok(again.calls.some((c) => c.jql?.includes('updated >= -84d ORDER BY updated DESC')), '12 semanas = 84 dias');
+});
+
+test('Done | Released: colunas «Concluído» encostadas à última nunca são em curso', () => {
+  const col = (name, statuses) => ({ name, statusIds: statuses });
+  const cols = [col('Backlog', ['1']), col('Dev', ['2']), col('Done', ['3']), col('Released', ['4'])];
+  const cats = new Map([['1', 'new'], ['2', 'indeterminate'], ['3', 'done'], ['4', 'done']]);
+  assert.deepEqual(classifyColumns(cols, null, cats).categories, ['backlog', 'wip', 'done', 'done']);
+  // Sem categorias (pedido falhou): volta à posição.
+  assert.deepEqual(classifyColumns(cols).categories, ['backlog', 'wip', 'wip', 'done']);
+  // Uma coluna «Concluído» que não está encostada ao fim não é alargada.
+  const gap = [col('Backlog', ['1']), col('Done?', ['3']), col('Teste', ['2']), col('Released', ['4'])];
+  assert.deepEqual(classifyColumns(gap, null, cats).categories, ['backlog', 'wip', 'wip', 'done']);
+  // A definição da equipa ganha sempre.
+  assert.deepEqual(classifyColumns(cols, { start: 'Dev', end: 'Released' }, cats).categories, ['backlog', 'wip', 'wip', 'done']);
+});
+
+test('bandas de idade por coluna: habitual, a ficar lento, acima da referência', () => {
+  const now = new Date('2026-11-14T00:00:00Z');
+  const item = (column, daysAgo) => ({ column, categoryChanged: new Date(now.getTime() - daysAgo * 86400000) });
+  const wip = [item('Dev', 1), item('Dev', 4), item('Dev', 12), item('Teste', 2)];
+  const rows = ageBands(wip, [{ name: 'Dev' }, { name: 'Teste' }], now, { p50: 3, p85: 10, n: 20 }, (i) => i.categoryChanged);
+  assert.deepEqual(rows.map((r) => [r.column, r.band, r.count]), [
+    ['Dev', 'ok', 1], ['Dev', 'slow', 1], ['Dev', 'late', 1], ['Teste', 'ok', 1], ['Teste', 'slow', 0], ['Teste', 'late', 0],
+  ]);
+  assert.equal(ageBands(wip, [{ name: 'Dev' }], now, { p50: null, p85: null, n: 0 }, (i) => i.categoryChanged), null);
+});
+
+test('histórico cortado sem a entrada em curso: a idade cai para a criação e a página avisa', async () => {
+  const wip = [rawIssue(1, 'indeterminate')];
+  const { request } = fakeJira({ wip, bulkFails: true, histories: { 1001: [] } });
+  const longHistory = async (path, init) => {
+    if (/\/issue\/FRI-1\/changelog/.test(path)) return response(200, { values: [], total: 250 });
+    return request(path, init);
+  };
+  const board = await readBoard(longHistory, 1);
+  const data = await loadBoardData(longHistory, board, { doneWindowDays: 14 });
+  assert.equal(data.ageFromHistory, false);
 });
 
 test('colunas vazias no início (backlog Kanban do Jira) não contam como backlog nem empurram o WIP', () => {
