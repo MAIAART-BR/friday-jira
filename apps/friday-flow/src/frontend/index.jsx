@@ -14,7 +14,7 @@ const refSelectStyle = xcss({ minWidth: '160px' });
 // Espaço por cima do título: sem ele, o título fica colado à barra de separadores do Jira.
 const headerStyle = xcss({ paddingTop: 'space.300' });
 const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.050', backgroundColor: 'color.background.neutral.subtle' });
-// Abaixo disto, a referência é fraca: o cartão não fica vermelho (pedido dos agentes de revisão, 15/11/2026).
+// Abaixo disto, o tempo habitual é fraco: o cartão não fica vermelho (pedido dos agentes de revisão, 15/11/2026).
 const MIN_REFERENCE_ITEMS = 10;
 
 function Kpi({ label, value, alert = false, notes = [] }) {
@@ -274,7 +274,8 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
       <Inline space="space.150" shouldWrap>
         <Kpi label={t.kpiWip} value={k.wip} notes={[isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null]} />
         <Kpi label={t.kpiAbove} value={hasRef ? aging.above : null} alert={aboveAlert}
-          notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
+          notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, hasRef ? t.kpiAboveExplain : null,
+            aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
         <Kpi label={t.kpiBlocked} value={k.blocked ? k.blocked.total : null} alert={k.blocked?.total > 0}
           notes={[k.blocked ? t.blockedInBacklog(k.blocked.backlog) : t.noFlaggedShort, k.blocked?.total > 0 ? t.needsAttention : null]} />
         <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
