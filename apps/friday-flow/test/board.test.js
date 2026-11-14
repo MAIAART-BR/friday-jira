@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy, columnCategory, startedAt, enteredAt, fetchStatusHistories } from '../src/board.js';
+import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy, columnCategory, classifyColumns, startedAt, enteredAt, fetchStatusHistories } from '../src/board.js';
 import { countBy, agingViews, referenceTimes } from '../src/core/metrics.js';
 
 const NOW = new Date('2026-11-14T00:00:00Z');
@@ -222,4 +222,38 @@ test('a pesquisa dos concluídos cobre o maior dos dois períodos', async () => 
   const board = await readBoard(request, 1);
   await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14, referenceDays: 180 });
   assert.ok(calls.some((c) => c.jql?.includes('status in (10002) AND updated >= -180d')));
+});
+
+test('colunas vazias no início (backlog Kanban do Jira) não contam como backlog nem empurram o WIP', () => {
+  const col = (name, statuses) => ({ name, statusIds: statuses });
+  // O caso do quadro de teste: «Lista de pendências» vazia, depois Backlog, Selected, In Progress, Done.
+  const cols = [col('Lista de pendências', []), col('Backlog', ['10000']), col('Selected', ['10001']), col('In Progress', ['3']), col('Done', ['10002'])];
+  const r = classifyColumns(cols);
+  assert.deepEqual(r.categories, ['backlog', 'backlog', 'wip', 'wip', 'done']);
+  assert.deepEqual([r.workflow.start, r.workflow.end, r.workflow.isDefault], ['Selected', 'Done', true]);
+  // Coluna vazia no fim também é ignorada.
+  assert.deepEqual(classifyColumns([...cols, col('Arquivo', [])]).categories, ['backlog', 'backlog', 'wip', 'wip', 'done', 'done']);
+  // Uma só coluna com estados: tudo backlog.
+  assert.deepEqual(classifyColumns([col('A', ['1']), col('B', [])]).categories, ['backlog', 'backlog']);
+});
+
+test('definição da equipa: começa e termina onde a equipa disser; inválida volta ao padrão e avisa', () => {
+  const col = (name, statuses) => ({ name, statusIds: statuses });
+  const cols = [col('Backlog', ['1']), col('Pronto', ['2']), col('Dev', ['3']), col('Teste', ['4']), col('Done', ['5'])];
+  const r = classifyColumns(cols, { start: 'Dev', end: 'Done' });
+  assert.deepEqual(r.categories, ['backlog', 'backlog', 'wip', 'wip', 'done']);
+  assert.equal(r.workflow.isDefault, false);
+  const fim = classifyColumns(cols, { start: 'Pronto', end: 'Teste' });
+  assert.deepEqual(fim.categories, ['backlog', 'wip', 'wip', 'done', 'done']);
+  const bad = classifyColumns(cols, { start: 'Já não existe', end: 'Done' });
+  assert.deepEqual(bad.categories, ['backlog', 'wip', 'wip', 'wip', 'done']);
+  assert.equal(bad.workflow.overrideIgnored, true);
+  assert.equal(classifyColumns(cols, { start: 'Done', end: 'Dev' }).workflow.overrideIgnored, true);
+});
+
+test('readBoard aplica a definição guardada', async () => {
+  const { request } = fakeJira();
+  const b = await readBoard(request, 1, { start: 'In Progress', end: 'Done' });
+  assert.deepEqual(b.columns.map((c) => c.category), ['backlog', 'backlog', 'wip', 'done']);
+  assert.equal(b.workflow.start, 'In Progress');
 });

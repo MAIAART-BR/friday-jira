@@ -44,6 +44,8 @@ const choiceKey = (context, projectKey) => `board:${context.accountId || 'anon'}
 // Escolhas de cada pessoa, em cada espaço: contar o tempo no backlog na idade; período da referência (SLE).
 const backlogTimeKey = (context, projectKey) => `agebacklog:${context.accountId || 'anon'}:${projectKey}`;
 const referenceKey = (context, projectKey) => `refdays:${context.accountId || 'anon'}:${projectKey}`;
+// Onde o trabalho começa e acaba: definição do fluxo da equipa, guardada por quadro (igual para todas as pessoas).
+const workflowKey = (boardId) => `workflow:${Number(boardId)}`;
 export const REFERENCE_OPTIONS = [30, 60, 90, 180];
 export const DEFAULT_REFERENCE_DAYS = 90;
 const validReference = (d) => (REFERENCE_OPTIONS.includes(Number(d)) ? Number(d) : DEFAULT_REFERENCE_DAYS);
@@ -82,7 +84,8 @@ resolver.define('getFlowView', async ({ payload, context }) => {
   try {
     if (payload?.boardId) {
       if (payload.remember) await kvs.set(choiceKey(context, projectKey), Number(payload.boardId)).catch((e) => console.error(e));
-      const board = await readBoard(request, payload.boardId);
+      const override = await kvs.get(workflowKey(payload.boardId)).catch(() => undefined);
+      const board = await readBoard(request, payload.boardId, override || null);
       const data = await loadBoardData(request, board, { projectKey, doneWindowDays: DONE_WINDOW_DAYS, referenceDays });
       return {
         mode: 'board',
@@ -112,6 +115,25 @@ resolver.define('saveBacklogTime', async ({ payload, context }) => {
   const g = guard(context);
   if (g.error) return g;
   await kvs.set(backlogTimeKey(context, g.projectKey), payload?.includeBacklog === true);
+  return { ok: true };
+});
+
+// Guarda (ou apaga, com reset) a definição do fluxo de um quadro. Só aceita colunas que existem, com o início antes do fim.
+resolver.define('saveWorkflow', async ({ payload, context }) => {
+  const g = guard(context);
+  if (g.error) return g;
+  const boardId = Number(payload?.boardId);
+  if (!Number.isInteger(boardId) || boardId <= 0) return { error: 'INVALID' };
+  if (payload?.reset) {
+    await kvs.delete(workflowKey(boardId));
+    return { ok: true };
+  }
+  const board = await readBoard(request, boardId);
+  const names = board.columns.map((c) => c.name);
+  const s = names.indexOf(payload?.start);
+  const e = names.indexOf(payload?.end);
+  if (s < 0 || e < 0 || s >= e) return { error: 'INVALID' };
+  await kvs.set(workflowKey(boardId), { start: names[s], end: names[e] });
   return { ok: true };
 });
 

@@ -4,9 +4,11 @@
 // Do quadro vêm: o filtro (que tickets entram), as colunas (que estados ficam em cada uma) e o sub-filtro
 // dos quadros Kanban. As subtarefas contam se o filtro do quadro as incluir, tal como no quadro.
 //
-// WIP pela posição das colunas, não pelas categorias de estado do Jira (decisão de 14/11/2026):
-//   primeira coluna = backlog; última = concluído; todas as do meio = trabalho em curso.
-// As categorias enganam: «Selected for Development» é «A fazer» no Jira, mas já está depois do backlog.
+// Onde o trabalho começa e acaba (The Kanban Guide: cada equipa define os «start and finish points»):
+//   por omissão, ignora as colunas vazias (sem estados) do início e do fim, como a coluna especial de backlog
+//   dos quadros Kanban; a primeira coluna com estados é o backlog, a última é o concluído, as do meio são WIP.
+//   A equipa pode escolher outras colunas de início e de fim (guardado por quadro).
+// Não usamos as categorias de estado do Jira: «Selected for Development» é «A fazer» no Jira, mas já é WIP.
 // Idade = tempo desde a última entrada numa coluna do meio, lida no histórico de cada ticket
 // (The Kanban Guide: «Work Item Age: time since start for an unfinished item»).
 import { normalizeIssue } from './core/metrics.js';
@@ -35,7 +37,7 @@ export function stripOrderBy(query) {
 }
 
 /** Filtro do quadro (+ sub-filtro Kanban) e colunas, com a categoria de cada estado. */
-export async function readBoard(request, boardId) {
+export async function readBoard(request, boardId, override = null) {
   const id = Number(boardId);
   if (!Number.isInteger(id) || id <= 0) throw new Error(`Quadro inválido: ${boardId}`);
   const cfgRes = await request(`/rest/agile/1.0/board/${id}/configuration`);
@@ -47,22 +49,60 @@ export async function readBoard(request, boardId) {
   const filter = await filterRes.json();
 
   const parts = [stripOrderBy(filter.jql), stripOrderBy(cfg.subQuery?.query)].filter(Boolean).map((q) => `(${q})`);
-  const raw = cfg.columnConfig?.columns || [];
-  const columns = raw.map((c, i) => ({
+  const raw = (cfg.columnConfig?.columns || []).map((c) => ({
     name: c.name,
     statusIds: (c.statuses || []).map((s) => String(s.id)),
-    category: columnCategory(i, raw.length),
     min: c.min ?? null,
     max: c.max ?? null,
   }));
-  return { id, baseJql: parts.join(' AND '), columns };
+  const { categories, workflow } = classifyColumns(raw, override);
+  const columns = raw.map((c, i) => ({ ...c, category: categories[i] }));
+  return { id, baseJql: parts.join(' AND '), columns, workflow };
 }
 
-/** Posição → papel: primeira = backlog, última = concluído, meio = WIP. Com 1 coluna, é tudo backlog. */
+/**
+ * Papel de cada coluna: 'backlog', 'wip' ou 'done'.
+ * `override` = { start, end } com nomes de colunas: WIP vai da coluna `start` até antes da `end`; da `end` em diante é concluído.
+ * Sem override (ou se já não servir), a regra por omissão descrita no topo do ficheiro.
+ */
+export function classifyColumns(columns, override = null) {
+  const n = columns.length;
+  const filled = columns.map((c, i) => (c.statusIds.length ? i : -1)).filter((i) => i >= 0);
+  const byOverride = () => {
+    if (!override?.start || !override?.end) return null;
+    const s = columns.findIndex((c) => c.name === override.start);
+    const e = columns.findIndex((c) => c.name === override.end);
+    if (s < 0 || e < 0 || s >= e) return null;
+    return { s, e };
+  };
+  const chosen = byOverride();
+  let s; let e;
+  if (chosen) ({ s, e } = chosen);
+  else if (filled.length >= 2) {
+    // Backlog = primeira coluna com estados; WIP começa na coluna seguinte; concluído = última coluna com estados.
+    s = filled[0] + 1;
+    e = filled[filled.length - 1];
+  } else {
+    s = n; e = n; // uma só coluna com estados: tudo backlog
+  }
+  const categories = columns.map((_, i) => (i < s ? 'backlog' : i < e ? 'wip' : 'done'));
+  const wipCols = columns.filter((_, i) => categories[i] === 'wip');
+  return {
+    categories,
+    workflow: {
+      start: wipCols[0]?.name ?? null,
+      end: columns[e]?.name ?? null,
+      isDefault: !chosen,
+      overrideIgnored: Boolean(override?.start && override?.end) && !chosen,
+      columns: columns.map((c) => c.name),
+    },
+  };
+}
+
+/** Compatível com os testes antigos: papel pela posição, com todas as colunas preenchidas. */
 export function columnCategory(index, count) {
-  if (count <= 1 || index === 0) return 'backlog';
-  if (index === count - 1) return 'done';
-  return 'wip';
+  const cols = Array.from({ length: count }, (_, i) => ({ name: String(i), statusIds: ['x'] }));
+  return classifyColumns(cols).categories[index];
 }
 
 /**
@@ -179,7 +219,8 @@ export async function loadBoardData(request, board, { projectKey, doneWindowDays
   });
 
   return {
-    columns: board.columns.map((c, i) => ({ name: c.name, category: c.category, count: columnCounts[i], max: c.max })),
+    columns: board.columns.map((c, i) => ({ name: c.name, category: c.category, count: columnCounts[i], max: c.max, hasStatuses: c.statusIds.length > 0 })),
+    workflow: board.workflow,
     wip: wipItems,
     ageFromHistory: complete,
     done: doneItems,
@@ -198,7 +239,8 @@ export function buildBoardView(data, { countBy, agingViews, referenceTimes }, no
   const openColumns = data.columns.filter((c) => c.category !== 'done');
   const countFailed = openColumns.some((c) => c.count === null);
   return {
-    columns: openColumns.map((c) => ({ name: c.name, count: c.count, wip: c.category === 'wip', max: c.max })),
+    columns: openColumns.filter((c) => c.hasStatuses).map((c) => ({ name: c.name, count: c.count, wip: c.category === 'wip', max: c.max })),
+    workflow: data.workflow,
     kpis: {
       wip: data.wip.length,
       blocked: data.blocked,

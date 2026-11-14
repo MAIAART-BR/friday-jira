@@ -35,7 +35,10 @@ It does not read comments, descriptions, attachments, worklogs or user email add
 For each person and each Jira space, the app stores three display choices, together with that person's Atlassian
 account ID, so the page opens the same way next time: the ID of the board last selected in FRIDAY Flow, whether
 the person chose to include time in backlog in work item age, and the reference period chosen (30 to 180 days). They are stored in Forge storage, on Atlassian's
-infrastructure, and are written only when the person changes one of them. Nothing else is stored.
+infrastructure, and are written only when the person changes one of them.
+
+For each board, the app also stores which columns the team chose as the start and the end of its work, if someone
+changed the default. This contains no personal data and applies to everyone who uses that board. Nothing else is stored.
 
 ## How the data is used
 

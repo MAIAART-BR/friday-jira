@@ -96,6 +96,17 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Por decidir:** marcar a vermelho, na tabela, os tickets acima do P85. Os dados já vêm calculados (`above`).
 - **Custo no Forge:** o histórico dos concluídos do período, no mesmo pedido em lote. Com 180 dias pode haver centenas de tickets, mas continua dentro da franquia gratuita.
 
+### Onde o trabalho começa e acaba, 4 cartões e controlo de idade (feito, por validar pelo Artur)
+
+- **Erro corrigido:** com a coluna especial de backlog dos quadros Kanban (vazia), a regra «primeira coluna = backlog» punha o «Backlog» no WIP (WIP 1011 em vez de 7).
+- **Regra:** por omissão, as colunas vazias do início e do fim são ignoradas. Uma definição por quadro («O trabalho começa em / termina em»), para toda a equipa, segue o The Kanban Guide (cada equipa define o início e o fim).
+- **Ecrã:**
+  - 4 cartões: Em curso, Acima da referência, Bloqueado, Concluído (14 dias);
+  - as contagens por coluna passam a um gráfico, com os limites de WIP;
+  - a idade escolhe-se com um controlo «Desde o início | Desde a criação»;
+  - ajuda e definições como ícones, com dica ao passar o rato.
+- **Por rever com o Artur:** no modo quadro, o gráfico «Em aberto por tipo» deu lugar ao «Por coluna».
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

@@ -1,31 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
-  Box, Inline, Stack, Heading, Text, Strong, Lozenge, Link, Spinner, SectionMessage, Select, Button, Toggle, Label,
-  Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem,
+  Box, Inline, Stack, Heading, Text, Lozenge, Link, Spinner, SectionMessage, Select, Button, ButtonGroup,
+  Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem, Icon, Pressable, Tooltip,
   DynamicTable, BarChart, useProductContext, xcss,
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 import { messagesFor, roundDays, daysCell } from './i18n';
 
-const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '120px' });
+const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '150px' });
 const chartStyle = xcss({ minWidth: '320px' });
 const selectStyle = xcss({ minWidth: '240px' });
 // Espaço por cima do título: sem ele, o título fica colado à barra de separadores do Jira.
 const headerStyle = xcss({ paddingTop: 'space.300' });
 const refSelectStyle = xcss({ minWidth: '170px' });
+const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.050', backgroundColor: 'color.background.neutral.subtle' });
 
-function Kpi({ label, value, alert = false, badge = null, note = null }) {
+function Kpi({ label, value, alert = false, note = null }) {
   return (
     <Box padding="space.150" backgroundColor={alert ? 'color.background.danger' : 'color.background.neutral'} xcss={kpiStyle}>
       <Stack space="space.050">
-        <Inline space="space.050" alignBlock="center">
-          <Text size="small">{label}</Text>
-          {badge && <Lozenge appearance="inprogress">{badge}</Lozenge>}
-        </Inline>
+        <Text size="small">{label}</Text>
         <Heading size="large">{value == null ? '–' : String(value)}</Heading>
-        {note && <Text size="small">{note}</Text>}
+        {note && <Text size="small" color="color.text.subtlest">{note}</Text>}
       </Stack>
     </Box>
+  );
+}
+
+// Botão-ícone com dica ao passar o rato.
+function IconButton({ glyph, label, onClick }) {
+  return (
+    <Tooltip content={label}>
+      <Pressable onClick={onClick} xcss={iconButtonStyle}>
+        <Icon glyph={glyph} label={label} size="medium" />
+      </Pressable>
+    </Tooltip>
   );
 }
 
@@ -44,37 +53,61 @@ function BoardPicker({ boards, selectedId, onChange, t }) {
   );
 }
 
-// Ajuda: definições e fontes (The Kanban Guide; Little, 1961, 2011).
-function HelpButton({ t }) {
-  const [open, setOpen] = useState(false);
+// Ajuda: definições e fontes.
+function HelpModal({ t, onClose }) {
   return (
-    <>
-      <Button appearance="subtle" onClick={() => setOpen(true)}>{t.helpButton}</Button>
-      <ModalTransition>
-        {open && (
-          <Modal onClose={() => setOpen(false)} label={t.helpTitle}>
-            <ModalHeader><ModalTitle>{t.helpTitle}</ModalTitle></ModalHeader>
-            <ModalBody>
-              <Stack space="space.200">
-                {t.helpSections.map(([title, body]) => (
-                  <Stack key={title} space="space.050">
-                    <Heading size="xsmall">{title}</Heading>
-                    <Text>{body}</Text>
-                  </Stack>
-                ))}
-                <Stack space="space.050">
-                  <Heading size="xsmall">{t.helpReferences}</Heading>
-                  <List type="unordered">
-                    {t.helpRefs.map((r) => <ListItem key={r}><Text size="small">{r}</Text></ListItem>)}
-                  </List>
-                </Stack>
-              </Stack>
-            </ModalBody>
-            <ModalFooter><Button appearance="primary" onClick={() => setOpen(false)}>{t.helpClose}</Button></ModalFooter>
-          </Modal>
-        )}
-      </ModalTransition>
-    </>
+    <Modal onClose={onClose} label={t.helpTitle}>
+      <ModalHeader><ModalTitle>{t.helpTitle}</ModalTitle></ModalHeader>
+      <ModalBody>
+        <Stack space="space.200">
+          {t.helpSections.map(([title, body]) => (
+            <Stack key={title} space="space.050">
+              <Heading size="xsmall">{title}</Heading>
+              <Text>{body}</Text>
+            </Stack>
+          ))}
+          <Stack space="space.050">
+            <Heading size="xsmall">{t.helpReferences}</Heading>
+            <List type="unordered">
+              {t.helpRefs.map((r) => <ListItem key={r}><Text size="small">{r}</Text></ListItem>)}
+            </List>
+          </Stack>
+        </Stack>
+      </ModalBody>
+      <ModalFooter><Button appearance="primary" onClick={onClose}>{t.helpClose}</Button></ModalFooter>
+    </Modal>
+  );
+}
+
+// Definição do fluxo: onde o trabalho começa e acaba neste quadro (para toda a equipa).
+function WorkflowModal({ t, workflow, onSave, onReset, onClose }) {
+  const options = workflow.columns.map((name) => ({ label: name, value: name }));
+  const [start, setStart] = useState(workflow.start);
+  const [end, setEnd] = useState(workflow.end);
+  const valid = workflow.columns.indexOf(start) >= 0 && workflow.columns.indexOf(start) < workflow.columns.indexOf(end);
+  return (
+    <Modal onClose={onClose} label={t.settingsTitle}>
+      <ModalHeader><ModalTitle>{t.settingsTitle}</ModalTitle></ModalHeader>
+      <ModalBody>
+        <Stack space="space.200">
+          <Text>{t.settingsIntro}</Text>
+          <Stack space="space.050">
+            <Text weight="medium">{t.settingsStart}</Text>
+            <Select inputId="friday-wf-start" options={options} value={options.find((o) => o.value === start)} onChange={(o) => o && setStart(o.value)} />
+          </Stack>
+          <Stack space="space.050">
+            <Text weight="medium">{t.settingsEnd}</Text>
+            <Select inputId="friday-wf-end" options={options} value={options.find((o) => o.value === end)} onChange={(o) => o && setEnd(o.value)} />
+          </Stack>
+          {!valid && <SectionMessage appearance="warning"><Text>{t.settingsInvalid}</Text></SectionMessage>}
+          <Text size="small" color="color.text.subtlest">{t.settingsNote}</Text>
+        </Stack>
+      </ModalBody>
+      <ModalFooter>
+        <Button appearance="subtle" onClick={onReset}>{t.settingsReset}</Button>
+        <Button appearance="primary" isDisabled={!valid} onClick={() => onSave(start, end)}>{t.settingsSave}</Button>
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -110,6 +143,7 @@ function App() {
   const [includeBacklog, setIncludeBacklog] = useState(false);
   const [referenceDays, setReferenceDays] = useState(90);
   const [referenceOptions, setReferenceOptions] = useState([30, 60, 90, 180]);
+  const [modal, setModal] = useState(null); // 'help' | 'workflow' | null
 
   const load = (boardId, remember = false, days = referenceDays) => {
     setView(null);
@@ -132,10 +166,10 @@ function App() {
       .catch(() => setView({ error: 'UNKNOWN' }));
   }, []);
 
-  const toggleBacklog = () => {
-    const next = !includeBacklog;
-    setIncludeBacklog(next);
-    invoke('saveBacklogTime', { includeBacklog: next }).catch(() => {});
+  const chooseAgeFrom = (fromCreation) => {
+    if (fromCreation === includeBacklog) return;
+    setIncludeBacklog(fromCreation);
+    invoke('saveBacklogTime', { includeBacklog: fromCreation }).catch(() => {});
   };
 
   const chooseReference = (days) => {
@@ -151,25 +185,55 @@ function App() {
     load(id, true);
   };
 
+  const saveWorkflow = (start, end) => {
+    setModal(null);
+    invoke('saveWorkflow', { boardId: selectedId, start, end }).then(() => load(selectedId)).catch(() => load(selectedId));
+  };
+  const resetWorkflow = () => {
+    setModal(null);
+    invoke('saveWorkflow', { boardId: selectedId, reset: true }).then(() => load(selectedId)).catch(() => load(selectedId));
+  };
+
   if (!context) return <Spinner label={t.loading} />;
   const projectKey = view?.projectKey || context.extension?.project?.key || '';
   const boardName = boards?.find((b) => b.id === selectedId)?.name;
+  const canEditWorkflow = view?.mode === 'board' && view.workflow;
 
   return (
     <Stack space="space.300">
       <Box xcss={headerStyle}>
-      <Inline spread="space-between" alignBlock="center" shouldWrap>
-        <Heading size="large">{t.title(boardName || projectKey)}</Heading>
-        <Inline space="space.100" alignBlock="center">
-          {boards && boards.length > 0 && <BoardPicker boards={boards} selectedId={selectedId} onChange={choose} t={t} />}
-          <HelpButton t={t} />
+        <Inline spread="space-between" alignBlock="center" shouldWrap>
+          <Heading size="large">{t.title(boardName || projectKey)}</Heading>
+          <Inline space="space.100" alignBlock="center">
+            {boards && boards.length > 0 && <BoardPicker boards={boards} selectedId={selectedId} onChange={choose} t={t} />}
+            {canEditWorkflow && <IconButton glyph="settings" label={t.settingsTooltip} onClick={() => setModal('workflow')} />}
+            <IconButton glyph="question-circle" label={t.helpTooltip} onClick={() => setModal('help')} />
+          </Inline>
         </Inline>
-      </Inline>
       </Box>
       {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
-      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} onToggleBacklog={toggleBacklog}
+      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} onAgeFrom={chooseAgeFrom}
         referenceDays={referenceDays} referenceOptions={referenceOptions} onReference={chooseReference} />
+      <ModalTransition>
+        {modal === 'help' && <HelpModal t={t} onClose={() => setModal(null)} />}
+        {modal === 'workflow' && canEditWorkflow && (
+          <WorkflowModal t={t} workflow={view.workflow} onSave={saveWorkflow} onReset={resetWorkflow} onClose={() => setModal(null)} />
+        )}
+      </ModalTransition>
     </Stack>
+  );
+}
+
+// Controlo de duas opções: idade desde o início do trabalho ou desde a criação.
+function AgeFrom({ t, includeBacklog, onChange }) {
+  return (
+    <Inline space="space.100" alignBlock="center">
+      <Text color="color.text.subtlest">{t.ageFromLabel}</Text>
+      <ButtonGroup label={t.ageFromLabel}>
+        <Button isSelected={!includeBacklog} onClick={() => onChange(false)}>{t.ageFromStart}</Button>
+        <Button isSelected={includeBacklog} onClick={() => onChange(true)}>{t.ageFromCreated}</Button>
+      </ButtonGroup>
+    </Inline>
   );
 }
 
@@ -201,7 +265,7 @@ function ReferenceLine({ view, t, includeBacklog, referenceDays, referenceOption
   );
 }
 
-function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog, referenceDays, referenceOptions, onReference }) {
+function Body({ view, t, siteUrl, includeBacklog, onAgeFrom, referenceDays, referenceOptions, onReference }) {
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
 
@@ -209,48 +273,52 @@ function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog, referenceDays
   const byType = view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
   const wipByAssignee = view.wipByAssignee.map((r) => ({ ...r, label: r.label ?? t.unassigned }));
   const aging = includeBacklog ? view.aging.created : view.aging.start;
+  const ref = includeBacklog ? view.reference.lead : view.reference.cycle;
   const isBoard = view.mode === 'board';
+  const byColumn = isBoard ? view.columns.map((c) => ({ label: c.max != null ? t.columnWithLimit(c.name, c.max) : c.name, count: c.count ?? 0 })) : [];
+  const overLimit = isBoard ? view.columns.filter((c) => c.max != null && c.count != null && c.count > c.max) : [];
 
   return (
     <Stack space="space.300">
       <Text>{t.subtitle(k.doneWindowDays)}</Text>
       {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}
       {isBoard && view.countFailed && <SectionMessage appearance="warning"><Text>{t.countFailed}</Text></SectionMessage>}
+      {isBoard && view.workflow?.overrideIgnored && <SectionMessage appearance="warning"><Text>{t.workflowIgnored}</Text></SectionMessage>}
       {isBoard && !view.ageFromHistory && <SectionMessage appearance="information"><Text>{t.ageApprox}</Text></SectionMessage>}
       {!isBoard && view.backlogUnavailable && <SectionMessage appearance="warning"><Text>{t.backlogUnavailable}</Text></SectionMessage>}
       {!view.hasFlaggedField && <SectionMessage appearance="information"><Text>{t.noFlaggedField}</Text></SectionMessage>}
 
-      {isBoard ? (
-        <Inline space="space.150" shouldWrap>
-          {view.columns.map((c) => (
-            <Kpi key={c.name} label={c.name} value={c.count} badge={c.wip ? t.wipColumn : null}
-              alert={c.max != null && c.count != null && c.count > c.max} note={c.max != null ? t.wipLimit(c.max) : null} />
-          ))}
-          {view.wipColumnCount >= 2 && <Kpi label={t.kpiWip} value={k.wip} />}
-          <Kpi label={t.kpiBlocked} value={k.blocked} alert={k.blocked > 0} />
-          <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
-        </Inline>
-      ) : (
-        <Inline space="space.150" shouldWrap>
-          <Kpi label={t.kpiOpen} value={k.open} />
-          <Kpi label={t.kpiBacklog} value={k.backlog} />
-          <Kpi label={t.kpiWip} value={k.wip} />
-          <Kpi label={t.kpiBlocked} value={k.blocked} alert={k.blocked > 0} />
-          <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
-        </Inline>
-      )}
+      <Inline space="space.150" shouldWrap>
+        <Kpi label={t.kpiWip} value={k.wip}
+          note={isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null} />
+        <Kpi label={t.kpiAbove} value={ref && ref.n > 0 && aging.above != null ? aging.above : null} alert={aging.above > 0}
+          note={ref && ref.n > 0 ? t.kpiAboveNote(t.days(roundDays(ref.p85))) : t.kpiAboveNone} />
+        <Kpi label={t.kpiBlocked} value={k.blocked} alert={k.blocked > 0} />
+        <Kpi label={t.kpiDone(k.doneWindowDays)} value={k.doneRecent} />
+      </Inline>
 
       <Inline space="space.300" shouldWrap>
-        <Box xcss={chartStyle}>
-          <Stack space="space.100">
-            <Heading size="small">{isBoard ? t.byTypeBoard : t.byType}</Heading>
-            {byType.length ? <BarChart data={byType} xAccessor="label" yAccessor="count" height={280} /> : <Text>{t.noOpen}</Text>}
-          </Stack>
-        </Box>
+        {isBoard && (
+          <Box xcss={chartStyle}>
+            <Stack space="space.100">
+              <Heading size="small">{t.byColumn}</Heading>
+              {byColumn.length ? <BarChart data={byColumn} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>}
+              {overLimit.map((c) => <Text key={c.name} size="small">{t.overLimit(c.name, c.count, c.max)}</Text>)}
+            </Stack>
+          </Box>
+        )}
+        {!isBoard && (
+          <Box xcss={chartStyle}>
+            <Stack space="space.100">
+              <Heading size="small">{t.byType}</Heading>
+              {byType.length ? <BarChart data={byType} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>}
+            </Stack>
+          </Box>
+        )}
         <Box xcss={chartStyle}>
           <Stack space="space.100">
             <Heading size="small">{t.wipByAssignee}</Heading>
-            {wipByAssignee.length ? <BarChart data={wipByAssignee} xAccessor="label" yAccessor="count" height={280} /> : <Text>{t.noWip}</Text>}
+            {wipByAssignee.length ? <BarChart data={wipByAssignee} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noWip}</Text>}
           </Stack>
         </Box>
       </Inline>
@@ -258,10 +326,7 @@ function Body({ view, t, siteUrl, includeBacklog, onToggleBacklog, referenceDays
       <Stack space="space.100">
         <Inline spread="space-between" alignBlock="center" shouldWrap>
           <Heading size="small">{t.oldestWip}</Heading>
-          <Inline space="space.050" alignBlock="center">
-            <Toggle id="friday-backlog-time" isChecked={includeBacklog} onChange={onToggleBacklog} />
-            <Label labelFor="friday-backlog-time">{t.toggleBacklog}</Label>
-          </Inline>
+          <AgeFrom t={t} includeBacklog={includeBacklog} onChange={onAgeFrom} />
         </Inline>
         <ReferenceLine view={view} t={t} includeBacklog={includeBacklog} referenceDays={referenceDays}
           referenceOptions={referenceOptions} onReference={onReference} />
