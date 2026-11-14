@@ -6,7 +6,6 @@ import ForgeReconciler, {
 import { invoke } from '@forge/bridge';
 import { messagesFor, roundDays, daysCell } from './i18n';
 
-const MAX_ISSUES = 1000;
 const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '120px' });
 const chartStyle = xcss({ minWidth: '320px' });
 
@@ -71,7 +70,8 @@ function App() {
         <Text>{t.subtitle(k.doneWindowDays)}</Text>
       </Stack>
 
-      {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(MAX_ISSUES)}</Text></SectionMessage>}
+      {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}
+      {view.backlogUnavailable && <SectionMessage appearance="warning"><Text>{t.backlogUnavailable}</Text></SectionMessage>}
       {!view.hasFlaggedField && <SectionMessage appearance="information"><Text>{t.noFlaggedField}</Text></SectionMessage>}
 
       <Inline space="space.150" shouldWrap>

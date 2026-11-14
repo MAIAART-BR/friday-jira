@@ -1,6 +1,6 @@
 import Resolver from '@forge/resolver';
-import api, { route, assumeTrustedRoute } from '@forge/api';
-import { loadProjectIssues } from './jira.js';
+import api, { route } from '@forge/api';
+import { loadProjectData, checkProjectKey, SAFETY_MAX } from './jira.js';
 import { buildFlowView, DONE_WINDOW_DAYS } from './flow.js';
 
 const resolver = new Resolver();
@@ -12,7 +12,10 @@ const request = (path, init) => api.asUser().requestJira(toRoute(path), init);
 function toRoute(path) {
   if (path === '/rest/api/3/field') return route`/rest/api/3/field`;
   if (path === '/rest/api/3/search/jql') return route`/rest/api/3/search/jql`;
-  return assumeTrustedRoute(path);
+  if (path === '/rest/api/3/search/approximate-count') return route`/rest/api/3/search/approximate-count`;
+  const project = /^\/rest\/api\/3\/project\/([A-Z][A-Z0-9_]+)$/.exec(path);
+  if (project) return route`/rest/api/3/project/${checkProjectKey(project[1])}`;
+  throw new Error(`Caminho não previsto: ${path}`);
 }
 
 // Com licensing.enabled, o Jira envia a licença no contexto das instalações de produção.
@@ -29,11 +32,14 @@ resolver.define('getFlowView', async ({ context }) => {
   const projectKey = context?.extension?.project?.key;
   if (!projectKey) return { error: 'NO_PROJECT' };
   try {
-    const { issues, truncated, hasFlaggedField } = await loadProjectIssues(request, {
+    const data = await loadProjectData(request, { projectKey, doneWindowDays: DONE_WINDOW_DAYS });
+    return {
       projectKey,
-      doneWindowDays: DONE_WINDOW_DAYS,
-    });
-    return { projectKey, truncated, hasFlaggedField, ...buildFlowView(issues) };
+      truncated: data.truncated,
+      limit: SAFETY_MAX,
+      hasFlaggedField: data.hasFlaggedField,
+      ...buildFlowView(data),
+    };
   } catch (e) {
     console.error(e);
     return { error: 'LOAD_FAILED' };
