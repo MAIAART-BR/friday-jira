@@ -71,6 +71,19 @@ O script pede o email e o token e guarda-os só nessa janela do Terminal. Depois
 
 No fim, abra o projeto no Jira e escolha **FRIDAY Flow** no menu lateral.
 
+## Validar os cálculos com uma exportação CSV
+
+Compara os cálculos do FRIDAY com os de outra ferramenta, por exemplo o BusinessMap, sem enviar dados para lado nenhum:
+
+```bash
+node scripts/validar-csv.mjs caminho/para/export.csv
+```
+
+- **O que lê:** só o ID, as datas, o responsável e o bloqueio. Nunca lê os títulos.
+- **Anonimização:** os IDs aparecem como `CARTAO-001` e os nomes como `Pessoa A`.
+- **O que mostra:** apenas números agregados. Não grava nada em disco.
+- **Ficheiros de dados:** o repositório ignora `*.csv` e `*.xlsx`.
+
 ## Deploy pelo GitHub Actions
 
 O fluxo «Deploy FRIDAY Flow» (`.github/workflows/deploy-friday-flow.yml`) corre os testes e faz o `forge deploy`.

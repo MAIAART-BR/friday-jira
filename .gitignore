@@ -1,3 +1,7 @@
 node_modules/
 .DS_Store
 *.log
+
+# Exportações de dados (podem ser de empresas): nunca vão para o repositório.
+*.csv
+*.xlsx
