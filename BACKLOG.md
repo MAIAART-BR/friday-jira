@@ -23,11 +23,12 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 | # | Item | V | U | R | CoD | D (sem.) | CD3 | Forge |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Decidir: Flow gratuito ou pago | 3 | 8 | 5 | 16 | 0,2 | **80** | 0 € |
-| 2 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
-| 3 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
-| 4 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
-| 5 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
-| 6 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
+| 2 | Validar o posicionamento com potenciais clientes | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
+| 3 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
+| 4 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
+| 5 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
+| 6 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
+| 7 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
 | ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
 ### 1. Decidir: Flow gratuito ou pago
@@ -38,17 +39,34 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Sinal de que acertámos:** instalações e avaliações nos primeiros 2 meses (se gratuito); primeira venda (se pago).
 - **Estado (14/11/2026):** a pesquisa indica que passar de gratuito para «Paid via Atlassian» na mesma listagem não é permitido, mas as fontes não são claras. As edições Standard e Advanced, que permitiriam vender módulos dentro da mesma listagem, só existem para apps «Paid via Atlassian». Recomendação: pago e barato desde o início. **À espera da resposta do suporte da Atlassian: pedido ECOHELP-185604**, enviado a 14/11/2026 (pergunta em `marketplace/PERGUNTA-SUPORTE.md`).
 
-### 2. Testar com dados reais
+### 2. Validar o posicionamento com potenciais clientes
+
+- **Hipótese:** quem gere equipas Kanban em Jira paga por números que batem com o quadro e se explicam sozinhos, sem configuração. Hoje não temos nenhuma razão forte para comprar o FRIDAY em vez do ActionableAgile, do Nave ou da Broken Build.
+- **O que já se sabe (14/11/2026, `marketplace/CONCORRENCIA.md`):**
+  - as queixas recorrentes nas avaliações são números em que não se confia, configuração que falha, apps difíceis de encontrar e lentidão;
+  - o suporte rápido é o que mais se elogia;
+  - a estratégia «barato e por módulos» já existe (Broken Build: grátis até 10 utilizadores, 0,55 $ por utilizador com 100, por app);
+  - «diz-me o que fazer» também já existe (o painel de melhoria do processo do Nave).
+- **Porquê agora:** define o texto da listagem, o preço (item 1) e o que vem a seguir. Publicar sem isto é publicar mais uma app de gráficos.
+- **O que fazer:**
+  1. Mostrar o ecrã atual a 5 pessoas que gerem equipas Kanban em Jira e perguntar o que fariam com ele amanhã, o que usam hoje e quanto pagariam.
+  2. Experimentar a versão atual do ActionableAgile, do Nave e do WIP Aging da Broken Build no site de teste, para confirmar o que ainda é verdade nas queixas.
+  3. Reescrever a frase da listagem com as palavras dos entrevistados.
+- **Depende de:** nada. Pode correr em paralelo com o item 1.
+- **Sinal de que acertámos:** pelo menos 3 das 5 pessoas descrevem sem ajuda um ganho concreto («isto poupa-me X»). Se nenhuma o fizer, repensar o produto antes de publicar.
+- **Candidato a funcionalidade, só se a validação o confirmar:** carregar num número e ver os tickets que o compõem, com o motivo de cada um contar.
+
+### 3. Testar com dados reais
 
 - **Hipótese:** a idade do trabalho e o P85 batem certo com a perceção da equipa num projeto com meses de histórico.
 - **Porquê agora:** é a maior dúvida. São os números que distinguem o FRIDAY, e nunca foram vistos com dados verdadeiros. Publicar sem os testar arrisca más avaliações logo no início.
 - **O que fazer:** instalar o FRIDAY Flow num Jira Cloud com histórico, um projeto real ou o de alguém que aceite testar. Importar tickets por CSV não chega: o Jira não deixa recuar a data da mudança de estado, e é dela que a idade depende.
 - **Sinal de que acertámos:** a equipa reconhece os tickets mais antigos e o P85 como «certos».
 
-### 3. Publicar o Flow no Marketplace
+### 4. Publicar o Flow no Marketplace
 
 - **Hipótese:** há equipas Kanban à procura disto no Marketplace.
-- **Depende de:** 1 e 2.
+- **Depende de:** 1, 2 e 3.
 - **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production, submissão (ver `marketplace/PREPARACAO.md`).
 - **Sinal de que acertámos:** a primeira instalação de alguém que não conhecemos.
 
@@ -142,12 +160,12 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - uma frase no topo diz o que precisa de atenção («2 tickets estão mais lentos do que o habitual (mais de 8 dias). Comece por FRIDEMO-4.»).
 - **Decidido (15/11/2026):** o cartão passa a «Concluídos esta semana», igual à última barra de «Concluídos por semana», com a semana passada ao lado. Fica só o Histórico como período à parte.
 
-### 4 a 6. Módulos seguintes
+### 5 a 7. Módulos seguintes
 
-Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.
+Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados dos itens 2 e 4.
 
 - **Delivery:** os cálculos de throughput e lead time já estão no núcleo, por isso é o mais curto.
-- **Forecast:** é o que mais diferencia face à concorrência, mas é o mais longo. Precisa de histórico de mudanças de estado e de simulação Monte Carlo, e o custo no Forge tem de ser calculado antes de começar.
+- **Forecast:** o ActionableAgile, o Nave e a Broken Build já fazem Monte Carlo, por isso diferencia menos do que se pensava. Mesmo assim, é um dos pontos mais elogiados nas avaliações. É o mais longo: precisa de histórico de mudanças de estado e de simulação Monte Carlo, e o custo no Forge tem de ser calculado antes de começar.
 - **Health:** depende do guia KMM do FRIDAY original.
 
 ## Rejeitados
