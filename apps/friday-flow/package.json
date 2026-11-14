@@ -1,0 +1,17 @@
+{
+  "name": "friday-flow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FRIDAY Flow: estado atual do fluxo num projeto do Jira (módulo 1 da suite FRIDAY).",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "forge lint"
+  },
+  "dependencies": {
+    "@forge/api": "^8.5.0",
+    "@forge/bridge": "^7.3.0",
+    "@forge/react": "^12.5.0",
+    "@forge/resolver": "^2.0.2",
+    "react": "^18.3.1"
+  }
+}

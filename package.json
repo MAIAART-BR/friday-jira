@@ -1,0 +1,10 @@
+{
+  "name": "friday-jira",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FRIDAY para Jira: métricas de fluxo por módulos (apps Forge).",
+  "scripts": {
+    "sync-core": "node scripts/sync-core.mjs",
+    "test": "node scripts/sync-core.mjs --check && npm test --prefix packages/core && npm test --prefix apps/friday-flow"
+  }
+}

@@ -1,0 +1,25 @@
+modules:
+  jira:projectPage:
+    - key: friday-flow-page
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      title: FRIDAY Flow
+      layout: basic
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+permissions:
+  scopes:
+    - read:jira-work
+app:
+  # Substituído por `forge register` na primeira vez (ver README).
+  id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
+  runtime:
+    name: nodejs22.x
+  licensing:
+    enabled: true
