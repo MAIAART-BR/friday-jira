@@ -46,12 +46,12 @@ export async function findFlaggedFieldId(request) {
   return f ? f.id : null;
 }
 
-/** Tipos de ticket do projeto que não são subtarefas. */
-export async function findIssueTypes(request, projectKey) {
+/** Tipos de ticket do projeto (sem subtarefas, a menos que se peça). */
+export async function findIssueTypes(request, projectKey, { includeSubtasks = false } = {}) {
   const res = await request(`/rest/api/3/project/${checkProjectKey(projectKey)}`);
   if (!res.ok) throw new Error(`Jira respondeu ${res.status} ao ler o projeto`);
   const project = await res.json();
-  return (project.issueTypes || []).filter((t) => !t.subtask).map((t) => ({ id: t.id, name: t.name }));
+  return (project.issueTypes || []).filter((t) => includeSubtasks || !t.subtask).map((t) => ({ id: t.id, name: t.name }));
 }
 
 /** Busca todos os tickets do JQL (paginação por nextPageToken), até SAFETY_MAX. */

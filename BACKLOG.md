@@ -62,6 +62,16 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - contar tudo, sem exceções.
 - **Custo no Forge:** mais alguns pedidos ao Jira por visita (um por tipo de ticket), dentro da franquia gratuita.
 
+### Números iguais aos do quadro (feito, por testar no Jira)
+
+- **Porquê:** o Artur já desinstalou uma app cujos números não batiam com o quadro. É uma questão de confiança.
+- **Decisões (14/11/2026):**
+  - um seletor de quadro bem visível, que lembra a escolha de cada pessoa;
+  - números por coluna do quadro;
+  - as subtarefas contam se o quadro as mostrar.
+- **Custo:** cerca de 1 s a mais por visita (~0,5 GB-s). A franquia gratuita continua a cobrir cerca de 100 000 visitas por mês.
+- **Consequências:** 4 permissões novas (a instalação tem de ser atualizada) e a app passa a guardar a escolha do quadro. A privacidade e a listagem já foram atualizadas.
+
 ### 4 a 6. Módulos seguintes
 
 Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados do item 3.

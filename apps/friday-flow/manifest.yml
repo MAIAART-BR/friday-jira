@@ -16,6 +16,12 @@ resources:
 permissions:
   scopes:
     - read:jira-work
+    # Ler os quadros (lista, filtro, colunas) para os números baterem com o quadro do cliente.
+    - read:board-scope:jira-software
+    - read:board-scope.admin:jira-software
+    - read:project:jira
+    # Lembrar o quadro escolhido por cada pessoa (uma escrita só quando muda de quadro).
+    - storage:app
 app:
   id: ari:cloud:ecosystem::app/360ae8cc-ab00-48b0-9d21-55416fc94182
   runtime:

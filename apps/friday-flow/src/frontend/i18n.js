@@ -7,6 +7,13 @@ const en = {
   subtitle: (days) => `Current flow: what is open, in progress, blocked and done in the last ${days} days.`,
   truncated: (max) => `More than ${max} work items are in progress or were recently done; only the first ${max} are included.`,
   backlogUnavailable: 'Jira did not return the backlog count, so Open and Backlog are not shown. Please reload the page.',
+  countFailed: 'Jira did not return some of the column counts, so they show as –. Please reload the page.',
+  boardLabel: 'Board',
+  boardHelp: 'The numbers follow this board: its filter and its columns.',
+  noBoards: 'This space has no board, so the numbers use Jira status categories (To Do, In Progress, Done).',
+  wipLimit: (max) => `limit ${max}`,
+  wipColumn: 'WIP',
+  byTypeBoard: 'Open on the board by type',
   noFlaggedField: 'This site has no "Flagged" field, so blocked items show as zero.',
   kpiOpen: 'Open',
   kpiBacklog: 'Backlog',
@@ -34,6 +41,7 @@ const en = {
     NO_PROJECT: 'Open FRIDAY Flow from a Jira space.',
     LOAD_FAILED: 'Could not read the work items in this space. Please try again in a moment.',
     UNKNOWN: 'Could not load FRIDAY Flow.',
+    BOARD_FAILED: 'Could not read this board. You may not have access to its filter. Choose another board or ask a Jira admin.',
   },
 };
 
@@ -43,6 +51,13 @@ const pt = {
   subtitle: (days) => `Estado atual do fluxo: o que está em aberto, em curso, bloqueado e concluído nos últimos ${days} dias.`,
   truncated: (max) => `Há mais de ${max} tickets em curso ou concluídos recentemente; só os primeiros ${max} entram nas contas.`,
   backlogUnavailable: 'O Jira não devolveu a contagem do backlog, por isso Em aberto e Backlog não aparecem. Recarregue a página.',
+  countFailed: 'O Jira não devolveu algumas contagens das colunas, por isso aparecem como –. Recarregue a página.',
+  boardLabel: 'Quadro',
+  boardHelp: 'Os números seguem este quadro: o filtro e as colunas dele.',
+  noBoards: 'Este espaço não tem quadro, por isso os números usam as categorias de estado do Jira (A fazer, Em curso, Concluído).',
+  wipLimit: (max) => `limite ${max}`,
+  wipColumn: 'WIP',
+  byTypeBoard: 'Em aberto no quadro, por tipo',
   noFlaggedField: 'Este site não tem o campo «Flagged»; os bloqueados ficam a zero.',
   kpiOpen: 'Em aberto',
   kpiBacklog: 'Backlog',
@@ -70,6 +85,7 @@ const pt = {
     NO_PROJECT: 'Abra o FRIDAY Flow a partir de um espaço do Jira.',
     LOAD_FAILED: 'Não foi possível ler os tickets deste espaço. Tente de novo dentro de momentos.',
     UNKNOWN: 'Não foi possível carregar o FRIDAY Flow.',
+    BOARD_FAILED: 'Não foi possível ler este quadro. Pode não ter acesso ao filtro dele. Escolha outro quadro ou fale com um administrador do Jira.',
   },
 };
 

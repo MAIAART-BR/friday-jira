@@ -1,0 +1,140 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { listBoards, readBoard, loadBoardData, buildBoardView, stripOrderBy } from '../src/board.js';
+import { countBy, wipAging, percentile } from '../src/core/metrics.js';
+
+const NOW = new Date('2026-11-14T00:00:00Z');
+const response = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body, text: async () => JSON.stringify(body) });
+
+function rawIssue(n, catKey, extra = {}) {
+  return {
+    key: `FRI-${n}`,
+    fields: {
+      summary: `Issue ${n}`, issuetype: { name: 'Task' }, assignee: { displayName: 'Ana' },
+      status: { name: catKey, statusCategory: { key: catKey } },
+      created: '2026-10-01T00:00:00.000+0000', resolutiondate: null, statuscategorychangedate: '2026-11-01T00:00:00.000+0000',
+      ...extra,
+    },
+  };
+}
+
+// Quadro como o do projeto de teste: Backlog, Selected for Development, In Progress, Done.
+// Estados: 10000 Backlog (new), 10001 Selected (new), 3 In Progress (indeterminate), 10002 Done (done).
+function fakeJira({ wip = [], done = [], counts = {}, failCount = false, boards = [{ id: 1, name: 'FRI board', type: 'kanban' }] } = {}) {
+  const calls = [];
+  const request = async (path, init) => {
+    const body = init?.body ? JSON.parse(init.body) : null;
+    calls.push({ path, jql: body?.jql });
+    if (path.startsWith('/rest/agile/1.0/board?')) return response(200, { values: boards, isLast: true });
+    if (path === '/rest/agile/1.0/board/1/configuration') {
+      return response(200, {
+        filter: { id: 99 },
+        subQuery: { query: 'fixVersion in unreleasedVersions() OR fixVersion is EMPTY' },
+        columnConfig: { columns: [
+          { name: 'Backlog', statuses: [{ id: '10000' }] },
+          { name: 'Selected for Development', statuses: [{ id: '10001' }] },
+          { name: 'In Progress', statuses: [{ id: '3' }], max: 5 },
+          { name: 'Done', statuses: [{ id: '10002' }] },
+        ] },
+      });
+    }
+    if (path === '/rest/api/3/filter/99') return response(200, { jql: 'project = FRI ORDER BY Rank ASC' });
+    if (path === '/rest/api/3/status') {
+      return response(200, [
+        { id: '10000', statusCategory: { key: 'new' } }, { id: '10001', statusCategory: { key: 'new' } },
+        { id: '3', statusCategory: { key: 'indeterminate' } }, { id: '10002', statusCategory: { key: 'done' } },
+      ]);
+    }
+    if (path === '/rest/api/3/field') return response(200, [{ id: 'customfield_1', custom: true, name: 'Flagged' }]);
+    if (path === '/rest/api/3/project/FRI') {
+      return response(200, { issueTypes: [{ id: '1', name: 'Task' }, { id: '2', name: 'Bug' }, { id: '3', name: 'Sub-task', subtask: true }] });
+    }
+    if (path === '/rest/api/3/search/approximate-count') {
+      if (failCount) return response(500, {});
+      const key = Object.keys(counts).find((k) => body.jql.includes(k));
+      return response(200, { count: key ? counts[key] : 0 });
+    }
+    if (path === '/rest/api/3/search/jql') {
+      const all = body.jql.includes('status in (3)') ? wip : done;
+      const start = Number(body.nextPageToken || 0);
+      const next = start + body.maxResults;
+      return response(200, { issues: all.slice(start, next), isLast: next >= all.length, nextPageToken: String(next) });
+    }
+    return response(404, { path });
+  };
+  return { request, calls };
+}
+
+test('tira o ORDER BY do filtro do quadro', () => {
+  assert.equal(stripOrderBy('project = FRI ORDER BY Rank ASC'), 'project = FRI');
+  assert.equal(stripOrderBy('project = FRI order by created DESC, priority'), 'project = FRI');
+  assert.equal(stripOrderBy('project = FRI'), 'project = FRI');
+  assert.equal(stripOrderBy(undefined), '');
+});
+
+test('lista os quadros do projeto', async () => {
+  const { request } = fakeJira();
+  assert.deepEqual(await listBoards(request, 'FRI'), [{ id: 1, name: 'FRI board', type: 'kanban' }]);
+});
+
+test('lê o quadro: filtro + sub-filtro, colunas com categoria e limite', async () => {
+  const { request } = fakeJira();
+  const b = await readBoard(request, 1);
+  assert.equal(b.baseJql, '(project = FRI) AND (fixVersion in unreleasedVersions() OR fixVersion is EMPTY)');
+  assert.deepEqual(b.columns.map((c) => [c.name, c.category, c.max]), [
+    ['Backlog', 'backlog', null], ['Selected for Development', 'backlog', null], ['In Progress', 'wip', 5], ['Done', 'done', null],
+  ]);
+  await assert.rejects(readBoard(request, 'x'), /Quadro inválido/);
+});
+
+test('números do quadro: por coluna, WIP com subtarefas, bloqueados e tipos', async () => {
+  const wip = [
+    rawIssue(1, 'indeterminate', { customfield_1: [{ value: 'Impediment' }] }),
+    ...Array.from({ length: 6 }, (_, i) => rawIssue(10 + i, 'indeterminate')),
+  ];
+  const done = [
+    rawIssue(20, 'done', { resolutiondate: '2026-11-12T00:00:00.000+0000' }),
+    rawIssue(21, 'done', { resolutiondate: null, statuscategorychangedate: '2026-10-01T00:00:00.000+0000' }),
+  ];
+  const counts = {
+    'status in (10000)': 1004,
+    'status in (10001)': 0,
+    'status in (3)': 7,
+    'cf[1] is not EMPTY': 2,
+    'issuetype = 1': 1009,
+    'issuetype = 2': 1,
+    'issuetype = 3': 1,
+  };
+  // As chaves não se confundem: «status in (3)» não aparece em «status in (10000, 10001, 3)».
+  const { request, calls } = fakeJira({ wip, done, counts });
+  const board = await readBoard(request, 1);
+  const data = await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 });
+  const v = buildBoardView(data, { countBy, wipAging, percentile }, NOW, 14);
+
+  assert.deepEqual(v.columns, [
+    { name: 'Backlog', count: 1004, wip: false, max: null },
+    { name: 'Selected for Development', count: 0, wip: false, max: null },
+    { name: 'In Progress', count: 7, wip: true, max: 5 },
+  ]);
+  assert.deepEqual(v.kpis, { wip: 7, blocked: 2, doneRecent: 1, doneWindowDays: 14 });
+  assert.deepEqual(v.byType, [{ label: 'Task', count: 1009 }, { label: 'Bug', count: 1 }, { label: 'Sub-task', count: 1 }]);
+  assert.equal(v.oldestWip.length, 7);
+  assert.equal(v.countFailed, false);
+
+  // Todas as pesquisas usam o filtro do quadro; nenhuma tem o ORDER BY do filtro a meio.
+  for (const c of calls.filter((x) => x.jql)) {
+    assert.ok(c.jql.startsWith('(project = FRI) AND (fixVersion in unreleasedVersions() OR fixVersion is EMPTY) AND '), c.jql);
+    assert.ok(!/Rank/.test(c.jql), c.jql);
+    assert.ok(!c.jql.includes('subTaskIssueTypes'), 'o quadro decide as subtarefas, não a app');
+  }
+  // A coluna Done não é contada: o quadro esconde os concluídos antigos à sua maneira.
+  assert.ok(!calls.some((c) => c.jql?.endsWith('status in (10002)')));
+});
+
+test('se uma contagem falhar, mostra «–» e avisa', async () => {
+  const { request } = fakeJira({ failCount: true });
+  const board = await readBoard(request, 1);
+  const v = buildBoardView(await loadBoardData(request, board, { projectKey: 'FRI', doneWindowDays: 14 }), { countBy, wipAging, percentile }, NOW, 14);
+  assert.equal(v.columns[0].count, null);
+  assert.equal(v.countFailed, true);
+});
