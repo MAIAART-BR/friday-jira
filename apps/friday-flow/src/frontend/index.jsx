@@ -111,7 +111,7 @@ function FilterBar({ t, boards, selectedId, onBoard, includeBacklog, onAgeFrom, 
         </Inline>
       )}
       <Inline space="space.100" alignBlock="center">
-        <Text color="color.text.subtle">{t.ageFromLabel}</Text>
+        <Text weight="bold">{t.ageFromLabel}</Text>
         <ButtonGroup label={t.ageFromLabel}>
           <Button isSelected={!includeBacklog} onClick={() => onAgeFrom(false)}>{t.ageFromStart}</Button>
           <Button isSelected={includeBacklog} onClick={() => onAgeFrom(true)}>{t.ageFromCreated}</Button>
