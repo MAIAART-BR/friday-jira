@@ -53,6 +53,14 @@ Precisa de `node` (20, 22 ou 24), `npm`, `forge` (`npm install -g @forge/cli`) e
 bash scripts/testar-no-jira.sh
 ```
 
+### Node.js
+
+O Forge CLI só arranca com Node `^22.23.4`, `^24.22.1` ou `>=26.12.1`. Com outras versões, incluindo 26.0 a 26.11, todos os comandos `forge` falham com «Unsupported Node.js version». Num Mac com o Node 22 do Homebrew:
+
+```bash
+echo 'export PATH="$(brew --prefix node@22)/bin:$PATH"' >> ~/.zprofile && source ~/.zprofile && node -v
+```
+
 O script pede o email e o token e guarda-os só nessa janela do Terminal. Depois faz o seguinte:
 
 1. Usa o site Jira de teste que indicar ou, se carregar em Enter, cria um com `forge site provision`.

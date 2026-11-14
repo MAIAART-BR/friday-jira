@@ -15,6 +15,15 @@ for cmd in node npm forge; do
   command -v "$cmd" >/dev/null || { echo "Falta o comando «$cmd». Veja o guia de instalação."; exit 1; }
 done
 
+# O Forge recusa algumas versões do Node; falhar aqui evita criar dados e parar a meio.
+if ! forge --version >/dev/null 2>&1; then
+  echo "O Forge não arranca com o Node $(node -v) ($(command -v node)):"
+  forge --version 2>&1 | grep -i "error" || true
+  echo
+  echo "Ative o Node 22 neste Terminal e corra o script de novo (veja o README, secção «Node.js»)."
+  exit 1
+fi
+
 echo "== FRIDAY Flow: teste num Jira =="
 echo
 read -r -p "Email da sua conta Atlassian: " JIRA_EMAIL
