@@ -25,10 +25,12 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 | 1 | Decidir: Flow gratuito ou pago | 3 | 8 | 5 | 16 | 0,2 | **80** | 0 € |
 | 2 | Validar o posicionamento com potenciais clientes | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
 | 3 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
-| 4 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
-| 5 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
-| 6 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
-| 7 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
+| 4 | Modo stand-up na tabela | 3 | 1 | 3 | 7 | 0,3 | **23** | 0 € |
+| 5 | Pacote «Confiança» | 5 | 3 | 5 | 13 | 1 | **13** | 0 € |
+| 6 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
+| 7 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
+| 8 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
+| 9 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
 | ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
 ### 1. Decidir: Flow gratuito ou pago
@@ -38,6 +40,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **O que fazer:** confirmar o que diz a página «Why can't I change the payment model» da Atlassian e ver os preços dos concorrentes (ver `marketplace/PREPARACAO.md`). A decisão é do Artur.
 - **Sinal de que acertámos:** instalações e avaliações nos primeiros 2 meses (se gratuito); primeira venda (se pago).
 - **Estado (14/11/2026):** a pesquisa indica que passar de gratuito para «Paid via Atlassian» na mesma listagem não é permitido, mas as fontes não são claras. As edições Standard e Advanced, que permitiriam vender módulos dentro da mesma listagem, só existem para apps «Paid via Atlassian». Recomendação: pago e barato desde o início. **À espera da resposta do suporte da Atlassian: pedido ECOHELP-185604**, enviado a 14/11/2026 (pergunta em `marketplace/PERGUNTA-SUPORTE.md`).
+- **Opção nova (14/11/2026):** pago via Atlassian com o escalão de 10 utilizadores a 0 $, como a Great Gadgets e a Broken Build. As equipas pequenas instalam e avaliam, e as maiores pagam. Falta perguntar ao suporte se é permitido numa app nova.
 
 ### 2. Validar o posicionamento com potenciais clientes
 
@@ -63,10 +66,29 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **O que fazer:** instalar o FRIDAY Flow num Jira Cloud com histórico, um projeto real ou o de alguém que aceite testar. Importar tickets por CSV não chega: o Jira não deixa recuar a data da mudança de estado, e é dela que a idade depende.
 - **Sinal de que acertámos:** a equipa reconhece os tickets mais antigos e o P85 como «certos».
 
-### 4. Publicar o Flow no Marketplace
+### 4. Modo stand-up na tabela
+
+- **Hipótese:** a equipa abre o FRIDAY todos os dias se a tabela servir para a reunião diária.
+- **O que fazer:** ordenar da direita para a esquerda (do mais perto do fim ao mais longe) e, dentro de cada coluna, do mais antigo ao mais novo; os bloqueados e os lentos primeiro («walk the board», The Kanban Guide).
+- **Evidência:** uma avaliação de 4★ do ActionableAgile («parte integrante dos stand-ups»). É fraca.
+- **Depende de:** item 2. Mostrar nas entrevistas antes de fazer.
+- **Sinal de que acertámos:** nas entrevistas, alguém diz que a usaria na reunião diária.
+
+### 5. Pacote «Confiança»
+
+- **Hipótese:** números que se explicam sozinhos evitam a desinstalação, que é a queixa nº 1 das avaliações (`marketplace/CONCORRENCIA.md`).
+- **O que fazer:**
+  - **«Porquê este número?»:** carregar num cartão e ver os tickets que o compõem, com o motivo de cada um contar;
+  - **«Como contei»:** uma linha por baixo dos cartões com o quadro, as colunas em curso, o histórico e o número de concluídos;
+  - **«Este número está errado?»:** contacto de suporte já preenchido com o quadro e as contagens, sem dados dos tickets.
+- **Depende de:** item 2 (maqueta nas entrevistas) e de um canal de suporte com prazo de resposta.
+- **Custo no Forge:** um pedido a mais para listar os bloqueados do backlog; o resto já está carregado.
+- **Sinal de que acertámos:** nas entrevistas, a lista de tickets muda a resposta a «confiava nestes números?».
+
+### 6. Publicar o Flow no Marketplace
 
 - **Hipótese:** há equipas Kanban à procura disto no Marketplace.
-- **Depende de:** 1, 2 e 3.
+- **Depende de:** 1, 2 e 3; 4 e 5 se as entrevistas os confirmarem.
 - **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production, submissão (ver `marketplace/PREPARACAO.md`).
 - **Sinal de que acertámos:** a primeira instalação de alguém que não conhecemos.
 
@@ -160,9 +182,9 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - uma frase no topo diz o que precisa de atenção («2 tickets estão mais lentos do que o habitual (mais de 8 dias). Comece por FRIDEMO-4.»).
 - **Decidido (15/11/2026):** o cartão passa a «Concluídos esta semana», igual à última barra de «Concluídos por semana», com a semana passada ao lado. Fica só o Histórico como período à parte.
 
-### 5 a 7. Módulos seguintes
+### 7 a 9. Módulos seguintes
 
-Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados dos itens 2 e 4.
+Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados dos itens 2 e 6.
 
 - **Delivery:** os cálculos de throughput e lead time já estão no núcleo, por isso é o mais curto.
 - **Forecast:** o ActionableAgile, o Nave e a Broken Build já fazem Monte Carlo, por isso diferencia menos do que se pensava. Mesmo assim, é um dos pontos mais elogiados nas avaliações. É o mais longo: precisa de histórico de mudanças de estado e de simulação Monte Carlo, e o custo no Forge tem de ser calculado antes de começar.
