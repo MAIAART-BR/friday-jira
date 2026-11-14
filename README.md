@@ -69,6 +69,22 @@ O script pede o email e o token e guarda-os só nessa janela do Terminal. Depois
 
 No fim, abra o projeto no Jira e escolha **FRIDAY Flow** no menu lateral.
 
+## Deploy pelo GitHub Actions
+
+O fluxo «Deploy FRIDAY Flow» (`.github/workflows/deploy-friday-flow.yml`) corre os testes e faz o `forge deploy`.
+Só corre à mão: **Actions → Deploy FRIDAY Flow → Run workflow**. Nunca corre num push.
+
+Precisa de dois secrets no repositório (**Settings → Secrets and variables → Actions → New repository secret**):
+
+| Secret | Valor |
+|---|---|
+| `FORGE_EMAIL` | email da conta Atlassian |
+| `FORGE_API_TOKEN` | token do Forge CLI (de preferência um token só para o Forge: https://go.atlassian.com/forge-cli-api-token) |
+
+Opções do fluxo:
+- `environment`: development (por omissão), staging ou production.
+- `upgrade_install`: atualiza também a instalação no site. Só é preciso quando as permissões (`scopes`) mudam.
+
 ## O que falta para vender (módulo 1)
 
 - [ ] Testar num site Jira real: quadro Kanban e quadro Scrum, projeto com mais de 1000 issues, site sem o campo «Flagged».

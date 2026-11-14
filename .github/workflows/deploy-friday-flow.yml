@@ -1,0 +1,68 @@
+# Deploy do FRIDAY Flow. Só corre à mão (Actions → «Deploy FRIDAY Flow» → Run workflow),
+# nunca num push. Precisa dos secrets FORGE_EMAIL e FORGE_API_TOKEN no repositório.
+name: Deploy FRIDAY Flow
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Ambiente Forge
+        type: choice
+        options: [development, staging, production]
+        default: development
+      upgrade_install:
+        description: Atualizar também a instalação no site (só quando as permissões mudam)
+        type: boolean
+        default: false
+      site:
+        description: Site Jira da instalação (só usado com «Atualizar a instalação»)
+        type: string
+        default: arturmaiadecastro.atlassian.net
+
+concurrency:
+  group: deploy-friday-flow
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
+      FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Confirmar que os secrets existem
+        run: |
+          if [ -z "$FORGE_EMAIL" ] || [ -z "$FORGE_API_TOKEN" ]; then
+            echo "::error::Faltam os secrets FORGE_EMAIL e/ou FORGE_API_TOKEN (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: Testes
+        run: npm test
+
+      - name: Dependências da app
+        working-directory: apps/friday-flow
+        run: npm ci
+
+      - name: Forge CLI
+        run: |
+          npm install -g @forge/cli@15
+          forge settings set usage-analytics false
+
+      - name: Deploy
+        working-directory: apps/friday-flow
+        run: forge deploy --non-interactive -e "${{ inputs.environment }}"
+
+      - name: Atualizar a instalação
+        if: ${{ inputs.upgrade_install }}
+        working-directory: apps/friday-flow
+        run: forge install --upgrade --non-interactive --confirm-scopes --site "${{ inputs.site }}" --product jira -e "${{ inputs.environment }}"
