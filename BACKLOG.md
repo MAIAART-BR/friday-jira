@@ -35,6 +35,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Porquê agora:** bloqueia a publicação (item 3). Se o modelo de pagamento não puder ser mudado depois, uma escolha errada obriga a uma listagem nova.
 - **O que fazer:** confirmar o que diz a página «Why can't I change the payment model» da Atlassian e ver os preços dos concorrentes (ver `marketplace/PREPARACAO.md`). A decisão é do Artur.
 - **Sinal de que acertámos:** instalações e avaliações nos primeiros 2 meses (se gratuito); primeira venda (se pago).
+- **Estado (14/11/2026):** a pesquisa indica que passar de gratuito para «Paid via Atlassian» na mesma listagem não é permitido, mas as fontes não são claras. As edições Standard e Advanced, que permitiriam vender módulos dentro da mesma listagem, só existem para apps «Paid via Atlassian». Recomendação: pago e barato desde o início. **À espera da resposta do suporte da Atlassian** (pergunta em `marketplace/PERGUNTA-SUPORTE.md`).
 
 ### 2. Testar com dados reais
 
