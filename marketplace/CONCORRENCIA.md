@@ -63,3 +63,49 @@ Leitura de 14/11/2026, pela API pública do Marketplace (`/rest/2/addons/{app}/r
 - **Viés de quem escreve:** quem desinstala raramente avalia, por isso as queixas estão sub-representadas. As notas também estão inflacionadas: o Time in Status pede avaliação logo que a app se abre.
 - **Funcionalidades atuais não verificadas:** não testei as versões de hoje do ActionableAgile, do Nave nem da Broken Build. Uma queixa antiga pode já não ser verdade.
 - **Não diz o que faz comprar.** Uma queixa mostra o que faz desinstalar; não prova que a confiança nos números leve alguém a pagar. Isso só se confirma a falar com potenciais clientes (item 2 do backlog).
+
+## O que os concorrentes fazem hoje (leitura de 14/11/2026)
+
+Fontes: os sites getnave.com (`/process-improvement`, `/ai-investigator`, `/executive-dashboards`, `/delivery-leaders`, `/product-roadmap`, `/pricing`, `/faq`) e as listagens no Marketplace (versão mais recente de cada app). O site da 55 Degrees não estava acessível a partir desta sessão.
+
+### Nave (versão 2.2.0, 10/06/2026)
+- **Melhoria do processo:**
+  - limites naturais do processo (XmR), com 4 regras de deteção, sobre WIP, cycle time, throughput, idade do WIP, cycle time por etapa e eficiência de fluxo;
+  - cada métrica tem um estado: Estável, Em risco ou Instável;
+  - desde 05/11/2026, o gráfico XmR de cada cartão mostra o porquê.
+- **AI Investigator:** lê as métricas já calculadas, indica a etapa e os tickets por trás de um problema, mostra a evidência e diz onde agir. Exemplo do próprio site: «entram 0,62/dia em Ready for SIT, saem 0,43/dia; investigar o que limita o SIT».
+  - Classifica cada conclusão como Urgente, Acompanhar ou Celebrar.
+  - Usa a Anthropic e a OpenAI.
+- **Antes e depois:** compara as métricas antes e depois de uma mudança.
+- **Dashboards executivos:**
+  - tendências por equipa e serviço, exceções face a um limiar de variação e mistura de trabalho face à estratégia;
+  - exportação em PDF e CSV para a revisão com a direção.
+- **No roadmap:**
+  - «Executive Report Summaries»: narrativas geradas por IA para a direção, já em compromisso;
+  - alertas preditivos de envelhecimento, também em compromisso;
+  - «AI Coach & Advisor», em exploração.
+- **Dados:** sincroniza os IDs, os títulos (opcionais), as datas e o histórico de estados para a Google Cloud na UE. Tem SOC 2 Type II e o selo Cloud Fortified. **Não corre na Atlassian.**
+- **Preço:** por quadro, com utilizadores ilimitados. **O preço só se obtém a falar com a equipa comercial**; há 14 dias de experiência.
+- **Clientes no Brasil:** Nubank (mais de 200 equipas), Icatu Seguros, Nolte, Matera.
+
+### ActionableAgile (versão 9.0.0, 28/10/2026)
+- A listagem destaca três perguntas: «quanto tempo vai levar?», «onde o trabalho abranda?» e «quando fica pronto?».
+- Tem curso de introdução, vídeos, portal de suporte e comunidade.
+- Não vi recomendações automáticas na listagem. Não verificado a fundo.
+
+### Broken Build, WIP Aging (versão 2.8.0, 26/10/2026)
+- Zonas de envelhecimento por percentil, «health metrics» por cima do gráfico e deteção de trabalho parado.
+- Uma **lista de tickets, apresentada como «the proof behind the numbers»**.
+- SOC 2 Type II.
+
+## O que isto muda (segunda leitura)
+
+- **O «intérprete do fluxo» não é espaço livre.** Diagnóstico, evidência, onde agir, antes e depois e relatório para a direção: o Nave já faz, ou tem no roadmap, tudo o que estava pensado para as duas vistas (coach e PM). O Nave tem anos de avanço e clientes grandes, também no Brasil.
+- **O «Porquê este número?» também já existe** na Broken Build (a lista de tickets). Continua a ser necessário para não perder clientes, mas não é razão para comprar.
+- **O que o Nave não pode ser sem mudar de arquitetura:**
+  - uma app que **não tira dados da Atlassian** (Runs on Atlassian);
+  - **sem IA de terceiros**;
+  - com **preço público e compra sem falar com vendedores**.
+
+  Isto interessa a empresas com regras de dados apertadas, como bancos, setor público e empresas como a CTT, que não podem sincronizar o histórico do Jira para uma cloud externa nem enviá-lo a um modelo de IA. Também interessa a equipas pequenas que não querem uma conversa comercial.
+- **Por confirmar:** quanto pesa esta restrição na decisão de compra. Ninguém foi entrevistado.

@@ -44,7 +44,8 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 
 ### 2. Validar o posicionamento com potenciais clientes
 
-- **Hipótese:** quem gere equipas Kanban em Jira paga por números que batem com o quadro e se explicam sozinhos, sem configuração. Hoje não temos nenhuma razão forte para comprar o FRIDAY em vez do ActionableAgile, do Nave ou da Broken Build.
+- **Hipótese (revista a 14/11/2026):** há equipas e empresas que querem o diagnóstico do fluxo que o Nave dá (o próximo passo e porquê, a saúde, os riscos e as tendências), mas que **não podem tirar os dados da Atlassian nem usar IA de terceiros**, ou que não querem negociar o preço com um vendedor. O FRIDAY seria esse diagnóstico, explicado e determinístico, a correr só na Atlassian, com preço público.
+- **Hipótese anterior, enfraquecida:** «números que batem com o quadro e se explicam sozinhos» é condição mínima (a Broken Build já mostra os tickets por trás dos números), não razão para comprar. O «intérprete do fluxo» também já existe no Nave (ver `marketplace/CONCORRENCIA.md`, segunda leitura).
 - **O que já se sabe (14/11/2026, `marketplace/CONCORRENCIA.md`):**
   - as queixas recorrentes nas avaliações são números em que não se confia, configuração que falha, apps difíceis de encontrar e lentidão;
   - o suporte rápido é o que mais se elogia;
@@ -52,7 +53,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - «diz-me o que fazer» também já existe (o painel de melhoria do processo do Nave).
 - **Porquê agora:** define o texto da listagem, o preço (item 1) e o que vem a seguir. Publicar sem isto é publicar mais uma app de gráficos.
 - **O que fazer:**
-  1. Mostrar o ecrã atual a 5 pessoas que gerem equipas Kanban em Jira e perguntar o que fariam com ele amanhã, o que usam hoje e quanto pagariam.
+  1. Mostrar o ecrã atual a 5 pessoas que gerem equipas Kanban em Jira e perguntar o que fariam com ele amanhã, o que usam hoje e quanto pagariam. Incluir pessoas de empresas com regras de dados apertadas e perguntar se já foram impedidas de usar o Nave ou outra app parecida por causa dos dados ou da IA.
   2. Experimentar a versão atual do ActionableAgile, do Nave e do WIP Aging da Broken Build no site de teste, para confirmar o que ainda é verdade nas queixas.
   3. Reescrever a frase da listagem com as palavras dos entrevistados.
 - **Depende de:** nada. Pode correr em paralelo com o item 1.
