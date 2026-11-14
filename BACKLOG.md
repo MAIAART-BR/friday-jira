@@ -25,12 +25,13 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 | 1 | Decidir: Flow gratuito ou pago | 3 | 8 | 5 | 16 | 0,2 | **80** | 0 € |
 | 2 | Validar o posicionamento com potenciais clientes | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
 | 3 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
-| 4 | Modo stand-up na tabela | 3 | 1 | 3 | 7 | 0,3 | **23** | 0 € |
-| 5 | Pacote «Confiança» | 5 | 3 | 5 | 13 | 1 | **13** | 0 € |
-| 6 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
-| 7 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
-| 8 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
-| 9 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
+| 4 | A app na língua do Jira de cada pessoa | 3 | 3 | 2 | 8 | 0,5 | **16** | 0 € |
+| 5 | Modo stand-up na tabela | 3 | 1 | 3 | 7 | 0,3 | **23** | 0 € |
+| 6 | Pacote «Confiança» | 5 | 3 | 5 | 13 | 1 | **13** | 0 € |
+| 7 | Publicar o Flow no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
+| 8 | Módulo FRIDAY Delivery | 5 | 2 | 3 | 10 | 2 | **5** | 0 € |
+| 9 | Módulo FRIDAY Forecast | 8 | 2 | 3 | 13 | 4 | **3,3** | ~0 € (a calcular) |
+| 10 | Módulo FRIDAY Health | 5 | 1 | 2 | 8 | 3 | **2,7** | 0 € |
 | ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
 ### 1. Decidir: Flow gratuito ou pago
@@ -57,6 +58,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   2. Experimentar a versão atual do ActionableAgile, do Nave e do WIP Aging da Broken Build no site de teste, para confirmar o que ainda é verdade nas queixas.
   3. Reescrever a frase da listagem com as palavras dos entrevistados.
 - **Depende de:** nada. Pode correr em paralelo com o item 1.
+- **Nicho de operações e suporte de TI (pesquisa de 14/11/2026, `marketplace/NICHO-OPERACOES.md`):** a dor é reconhecida no ramo (o envelhecimento do backlog é um KPI da HDI e da MetricNet, e há perguntas recorrentes na Atlassian Community), mas a disposição para pagar não está demonstrada: as apps que atacam esta dor diretamente têm 1 a 35 instalações.
 - **Sinal de que acertámos:** pelo menos 3 das 5 pessoas descrevem sem ajuda um ganho concreto («isto poupa-me X»). Se nenhuma o fizer, repensar o produto antes de publicar.
 - **Candidato a funcionalidade, só se a validação o confirmar:** carregar num número e ver os tickets que o compõem, com o motivo de cada um contar.
 
@@ -67,7 +69,21 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **O que fazer:** instalar o FRIDAY Flow num Jira Cloud com histórico, um projeto real ou o de alguém que aceite testar. Importar tickets por CSV não chega: o Jira não deixa recuar a data da mudança de estado, e é dela que a idade depende.
 - **Sinal de que acertámos:** a equipa reconhece os tickets mais antigos e o P85 como «certos».
 
-### 4. Modo stand-up na tabela
+### 4. A app na língua do Jira de cada pessoa
+
+- **Pedido do Artur (14/11/2026):** a app adapta-se à língua do Jira.
+- **Como é hoje:** a app já segue a língua que o Jira usa para cada pessoa (`context.locale`, que vem do perfil ou do browser), mas só tem inglês e português. As outras línguas caem para inglês.
+- **Defeito encontrado:** o português da app é de Portugal, mas o Jira Cloud só suporta oficialmente o português do Brasil; o de Portugal está fora da lista desde julho de 2020 ([JRACLOUD-84879](https://jira.atlassian.com/browse/JRACLOUD-84879)). Quase todos os utilizadores de português veem o Jira em pt-BR e recebem o texto da app em pt-PT.
+- **O que fazer:**
+  1. pt-BR como português por omissão, mantendo o pt-PT para quem tem o Jira em `pt_PT`;
+  2. espanhol, francês e alemão;
+  3. as restantes línguas do Jira Cloud (cerca de 20) só se houver clientes.
+  
+  O teste que exige as mesmas chaves em todas as línguas continua a valer.
+- **Risco:** as traduções feitas pelo Claude precisam de revisão por quem fala a língua, sobretudo a ajuda com conceitos Kanban. Um texto estranho reduz a confiança.
+- **Custo no Forge:** 0 €. O texto vai no código do ecrã.
+
+### 5. Modo stand-up na tabela
 
 - **Hipótese:** a equipa abre o FRIDAY todos os dias se a tabela servir para a reunião diária.
 - **O que fazer:** ordenar da direita para a esquerda (do mais perto do fim ao mais longe) e, dentro de cada coluna, do mais antigo ao mais novo; os bloqueados e os lentos primeiro («walk the board», The Kanban Guide).
@@ -75,7 +91,7 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Depende de:** item 2. Mostrar nas entrevistas antes de fazer.
 - **Sinal de que acertámos:** nas entrevistas, alguém diz que a usaria na reunião diária.
 
-### 5. Pacote «Confiança»
+### 6. Pacote «Confiança»
 
 - **Hipótese:** números que se explicam sozinhos evitam a desinstalação, que é a queixa nº 1 das avaliações (`marketplace/CONCORRENCIA.md`).
 - **O que fazer:**
@@ -86,10 +102,10 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
 - **Custo no Forge:** um pedido a mais para listar os bloqueados do backlog; o resto já está carregado.
 - **Sinal de que acertámos:** nas entrevistas, a lista de tickets muda a resposta a «confiava nestes números?».
 
-### 6. Publicar o Flow no Marketplace
+### 7. Publicar o Flow no Marketplace
 
 - **Hipótese:** há equipas Kanban à procura disto no Marketplace.
-- **Depende de:** 1, 2 e 3; 4 e 5 se as entrevistas os confirmarem.
+- **Depende de:** 1, 2, 3 e 4; 5 e 6 se as entrevistas os confirmarem.
 - **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production, submissão (ver `marketplace/PREPARACAO.md`).
 - **Sinal de que acertámos:** a primeira instalação de alguém que não conhecemos.
 
@@ -183,9 +199,9 @@ Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD
   - uma frase no topo diz o que precisa de atenção («2 tickets estão mais lentos do que o habitual (mais de 8 dias). Comece por FRIDEMO-4.»).
 - **Decidido (15/11/2026):** o cartão passa a «Concluídos esta semana», igual à última barra de «Concluídos por semana», com a semana passada ao lado. Fica só o Histórico como período à parte.
 
-### 7 a 9. Módulos seguintes
+### 8 a 10. Módulos seguintes
 
-Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados dos itens 2 e 6.
+Ficam atrás de propósito: sem saber se alguém instala o Flow, construir mais módulos é apostar às cegas. Cada um acrescenta uma listagem, uma revisão de segurança e suporte próprios. Reavaliar quando houver dados dos itens 2 e 7.
 
 - **Delivery:** os cálculos de throughput e lead time já estão no núcleo, por isso é o mais curto.
 - **Forecast:** o ActionableAgile, o Nave e a Broken Build já fazem Monte Carlo, por isso diferencia menos do que se pensava. Mesmo assim, é um dos pontos mais elogiados nas avaliações. É o mais longo: precisa de histórico de mudanças de estado e de simulação Monte Carlo, e o custo no Forge tem de ser calculado antes de começar.
