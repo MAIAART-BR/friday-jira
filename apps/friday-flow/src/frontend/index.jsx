@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
   Box, Inline, Stack, Heading, Text, Strong, Lozenge, Link, Spinner, SectionMessage,
-  DynamicTable, BarChart, DonutChart, useProductContext, xcss,
+  DynamicTable, BarChart, useProductContext, xcss,
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
@@ -9,13 +9,15 @@ const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '120px' });
 const chartStyle = xcss({ minWidth: '320px' });
 
 const fmt = (n) => (n == null ? '–' : String(n).replace('.', ','));
+// Menos de um dia aparece como «< 1» e não como 0, que parece «sem idade».
+const fmtDays = (n) => (n == null ? '–' : n < 1 ? '< 1' : fmt(Math.round(n)));
 
-function Kpi({ label, value, appearance }) {
+function Kpi({ label, value, alert = false }) {
   return (
-    <Box padding="space.150" backgroundColor="color.background.neutral" xcss={kpiStyle}>
+    <Box padding="space.150" backgroundColor={alert ? 'color.background.danger' : 'color.background.neutral'} xcss={kpiStyle}>
       <Stack space="space.050">
         <Text size="small">{label}</Text>
-        {appearance ? <Lozenge appearance={appearance} isBold>{fmt(value)}</Lozenge> : <Heading size="large">{fmt(value)}</Heading>}
+        <Heading size="large">{fmt(value)}</Heading>
       </Stack>
     </Box>
   );
@@ -38,7 +40,7 @@ function AgingTable({ rows, siteUrl }) {
       { key: 'summary', content: r.flagged ? <Inline space="space.050"><Lozenge appearance="removed">Bloqueado</Lozenge><Text>{r.summary}</Text></Inline> : r.summary },
       { key: 'assignee', content: r.assignee },
       { key: 'status', content: r.status },
-      { key: 'age', content: fmt(r.ageDays) },
+      { key: 'age', content: fmtDays(r.ageDays) },
     ],
   }));
   return <DynamicTable head={head} rows={tableRows} emptyView="Não há trabalho em curso." />;
@@ -75,7 +77,7 @@ function App() {
         <Kpi label="Abertas" value={k.open} />
         <Kpi label="Backlog" value={k.backlog} />
         <Kpi label="Em curso (WIP)" value={k.wip} />
-        <Kpi label="Bloqueadas" value={k.blocked} appearance={k.blocked > 0 ? 'removed' : 'success'} />
+        <Kpi label="Bloqueadas" value={k.blocked} alert={k.blocked > 0} />
         <Kpi label={`Concluídas (${k.doneWindowDays} dias)`} value={k.doneRecent} />
       </Inline>
 
@@ -83,7 +85,7 @@ function App() {
         <Box xcss={chartStyle}>
           <Stack space="space.100">
             <Heading size="small">Abertas por tipo</Heading>
-            {view.byType.length ? <DonutChart data={view.byType} colorAccessor="label" valueAccessor="count" labelAccessor="label" height={280} /> : <Text>Sem issues abertas.</Text>}
+            {view.byType.length ? <BarChart data={view.byType} xAccessor="label" yAccessor="count" height={280} /> : <Text>Sem issues abertas.</Text>}
           </Stack>
         </Box>
         <Box xcss={chartStyle}>
@@ -97,7 +99,7 @@ function App() {
       <Stack space="space.100">
         <Heading size="small">Trabalho em curso mais antigo</Heading>
         <Text>
-          Idade mediana: <Strong>{fmt(view.agingP50)} dias</Strong> · 85% do trabalho em curso tem até <Strong>{fmt(view.agingP85)} dias</Strong>.
+          Idade mediana: <Strong>{fmtDays(view.agingP50)} dias</Strong> · 85% do trabalho em curso tem até <Strong>{fmtDays(view.agingP85)} dias</Strong>.
         </Text>
         <AgingTable rows={view.oldestWip} siteUrl={siteUrl} />
       </Stack>
