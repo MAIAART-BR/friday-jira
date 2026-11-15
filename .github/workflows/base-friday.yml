@@ -1,6 +1,8 @@
 # Base de teste do FRIDAY (projeto FRIBASE), simulada em tempo real: cria e move tickets a cada 2 horas
 # durante 36 dias, para o FRIDAY ter histórico verdadeiro. Ver scripts/base-friday.mjs.
 # Só faz alguma coisa depois de ser iniciada à mão (Run workflow com «start»); depois dos 36 dias não faz nada.
+# DESLIGADA a 15/11/2026: a importação JSON funcionou no FRIBASE, com histórico no passado. Para voltar a ligar,
+# repor o bloco «schedule» com cron '23 */2 * * *' (e usar outro projeto, para não misturar com a importação).
 name: Base de teste FRIDAY
 
 on:
@@ -14,8 +16,6 @@ on:
         description: Site Jira de teste
         type: string
         default: arturmaiadecastro.atlassian.net
-  schedule:
-    - cron: '23 */2 * * *'
 
 concurrency:
   group: base-friday
