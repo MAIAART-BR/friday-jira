@@ -152,23 +152,43 @@ export function startedAt(histories, wipStatusIds, created) {
 
 const CHANGELOG_CONCURRENCY = 8;
 
-/** Histórico de estados de vários tickets: primeiro em lote; se o Jira recusar, ticket a ticket. Mapa id → histórico. */
+/**
+ * Histórico de estados (e do Flagged) de vários tickets: primeiro em lote, página a página; se o Jira recusar, ticket a ticket.
+ * Mapa id → histórico.
+ *
+ * Sem filtro de campos no pedido: o histórico importado de outras ferramentas (importador JSON, migrações) traz só o nome
+ * do campo («status»), sem fieldId, e o filtro do Jira devolvia 0 entradas (encontrado com a base FRIBASE, 15/11/2026).
+ * O filtro é feito aqui, pelo identificador ou pelo nome.
+ */
 export async function fetchStatusHistories(request, issues, extraFieldIds = []) {
   if (!issues.length) return { histories: new Map(), complete: true, partial: new Set() };
   const ids = issues.map((i) => String(i.id));
-  const bulk = await request('/rest/api/3/changelog/bulkfetch', {
-    method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ issueIdsOrKeys: ids, fieldIds: ['status', ...extraFieldIds.filter(Boolean)], maxResults: 1000 }),
-  }).catch(() => null);
-  if (bulk?.ok) {
-    const body = await bulk.json();
-    const map = new Map();
-    for (const log of body.issueChangeLogs || []) map.set(String(log.issueId), log.changeHistories || log.histories || []);
-    if (!body.nextPageToken) return { histories: map, complete: true, partial: new Set() };
-  }
-  // Ticket a ticket, com no máximo CHANGELOG_CONCURRENCY pedidos ao mesmo tempo; lê a última página (as mudanças mais recentes).
+  const wanted = new Set(['status', 'Flagged', ...extraFieldIds.filter(Boolean)]);
+  const keep = (h) => ({ ...h, items: (h.items || []).filter((it) => wanted.has(it.fieldId) || wanted.has(it.field)) });
   const map = new Map();
+  let token = null;
+  let pages = 0;
+  let bulkOk = true;
+  do {
+    const bulk = await request('/rest/api/3/changelog/bulkfetch', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ issueIdsOrKeys: ids, maxResults: 1000, ...(token ? { nextPageToken: token } : {}) }),
+    }).catch(() => null);
+    if (!bulk?.ok) { bulkOk = false; break; }
+    const body = await bulk.json();
+    for (const log of body.issueChangeLogs || []) {
+      const id = String(log.issueId);
+      const list = (log.changeHistories || log.histories || []).map(keep).filter((h) => h.items.length);
+      map.set(id, [...(map.get(id) || []), ...list]);
+    }
+    token = body.nextPageToken || null;
+    pages += 1;
+  } while (token && pages < 20);
+  if (bulkOk && !token) return { histories: map, complete: true, partial: new Set() };
+
+  // Ticket a ticket, com no máximo CHANGELOG_CONCURRENCY pedidos ao mesmo tempo; lê a última página (as mudanças mais recentes).
+  map.clear();
   const partial = new Set(); // tickets com mais de 100 alterações: só lemos as 100 mais recentes
   let complete = true;
   let next = 0;
@@ -183,7 +203,7 @@ export async function fetchStatusHistories(request, issues, extraFieldIds = []) 
         const last = await request(`/rest/api/3/issue/${issue.key}/changelog?startAt=${page.total - 100}&maxResults=100`);
         if (last.ok) page = await last.json(); else complete = false;
       }
-      map.set(String(issue.id), page.values || []);
+      map.set(String(issue.id), (page.values || []).map(keep));
     }
   };
   await Promise.all(Array.from({ length: Math.min(CHANGELOG_CONCURRENCY, issues.length) }, worker));

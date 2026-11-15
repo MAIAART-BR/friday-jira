@@ -312,7 +312,7 @@ test('«O que os seus dados dizem»: histórico do Flagged no mesmo pedido, temp
   };
   const board = await readBoard(request, 1);
   const data = await loadBoardData(request, board, { doneWindowDays: 14, referenceDays: 30 });
-  assert.deepEqual(bodies[0].fieldIds, ['status', 'customfield_1']);
+  assert.equal(bodies[0].fieldIds, undefined, 'sem filtro de campos: o histórico importado não traz fieldId');
   assert.equal(data.wip[0].flaggedSince.toISOString(), '2026-11-08T00:00:00.000Z');
   assert.deepEqual(data.done[0].timeInColumns, { 'Selected for Development': 2, 'In Progress': 5 });
 
@@ -328,4 +328,43 @@ test('sem flowFindings nas dependências, a vista não tem conclusões (compatí
   const { request } = fakeJira({ counts: {} });
   const v = buildBoardView(await loadBoardData(request, await readBoard(request, 1), { doneWindowDays: 14 }), DEPS, NOW, 14);
   assert.equal(v.findings, null);
+});
+
+
+test('histórico importado (sem fieldId, datas em milissegundos) conta para o início, o fim e o bloqueio', async () => {
+  const wip = [rawIssue(1, 'indeterminate', { customfield_1: [{ value: 'Impediment' }] })];
+  const done = [rawIssue(30, 'done', { created: '2026-10-20T00:00:00.000+0000' })];
+  const ms = (iso) => new Date(iso).getTime();
+  const imported = (iso, field, from, to, fromString = '', toString = '') => ({ created: ms(iso), items: [{ field, fieldtype: field === 'status' ? 'jira' : 'custom', from, to, fromString, toString }] });
+  const histories = {
+    1001: [imported('2026-11-02T00:00:00Z', 'status', '10001', '3'), imported('2026-11-05T00:00:00Z', 'Flagged', null, null, '', 'Impediment'),
+      { created: ms('2026-11-06T00:00:00Z'), items: [{ field: 'assignee', from: 'a', to: 'b' }] }],
+    1030: [imported('2026-11-02T00:00:00Z', 'status', '10000', '10001'), imported('2026-11-09T00:00:00Z', 'status', '3', '10002')],
+  };
+  const { request } = fakeJira({ wip, done, histories, counts: {} });
+  const data = await loadBoardData(request, await readBoard(request, 1), { doneWindowDays: 14, referenceDays: 30 });
+  assert.equal(data.done[0].startedAt.toISOString(), '2026-11-02T00:00:00.000Z');
+  assert.equal(data.wip[0].flaggedSince.toISOString(), '2026-11-05T00:00:00.000Z');
+});
+
+test('histórico em lote com várias páginas: lê todas, sem cair para ticket a ticket', async () => {
+  const wip = [rawIssue(1, 'indeterminate'), rawIssue(2, 'indeterminate')];
+  const h = (iso, from, to) => ({ created: iso, items: [{ fieldId: 'status', from, to }] });
+  let calls = 0;
+  const fake = fakeJira({ wip, counts: {} });
+  const request = async (path, init) => {
+    if (path === '/rest/api/3/changelog/bulkfetch') {
+      calls += 1;
+      const b = JSON.parse(init.body);
+      const page = b.nextPageToken
+        ? { issueChangeLogs: [{ issueId: '1002', changeHistories: [h('2026-11-03T00:00:00Z', '10000', '10001')] }] }
+        : { issueChangeLogs: [{ issueId: '1001', changeHistories: [h('2026-11-04T00:00:00Z', '10000', '10001')] }], nextPageToken: 'p2' };
+      return response(200, page);
+    }
+    if (/\/changelog\?/.test(path)) throw new Error('não devia ir ticket a ticket');
+    return fake.request(path, init);
+  };
+  const data = await loadBoardData(request, await readBoard(request, 1), { doneWindowDays: 14 });
+  assert.equal(calls, 2);
+  assert.deepEqual(data.wip.map((i) => i.categoryChanged.toISOString().slice(0, 10)).sort(), ['2026-11-03', '2026-11-04']);
 });
