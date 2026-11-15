@@ -16,7 +16,7 @@ Prioridades e decisões: [`BACKLOG.md`](BACKLOG.md). Nada é implementado sem es
 3. **Serviços do Artur:** diagnóstico de equipas com a jornada (método do Artur), workshops inspirados no STATIK e orientação de equipas de transformação.
 
 - **Estado:**
-  - o que existe hoje no Jira é o painel de fluxo (FRIDAY Flow), que passa a separador «Detalhe»;
+  - a página do Jira é uma só: as conclusões, os números numa linha, o que está dentro do habitual e, quando faltam dados, um guia do que falta (especificação, secção 8);
   - a função nova espera pelo resultado das publicações.
 - **A jornada** (Começar, Onde estamos, experiências, modo reunião) fica primeiro como serviço e está na maqueta ([`maquete/index.html`](maquete/index.html), dados fictícios).
 - **Porque é diferente:** as ferramentas de métricas (Nave, ActionableAgile, Broken Build) mostram gráficos e deixam a leitura a quem os usa, ou investigam com IA para empresas grandes. Ver [`marketplace/CONCORRENCIA.md`](marketplace/CONCORRENCIA.md).

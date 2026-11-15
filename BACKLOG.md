@@ -154,7 +154,7 @@ Ver o `README.md`.
 - **Especificação:** `docs/specs/2026-11-15-o-que-os-seus-dados-dizem.md`.
 - **Custo no Forge:** 0 €. Acrescenta o campo Flagged ao pedido de histórico que já existe e não guarda nada.
 - **Depende de:** 2 (as publicações). O item 4 (língua) pode ir junto.
-- **Decisão do Artur (15/11/2026):** construir já, sem esperar pelas publicações. Construído no mesmo dia (ver a especificação, secção 7). Falta o deploy, que só se faz com a autorização dele, e o teste com dados reais (item 3).
+- **Decisão do Artur (15/11/2026):** construir já, sem esperar pelas publicações. Depois do deploy nº 15, o Artur pediu uma página só, sem o painel antigo à parte, e um guia do que falta quando não há dados (especificação, secção 8). Feito no mesmo dia. Construído no mesmo dia (ver a especificação, secção 7). Falta o deploy, que só se faz com a autorização dele, e o teste com dados reais (item 3).
 - **Sinal de que acertámos:**
   - quem testa diz por palavras suas o que vai fazer a seguir;
   - depois de publicado, a mesma equipa abre a página em 2 semanas diferentes.

@@ -113,3 +113,23 @@ Notação: `concluídos` = os tickets concluídos no período do Histórico (30,
   - cenários no site de teste, um por padrão;
   - saída dos padrões no `validar-csv`;
   - deploy em development, depois de o Artur autorizar.
+
+## 8. Uma página só (15/11/2026, decisão do Artur depois de ver o deploy nº 15)
+
+Com dois separadores, o painel antigo ficava intacto e o separador novo quase vazio. O Artur esperava que o painel antigo fosse reformatado ou desaparecesse. Passa a haver **uma página só**:
+
+1. **Topo:** o título, o seletor de quadro, as definições (⚙) e a ajuda (?). A idade e o histórico saíram da barra e foram para as definições.
+2. **Uma frase:** quantas coisas pedem atenção, ou que está tudo dentro do habitual, ou que faltam dados.
+3. **Os números numa linha,** em vez dos 4 cartões: em curso, bloqueados, concluídos esta semana e tempo habitual.
+4. **As conclusões,** cada uma com o gráfico que a explica. A idade por coluna passou para «acima do habitual», as entregas por semana para «dentro do habitual».
+5. **Guia «O que o FRIDAY precisa para ler este quadro»** (pedido do Artur: «que o guie para conseguir ter o que precisa»). Cada ponto diz o que existe, o que falta e como resolver:
+   - as colunas de início e fim, com botão para mudar;
+   - os concluídos com início conhecido face aos 20 necessários, como os conseguir e quantas semanas faltam ao ritmo atual, com botão para usar 180 dias;
+   - os concluídos das últimas 4 semanas;
+   - o campo Flagged e como sinalizar;
+   - o histórico incompleto.
+6. **Exemplo marcado:** quando nenhum padrão pode ser avaliado, aparece um cartão de exemplo com dados fictícios e o selo «Exemplo».
+7. **Dentro do habitual:** uma linha por padrão avaliado que não disparou, mais as entregas por semana. A página nunca fica vazia.
+8. **«Ver todos os tickets em curso»:** a tabela antiga, escondida por omissão.
+
+Sem quadro, a página explica como escolher ou criar um.

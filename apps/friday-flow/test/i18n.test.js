@@ -50,11 +50,14 @@ test('textos das conclusões: todas as funções escrevem uma frase nas duas lí
     const d = (n) => t.days(Math.round(n));
     for (const [id, f] of Object.entries(facts)) {
       const m = t.find[id];
-      for (const s of [m.title(f), m.seen(f, d), m.means, m.todo(f), m.caveat, m.name]) {
+      for (const s of [m.title(f), m.seen(f, d), m.means, m.todo(f), m.caveat, m.name, m.ok(f, d)]) {
         assert.equal(typeof s, 'string');
         assert.ok(s.length > 5 && !s.includes('undefined') && !s.includes('NaN'), `${id}: ${s}`);
       }
     }
     assert.match(t.findIntro(2, { done: 40, wip: 7, days: 90 }), /40/);
+    for (const s of [t.headFired(2), t.numBlocked(3, 1), t.guideDone(4, 20, 90), t.guideDoneWait(3), t.guideBoardOk('A', 'B'), t.guideRecent(2, 8), t.showAll(7), t.dayRange(0, 7)]) {
+      assert.ok(typeof s === 'string' && !s.includes('undefined'), s);
+    }
   }
 });

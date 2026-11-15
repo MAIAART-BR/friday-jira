@@ -2,53 +2,32 @@ import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
   Box, Inline, Stack, Heading, Text, Lozenge, Link, Spinner, SectionMessage, Select, Button, ButtonGroup, Label,
   Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem, Icon, Pressable, Tooltip,
-  DynamicTable, BarChart, StackBarChart, Tabs, TabList, Tab, TabPanel, useProductContext, xcss,
+  DynamicTable, BarChart, StackBarChart, useProductContext, xcss,
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 import { messagesFor, roundDays, daysCell } from './i18n';
 
-const kpiStyle = xcss({ borderRadius: 'border.radius', minWidth: '170px' });
-const chartStyle = xcss({ minWidth: '340px' });
+// Uma página só (decisão do Artur, 15/11/2026): a frase do topo, os números numa linha, as conclusões com o gráfico
+// que as explica, o que está dentro do habitual e, quando faltam dados, um guia do que falta e de como o conseguir.
+
 const selectStyle = xcss({ minWidth: '220px' });
-const refSelectStyle = xcss({ minWidth: '160px' });
 // Espaço por cima do título: sem ele, o título fica colado à barra de separadores do Jira.
 const headerStyle = xcss({ paddingTop: 'space.300' });
 const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.050', backgroundColor: 'color.background.neutral.subtle' });
-// Abaixo disto, o tempo habitual é fraco: o cartão não fica vermelho (pedido dos agentes de revisão, 15/11/2026).
-const MIN_REFERENCE_ITEMS = 10;
-const findingStyle = xcss({ borderRadius: 'border.radius', borderWidth: 'border.width', borderStyle: 'solid', borderColor: 'color.border', padding: 'space.200' });
+const cardStyle = xcss({ borderRadius: 'border.radius', borderWidth: 'border.width', borderStyle: 'solid', borderColor: 'color.border', padding: 'space.200' });
+const exampleStyle = xcss({ borderRadius: 'border.radius', borderWidth: 'border.width', borderStyle: 'dashed', borderColor: 'color.border', padding: 'space.200' });
+const quietStyle = xcss({ borderRadius: 'border.radius', backgroundColor: 'color.background.neutral', padding: 'space.200' });
 // Ligação «Aprender a ler este padrão», por padrão. Fica vazia até haver conteúdo publicado (backlog, item 2).
 const LEARN_URLS = { inflow: null, tail: null, above: null, blocks: null };
 const ITEMS_SHOWN = 5;
+const MAX_HISTORY = 180;
 
-// Ícone ⓘ com a explicação ao passar o rato: a ajuda está onde está o número.
-// Abre por cima do ícone: por baixo, ficava tapado pela seta do rato.
+// Ícone ⓘ com a explicação ao passar o rato. Abre por cima: por baixo, ficava tapado pela seta do rato.
 function InfoTip({ text }) {
   return (
     <Tooltip content={text} position="top">
       <Icon glyph="info" label={text} size="small" color="color.icon.subtle" />
     </Tooltip>
-  );
-}
-
-function LabelWithTip({ children, tip }) {
-  return (
-    <Inline space="space.050" alignBlock="center">
-      {children}
-      <InfoTip text={tip} />
-    </Inline>
-  );
-}
-
-function Kpi({ label, value, alert = false, notes = [], tip }) {
-  return (
-    <Box padding="space.150" backgroundColor={alert ? 'color.background.danger' : 'color.background.neutral'} xcss={kpiStyle}>
-      <Stack space="space.050">
-        <LabelWithTip tip={tip}><Text size="small">{label}</Text></LabelWithTip>
-        <Heading size="large">{value == null ? '–' : String(value)}</Heading>
-        {notes.filter(Boolean).map((n) => <Text key={n} size="small" color="color.text.subtlest">{n}</Text>)}
-      </Stack>
-    </Box>
   );
 }
 
@@ -87,67 +66,58 @@ function HelpModal({ t, onClose }) {
   );
 }
 
-function WorkflowModal({ t, workflow, onSave, onReset, onClose }) {
-  const options = workflow.columns.map((name) => ({ label: name, value: name }));
-  const [start, setStart] = useState(workflow.start);
-  const [end, setEnd] = useState(workflow.end);
-  const valid = workflow.columns.indexOf(start) >= 0 && workflow.columns.indexOf(start) < workflow.columns.indexOf(end);
+// Definições: onde o trabalho começa e acaba (por quadro, para toda a equipa), idade e histórico (por pessoa).
+function SettingsModal({ t, workflow, includeBacklog, onAgeFrom, referenceDays, referenceOptions, onReference, onSave, onReset, onClose }) {
+  const options = (workflow?.columns || []).map((name) => ({ label: name, value: name }));
+  const [start, setStart] = useState(workflow?.start);
+  const [end, setEnd] = useState(workflow?.end);
+  const valid = !workflow || (workflow.columns.indexOf(start) >= 0 && workflow.columns.indexOf(start) < workflow.columns.indexOf(end));
+  const refOptions = referenceOptions.map((d) => ({ label: t.refOption(d), value: d }));
   return (
-    <Modal onClose={onClose} label={t.settingsTitle}>
-      <ModalHeader><ModalTitle>{t.settingsTitle}</ModalTitle></ModalHeader>
+    <Modal onClose={onClose} label={t.settingsTitleAll}>
+      <ModalHeader><ModalTitle>{t.settingsTitleAll}</ModalTitle></ModalHeader>
       <ModalBody>
-        <Stack space="space.200">
-          <Text>{t.settingsIntro}</Text>
-          <Stack space="space.050">
-            <Label labelFor="friday-wf-start">{t.settingsStart}</Label>
-            <Select inputId="friday-wf-start" options={options} value={options.find((o) => o.value === start)} onChange={(o) => o && setStart(o.value)} />
+        <Stack space="space.300">
+          {workflow && (
+            <Stack space="space.150">
+              <Heading size="xsmall">{t.settingsTitle}</Heading>
+              <Text>{t.settingsIntro}</Text>
+              <Stack space="space.050">
+                <Label labelFor="friday-wf-start">{t.settingsStart}</Label>
+                <Select inputId="friday-wf-start" options={options} value={options.find((o) => o.value === start)} onChange={(o) => o && setStart(o.value)} />
+              </Stack>
+              <Stack space="space.050">
+                <Label labelFor="friday-wf-end">{t.settingsEnd}</Label>
+                <Select inputId="friday-wf-end" options={options} value={options.find((o) => o.value === end)} onChange={(o) => o && setEnd(o.value)} />
+              </Stack>
+              {!valid && <SectionMessage appearance="warning"><Text>{t.settingsInvalid}</Text></SectionMessage>}
+              <Text size="small" color="color.text.subtlest">{t.settingsNote}</Text>
+            </Stack>
+          )}
+          <Stack space="space.100">
+            <Heading size="xsmall">{t.ageFromLabel}</Heading>
+            <Text size="small">{t.tipAge}</Text>
+            <ButtonGroup label={t.ageFromLabel}>
+              <Button isSelected={!includeBacklog} onClick={() => onAgeFrom(false)}>{t.ageFromStart}</Button>
+              <Button isSelected={includeBacklog} onClick={() => onAgeFrom(true)}>{t.ageFromCreated}</Button>
+            </ButtonGroup>
           </Stack>
-          <Stack space="space.050">
-            <Label labelFor="friday-wf-end">{t.settingsEnd}</Label>
-            <Select inputId="friday-wf-end" options={options} value={options.find((o) => o.value === end)} onChange={(o) => o && setEnd(o.value)} />
+          <Stack space="space.100">
+            <Label labelFor="friday-reference">{t.refLabel}</Label>
+            <Text size="small">{t.tipHistory}</Text>
+            <Box xcss={selectStyle}>
+              <Select inputId="friday-reference" options={refOptions} value={refOptions.find((o) => o.value === referenceDays)} onChange={(o) => o && onReference(o.value)} />
+            </Box>
           </Stack>
-          {!valid && <SectionMessage appearance="warning"><Text>{t.settingsInvalid}</Text></SectionMessage>}
-          <Text size="small" color="color.text.subtlest">{t.settingsNote}</Text>
         </Stack>
       </ModalBody>
       <ModalFooter>
-        <Button appearance="subtle" onClick={onReset}>{t.settingsReset}</Button>
-        <Button appearance="primary" isDisabled={!valid} onClick={() => onSave(start, end)}>{t.settingsSave}</Button>
+        {workflow && <Button appearance="subtle" onClick={onReset}>{t.settingsReset}</Button>}
+        {workflow
+          ? <Button appearance="primary" isDisabled={!valid} onClick={() => onSave(start, end)}>{t.settingsSave}</Button>
+          : <Button appearance="primary" onClick={onClose}>{t.helpClose}</Button>}
       </ModalFooter>
     </Modal>
-  );
-}
-
-// Barra de filtros: tudo o que muda a página inteira, junto e por baixo do título.
-function FilterBar({ t, boards, selectedId, onBoard, includeBacklog, onAgeFrom, referenceDays, referenceOptions, onReference }) {
-  const boardOptions = (boards || []).map((b) => ({ label: b.name, value: b.id }));
-  const refOptions = referenceOptions.map((d) => ({ label: t.refOption(d), value: d }));
-  return (
-    <Inline space="space.300" alignBlock="center" shouldWrap>
-      {boards && boards.length > 0 && (
-        <Inline space="space.100" alignBlock="center">
-          <LabelWithTip tip={t.tipBoard}><Label labelFor="friday-board">{t.boardLabel}</Label></LabelWithTip>
-          <Box xcss={selectStyle}>
-            <Select inputId="friday-board" appearance="subtle" spacing="compact" options={boardOptions}
-              value={boardOptions.find((o) => o.value === selectedId) || null} onChange={(o) => o && onBoard(o.value)} isSearchable={boards.length > 5} />
-          </Box>
-        </Inline>
-      )}
-      <Inline space="space.100" alignBlock="center">
-        <LabelWithTip tip={t.tipAge}><Text weight="bold">{t.ageFromLabel}</Text></LabelWithTip>
-        <ButtonGroup label={t.ageFromLabel}>
-          <Button isSelected={!includeBacklog} onClick={() => onAgeFrom(false)}>{t.ageFromStart}</Button>
-          <Button isSelected={includeBacklog} onClick={() => onAgeFrom(true)}>{t.ageFromCreated}</Button>
-        </ButtonGroup>
-      </Inline>
-      <Inline space="space.100" alignBlock="center">
-        <LabelWithTip tip={t.tipHistory}><Label labelFor="friday-reference">{t.refLabel}</Label></LabelWithTip>
-        <Box xcss={refSelectStyle}>
-          <Select inputId="friday-reference" appearance="subtle" spacing="compact" options={refOptions}
-            value={refOptions.find((o) => o.value === referenceDays)} onChange={(o) => o && onReference(o.value)} />
-        </Box>
-      </Inline>
-    </Inline>
   );
 }
 
@@ -176,71 +146,184 @@ function AgingTable({ rows, siteUrl, t, includeBacklog, isBoard }) {
   return <DynamicTable head={head} rows={tableRows} emptyView={t.emptyTable} />;
 }
 
-// Um cartão por conclusão: sempre o padrão nos dados, o que significa, o que fazer, quando não confiar e os tickets.
-function FindingCard({ f, t, siteUrl }) {
-  const m = t.find[f.id];
+// Os números do quadro numa linha, com a explicação no ⓘ.
+function NumbersLine({ view, t }) {
+  const k = view.kpis;
+  const weeks = view.throughput || [];
+  const thisWeek = weeks.length ? weeks[weeks.length - 1].count : null;
+  const usual = view.reference?.cycle?.n ? t.days(Math.max(1, Math.round(view.reference.cycle.p85))) : null;
+  const parts = [
+    t.numWip(k.wip),
+    k.blocked ? t.numBlocked(k.blocked.total, k.blocked.backlog) : null,
+    thisWeek != null ? t.numDone(thisWeek) : null,
+    usual ? t.numUsual(usual) : null,
+  ].filter(Boolean);
+  return (
+    <Inline space="space.075" alignBlock="center" shouldWrap>
+      <Text>{parts.join(' · ')}</Text>
+      <InfoTip text={t.tipNumbers} />
+    </Inline>
+  );
+}
+
+function ItemsList({ f, t, siteUrl }) {
   const d = (n) => t.days(roundDays(n));
   const shown = f.items.slice(0, ITEMS_SHOWN);
-  let chart = null;
+  if (!shown.length) return null;
+  const extra = (i) => (f.id === 'tail' ? `${d(i.days)}${i.waitColumn ? ` · ${i.waitColumn}` : ''}`
+    : f.id === 'blocks' ? d(i.blockedDays)
+      : `${d(i.ageDays)}${i.column ? ` · ${i.column}` : ''}`);
+  return (
+    <Stack space="space.050">
+      <Text weight="bold">{t.findItems}</Text>
+      <List type="unordered">
+        {shown.map((i) => (
+          <ListItem key={i.key}>
+            <Inline space="space.075" alignBlock="center" shouldWrap>
+              {siteUrl ? <Link href={`${siteUrl}/browse/${i.key}`} openNewTab>{i.key}</Link> : <Text>{i.key}</Text>}
+              <Text>{i.summary}</Text>
+              <Text color="color.text.subtlest">{extra(i)}</Text>
+            </Inline>
+          </ListItem>
+        ))}
+      </List>
+      {f.items.length > shown.length && <Text size="small" color="color.text.subtlest">{t.findMore(f.items.length - shown.length)}</Text>}
+    </Stack>
+  );
+}
+
+// O gráfico que explica cada conclusão. Os gráficos do painel antigo passaram para aqui.
+function FindingChart({ f, t, view }) {
   if (f.id === 'inflow') {
     const data = f.facts.weeks.flatMap((w) => [
       { week: t.weekLabel(w.week), kind: t.findStarted, count: w.started },
       { week: t.weekLabel(w.week), kind: t.findFinished, count: w.finished },
     ]);
-    chart = <BarChart data={data} xAccessor="week" yAccessor="count" colorAccessor="kind" height={200} />;
-  } else if (f.id === 'tail' && f.facts.histogram.counts.length) {
-    const w = f.facts.histogram.width;
-    const data = f.facts.histogram.counts.map((c, k) => ({ label: `${k * w}–${(k + 1) * w}`, count: c }));
-    chart = <BarChart data={data} xAccessor="label" yAccessor="count" height={200} />;
+    return <BarChart data={data} xAccessor="week" yAccessor="count" colorAccessor="kind" height={220} />;
   }
-  const itemLine = (i) => {
-    const extra = f.id === 'tail' ? `${d(i.days)}${i.waitColumn ? ` · ${i.waitColumn}` : ''}`
-      : f.id === 'blocks' ? d(i.blockedDays)
-        : `${d(i.ageDays)}${i.column ? ` · ${i.column}` : ''}`;
-    return (
-      <ListItem key={i.key}>
-        <Inline space="space.075" alignBlock="center" shouldWrap>
-          {siteUrl ? <Link href={`${siteUrl}/browse/${i.key}`} openNewTab>{i.key}</Link> : <Text>{i.key}</Text>}
-          <Text>{i.summary}</Text>
-          <Text color="color.text.subtlest">{extra}</Text>
-        </Inline>
-      </ListItem>
-    );
-  };
+  if (f.id === 'tail' && f.facts.histogram?.counts?.length) {
+    const w = f.facts.histogram.width;
+    const data = f.facts.histogram.counts.map((c, k) => ({ label: t.dayRange(k * w, (k + 1) * w), count: c }));
+    return <BarChart data={data} xAccessor="label" yAccessor="count" height={220} />;
+  }
+  if (f.id === 'above' && view?.bands?.start) {
+    const bandLabel = { ok: t.bandOk, slow: t.bandSlow, late: t.bandLate };
+    const data = view.bands.start.map((r) => ({ column: r.column, band: bandLabel[r.band], count: r.count }));
+    return <StackBarChart data={data} xAccessor="column" yAccessor="count" colorAccessor="band" height={220} />;
+  }
+  return null;
+}
+
+function FindingCard({ f, t, siteUrl, view, example = false }) {
+  const m = t.find[f.id];
+  const d = (n) => t.days(roundDays(n));
   return (
-    <Box xcss={findingStyle}>
+    <Box xcss={example ? exampleStyle : cardStyle}>
       <Stack space="space.150">
-        <Heading size="small">{m.title(f.facts)}</Heading>
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          {example && <Lozenge appearance="new">{t.exampleTag}</Lozenge>}
+          <Heading size="small">{m.title(f.facts)}</Heading>
+        </Inline>
+        {example && <Text size="small" color="color.text.subtlest">{t.exampleNote}</Text>}
         <Stack space="space.050"><Text weight="bold">{t.findSeen}</Text><Text>{m.seen(f.facts, d)}</Text></Stack>
-        {chart}
+        <FindingChart f={f} t={t} view={view} />
         <Stack space="space.050"><Text weight="bold">{t.findMeans}</Text><Text>{m.means}</Text></Stack>
         <Stack space="space.050"><Text weight="bold">{t.findTodo}</Text><Text>{m.todo(f.facts)}</Text></Stack>
-        {shown.length > 0 && (
-          <Stack space="space.050">
-            <Text weight="bold">{t.findItems}</Text>
-            <List type="unordered">{shown.map(itemLine)}</List>
-            {f.items.length > shown.length && <Text size="small" color="color.text.subtlest">{t.findMore(f.items.length - shown.length)}</Text>}
-          </Stack>
-        )}
+        {!example && <ItemsList f={f} t={t} siteUrl={siteUrl} />}
         <Text size="small" color="color.text.subtlest">{`${t.findCaveat}: ${m.caveat}`}</Text>
-        {LEARN_URLS[f.id] && <Link href={LEARN_URLS[f.id]} openNewTab>{t.find[f.id].name}</Link>}
+        {!example && LEARN_URLS[f.id] && <Link href={LEARN_URLS[f.id]} openNewTab>{t.learn}</Link>}
       </Stack>
     </Box>
   );
 }
 
-function Findings({ view, t, siteUrl }) {
-  const fired = view.findings.filter((f) => f.fired);
-  const fewData = view.findings.filter((f) => !f.fired && !f.enoughData && !f.unavailable).map((f) => t.find[f.id].name);
-  const blocksUnavailable = view.findings.some((f) => f.id === 'blocks' && f.unavailable);
+// Um exemplo com dados fictícios, claramente marcado: mostra o que a página vai dizer quando houver dados.
+const EXAMPLE = {
+  id: 'tail',
+  fired: true,
+  facts: { n: 42, p50: 3, p85: 19, p95: 61, waitColumn: 'Waiting for QA', waitCount: 3, slowestCount: 5, histogram: { width: 7, counts: [24, 7, 4, 2, 1, 0, 1, 0, 2, 1] } },
+  items: [],
+};
+
+// O que está dentro do habitual: também é informação, e a página nunca fica vazia.
+function AllGood({ view, t }) {
+  const d = (n) => t.days(roundDays(n));
+  const ok = view.findings.filter((f) => !f.fired && f.enoughData);
+  const weeks = (view.throughput || []).map((w) => ({ label: t.weekLabel(w.week), count: w.count }));
+  const hasWeeks = weeks.some((w) => w.count > 0);
+  if (!ok.length && !hasWeeks) return null;
   return (
-    <Stack space="space.200">
-      <Heading size="medium">{t.findIntro(fired.length, view.analysed)}</Heading>
-      {fired.length === 0 && <SectionMessage appearance="success"><Text>{t.findNoneHint}</Text></SectionMessage>}
-      {fired.map((f) => <FindingCard key={f.id} f={f} t={t} siteUrl={siteUrl} />)}
-      {fewData.length > 0 && <Text size="small" color="color.text.subtlest">{t.findFewData(fewData)}</Text>}
-      {blocksUnavailable && <Text size="small" color="color.text.subtlest">{t.findBlocksUnavailable}</Text>}
-    </Stack>
+    <Box xcss={quietStyle}>
+      <Stack space="space.150">
+        <Heading size="small">{t.okTitle}</Heading>
+        {ok.length > 0 && <List type="unordered">{ok.map((f) => <ListItem key={f.id}><Text>{t.find[f.id].ok(f.facts, d)}</Text></ListItem>)}</List>}
+        {hasWeeks && (
+          <Stack space="space.050">
+            <Inline space="space.075" alignBlock="center"><Text weight="bold">{t.throughputTitle}</Text><InfoTip text={t.tipThroughput} /></Inline>
+            <BarChart data={weeks} xAccessor="label" yAccessor="count" height={200} />
+          </Stack>
+        )}
+      </Stack>
+    </Box>
+  );
+}
+
+/**
+ * O que falta para o FRIDAY ler o quadro, e como o conseguir. Cada ponto diz o que é preciso, o que existe e como resolver.
+ * Só aparece quando falta alguma coisa.
+ */
+function Guide({ view, t, referenceDays, onLongerHistory, onSettings }) {
+  const L = view.limits || {};
+  const f = Object.fromEntries((view.findings || []).map((x) => [x.id, x]));
+  const doneWithStart = view.reference?.cycle?.n ?? 0;
+  const weeks = view.throughput || [];
+  const perWeek = weeks.slice(-4).reduce((s, w) => s + w.count, 0) / 4;
+  const need = Math.max(L.tailMinItems || 20, L.aboveMinItems || 10);
+  const missing = Math.max(0, need - doneWithStart);
+  const steps = [];
+
+  steps.push({
+    key: 'board', ok: true,
+    title: t.guideBoardOk(view.workflow?.start, view.workflow?.end),
+    how: [t.guideBoardHow],
+    action: <Button appearance="link" onClick={onSettings}>{t.guideBoardAction}</Button>,
+  });
+  if (missing > 0) {
+    steps.push({
+      key: 'done', ok: false,
+      title: t.guideDone(doneWithStart, need, referenceDays),
+      how: [t.guideDoneMove, perWeek > 0 ? t.guideDoneWait(Math.ceil(missing / perWeek)) : t.guideDoneNone],
+      action: referenceDays < MAX_HISTORY ? <Button appearance="primary" onClick={onLongerHistory}>{t.guideDoneAction(MAX_HISTORY)}</Button> : null,
+    });
+  }
+  if (f.inflow && !f.inflow.enoughData) {
+    steps.push({ key: 'recent', ok: false, title: t.guideRecent(f.inflow.facts.finished, L.inflowMinFinished || 8), how: [t.guideRecentHow] });
+  }
+  steps.push(view.hasFlaggedField
+    ? { key: 'flag', ok: true, title: t.guideFlagOk, how: [t.guideFlagHow] }
+    : { key: 'flag', ok: false, title: t.guideFlagMissing, how: [t.guideFlagMissingHow] });
+  if (!view.ageFromHistory) steps.push({ key: 'history', ok: false, title: t.guideHistory, how: [t.guideHistoryHow] });
+
+  if (!steps.some((s) => !s.ok)) return null;
+  return (
+    <Box xcss={cardStyle}>
+      <Stack space="space.200">
+        <Stack space="space.050">
+          <Heading size="small">{t.guideTitle}</Heading>
+          <Text>{t.guideIntro}</Text>
+        </Stack>
+        {steps.map((s) => (
+          <Stack key={s.key} space="space.075">
+            <Inline space="space.100" alignBlock="center">
+              <Icon glyph={s.ok ? 'check-circle' : 'warning'} label={s.ok ? t.guideOk : t.guideMissing} color={s.ok ? 'color.icon.success' : 'color.icon.warning'} />
+              <Text weight="bold">{s.title}</Text>
+            </Inline>
+            {s.how.map((h) => <Text key={h}>{h}</Text>)}
+            {s.action || null}
+          </Stack>
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -253,7 +336,7 @@ function App() {
   const [includeBacklog, setIncludeBacklog] = useState(false);
   const [referenceDays, setReferenceDays] = useState(90);
   const [referenceOptions, setReferenceOptions] = useState([30, 60, 90, 180]);
-  const [modal, setModal] = useState(null); // 'help' | 'workflow' | null
+  const [modal, setModal] = useState(null); // 'help' | 'settings' | null
 
   const load = (boardId, remember = false, days = referenceDays) => {
     setView(null);
@@ -303,143 +386,96 @@ function App() {
 
   if (!context) return <Spinner label={t.loading} />;
   const projectKey = view?.projectKey || context.extension?.project?.key || '';
-  const boardName = boards?.find((b) => b.id === selectedId)?.name;
-  const canEditWorkflow = view?.mode === 'board' && view.workflow;
+  const boardOptions = (boards || []).map((b) => ({ label: b.name, value: b.id }));
+  const workflow = view?.mode === 'board' ? view.workflow : null;
 
   return (
     <Stack space="space.300">
       <Box xcss={headerStyle}>
         <Inline spread="space-between" alignBlock="center" shouldWrap>
-          <Heading size="large">{t.title(boardName || projectKey)}</Heading>
+          <Inline space="space.200" alignBlock="center" shouldWrap>
+            <Heading size="large">{t.titleShort}</Heading>
+            {boards && boards.length > 0 && (
+              <Inline space="space.075" alignBlock="center">
+                <Box xcss={selectStyle}>
+                  <Select inputId="friday-board" appearance="subtle" spacing="compact" options={boardOptions}
+                    value={boardOptions.find((o) => o.value === selectedId) || null} onChange={(o) => o && chooseBoard(o.value)} isSearchable={boards.length > 5} />
+                </Box>
+                <InfoTip text={t.tipBoard} />
+              </Inline>
+            )}
+            {boards && boards.length === 0 && <Text color="color.text.subtlest">{projectKey}</Text>}
+          </Inline>
           <Inline space="space.100" alignBlock="center">
-            {canEditWorkflow && <IconButton glyph="settings" label={t.settingsTooltip} onClick={() => setModal('workflow')} />}
+            <IconButton glyph="settings" label={t.settingsTooltipAll} onClick={() => setModal('settings')} />
             <IconButton glyph="question-circle" label={t.helpTooltip} onClick={() => setModal('help')} />
           </Inline>
         </Inline>
       </Box>
-      <FilterBar t={t} boards={boards} selectedId={selectedId} onBoard={chooseBoard} includeBacklog={includeBacklog} onAgeFrom={chooseAgeFrom}
-        referenceDays={referenceDays} referenceOptions={referenceOptions} onReference={chooseReference} />
-      {boards && boards.length === 0 && <SectionMessage appearance="information"><Text>{t.noBoards}</Text></SectionMessage>}
-      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} referenceDays={referenceDays} />
+      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} referenceDays={referenceDays}
+        hasBoards={Boolean(boards && boards.length)} onLongerHistory={() => chooseReference(MAX_HISTORY)} onSettings={() => setModal('settings')} />
       <ModalTransition>
         {modal === 'help' && <HelpModal t={t} onClose={() => setModal(null)} />}
-        {modal === 'workflow' && canEditWorkflow && (
-          <WorkflowModal t={t} workflow={view.workflow} onSave={saveWorkflow} onReset={resetWorkflow} onClose={() => setModal(null)} />
+        {modal === 'settings' && (
+          <SettingsModal t={t} workflow={workflow} includeBacklog={includeBacklog} onAgeFrom={chooseAgeFrom}
+            referenceDays={referenceDays} referenceOptions={referenceOptions} onReference={chooseReference}
+            onSave={saveWorkflow} onReset={resetWorkflow} onClose={() => setModal(null)} />
         )}
       </ModalTransition>
     </Stack>
   );
 }
 
-function Body(props) {
-  const { view, t, siteUrl } = props;
+function Body({ view, t, siteUrl, includeBacklog, referenceDays, hasBoards, onLongerHistory, onSettings }) {
+  const [showAll, setShowAll] = useState(false);
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
-  // Sem quadro não há colunas: as conclusões não são calculadas e fica só o detalhe, com o aviso.
-  if (view.mode !== 'board' || !view.findings) {
-    return (
-      <Stack space="space.200">
-        <SectionMessage appearance="information"><Text>{t.findNoBoard}</Text></SectionMessage>
-        <Detail {...props} />
-      </Stack>
-    );
-  }
-  return (
-    <Tabs id="friday-tabs">
-      <TabList>
-        <Tab>{t.tabFindings}</Tab>
-        <Tab>{t.tabDetail}</Tab>
-      </TabList>
-      <TabPanel><Box paddingBlock="space.200"><Findings view={view} t={t} siteUrl={siteUrl} /></Box></TabPanel>
-      <TabPanel><Box paddingBlock="space.200"><Detail {...props} /></Box></TabPanel>
-    </Tabs>
-  );
-}
 
-// O painel de antes (cartões, gráficos e tabela), agora no separador «Detalhe».
-function Detail({ view, t, siteUrl, includeBacklog, referenceDays }) {
-
-  const k = view.kpis;
-  const isBoard = view.mode === 'board';
+  const isBoard = view.mode === 'board' && Array.isArray(view.findings);
   const aging = includeBacklog ? view.aging.created : view.aging.start;
-  const ref = includeBacklog ? view.reference.lead : view.reference.cycle;
-  const hasRef = ref && ref.n > 0 && !(isBoard === false && !includeBacklog);
-  const strongRef = hasRef && ref.n >= MIN_REFERENCE_ITEMS;
-  const limit = hasRef ? t.days(Math.max(1, Math.round(ref.p85))) : null;
-  const aboveAlert = strongRef && aging.above > 0;
+  const fired = isBoard ? view.findings.filter((f) => f.fired) : [];
+  const lacking = isBoard ? view.findings.filter((f) => !f.fired && !f.enoughData && !f.unavailable) : [];
 
-  const bands = isBoard ? (includeBacklog ? view.bands.created : view.bands.start) : null;
-  const bandLabel = { ok: t.bandOk, slow: t.bandSlow, late: t.bandLate };
-  const columnLabel = (c) => (c.max != null ? t.columnWithLimit(c.name, c.count ?? 0, c.max) : c.name);
-  const labelOf = Object.fromEntries((view.columns || []).map((c) => [c.name, columnLabel(c)]));
-  const bandData = bands ? bands.map((r) => ({ column: labelOf[r.column] || r.column, band: bandLabel[r.band], count: r.count })) : null;
-  const countData = isBoard ? view.columns.map((c) => ({ label: columnLabel(c), count: c.count })) : [];
-  const overLimit = isBoard ? view.columns.filter((c) => c.max != null && c.count > c.max) : [];
-  const byType = isBoard ? [] : view.byType.map((r) => ({ ...r, label: r.label ?? t.noType }));
-  const weeks = (view.throughput || []).map((w) => ({ label: t.weekLabel(w.week), count: w.count }));
-  const thisWeek = weeks.length ? weeks[weeks.length - 1].count : null;
-  const lastWeek = weeks.length > 1 ? weeks[weeks.length - 2].count : null;
+  let headline;
+  if (!isBoard) headline = t.headNoBoard;
+  else if (fired.length > 0) headline = t.headFired(fired.length);
+  else if (lacking.length > 0) headline = t.headLacking;
+  else headline = t.headAllGood;
 
-  // Frase-resumo: o que precisa de atenção, em linguagem simples.
-  const firstSlow = aging.rows.find((r) => r.above);
-  let summary;
-  if (k.wip === 0) summary = t.summaryNoWip;
-  else if (!hasRef) summary = t.summaryNoRef;
-  else if (aging.above > 0 && firstSlow) summary = t.summarySlow(aging.above, limit, firstSlow.key);
-  else summary = t.summaryOk(limit);
-  if (k.blocked?.total > 0) summary += t.summaryBlocked(k.blocked.total);
-
-  let refLine;
-  if (!includeBacklog && !isBoard) refLine = t.refNoBoard;
-  else if (!hasRef) refLine = t.refNone(referenceDays);
-  else refLine = t.refShort({ p85: limit, days: referenceDays, n: ref.n, metric: includeBacklog ? t.refLead : t.refCycle })
-    + (strongRef ? '' : ` ${t.refFew}`);
+  const notices = [
+    view.truncated ? t.truncated(view.limit) : null,
+    isBoard && view.countFailed ? t.countFailed : null,
+    isBoard && view.workflow?.overrideIgnored ? t.workflowIgnored : null,
+  ].filter(Boolean);
 
   return (
     <Stack space="space.300">
-      <Heading size="medium">{summary}</Heading>
-      <Inline space="space.150" shouldWrap>
-        <Kpi label={t.kpiWip} value={k.wip} tip={t.tipWip(isBoard ? view.workflow?.start : null, view.workflow?.end)}
-          notes={[isBoard && view.workflow?.start ? t.wipRange(view.workflow.start, view.workflow.end) : null]} />
-        <Kpi label={t.kpiAbove} value={hasRef ? aging.above : null} alert={aboveAlert}
-          tip={hasRef ? t.tipSlower(limit, referenceDays) : t.tipSlowerNone}
-          notes={[hasRef ? t.kpiAboveNote(limit) : t.kpiAboveNone, aboveAlert ? t.needsAttention : null, hasRef && !strongRef ? t.fewData : null]} />
-        <Kpi label={t.kpiBlocked} value={k.blocked ? k.blocked.total : null} alert={k.blocked?.total > 0} tip={t.tipBlocked}
-          notes={[k.blocked ? t.blockedInBacklog(k.blocked.backlog) : t.noFlaggedShort, k.blocked?.total > 0 ? t.needsAttention : null]} />
-        {/* Igual à última barra de «Concluídos por semana», para o cartão e o gráfico contarem o mesmo. */}
-        <Kpi label={t.kpiDone} value={thisWeek} tip={t.tipDone} notes={[lastWeek != null ? t.doneLastWeek(lastWeek) : null]} />
-      </Inline>
+      <Stack space="space.100">
+        <Heading size="medium">{headline}</Heading>
+        <NumbersLine view={view} t={t} />
+      </Stack>
+      {notices.map((n) => <SectionMessage key={n} appearance="warning"><Text>{n}</Text></SectionMessage>)}
 
-      {view.truncated && <SectionMessage appearance="warning"><Text>{t.truncated(view.limit)}</Text></SectionMessage>}
-      {isBoard && view.countFailed && <SectionMessage appearance="warning"><Text>{t.countFailed}</Text></SectionMessage>}
-      {isBoard && view.workflow?.overrideIgnored && <SectionMessage appearance="warning"><Text>{t.workflowIgnored}</Text></SectionMessage>}
-      {isBoard && !view.ageFromHistory && <SectionMessage appearance="information"><Text>{t.ageApprox}</Text></SectionMessage>}
-      {!isBoard && view.backlogUnavailable && <SectionMessage appearance="warning"><Text>{t.backlogUnavailable}</Text></SectionMessage>}
-      {!view.hasFlaggedField && <SectionMessage appearance="information"><Text>{t.noFlaggedField}</Text></SectionMessage>}
-
-      <Inline space="space.300" shouldWrap>
-        <Box xcss={chartStyle}>
+      {!isBoard && (
+        <Box xcss={cardStyle}>
           <Stack space="space.100">
-            <LabelWithTip tip={isBoard ? t.tipAgeChart : t.tipByType}><Heading size="small">{isBoard ? t.ageByColumn : t.byType}</Heading></LabelWithTip>
-            {isBoard && bandData && <StackBarChart data={bandData} xAccessor="column" yAccessor="count" colorAccessor="band" height={260} />}
-            {isBoard && !bandData && (countData.length ? <BarChart data={countData} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noWip}</Text>)}
-            {!isBoard && (byType.length ? <BarChart data={byType} xAccessor="label" yAccessor="count" height={260} /> : <Text>{t.noOpen}</Text>)}
-            {isBoard && <Text size="small">{view.backlogCount == null ? t.backlogUnknown : t.backlogNote(view.backlogCount)}</Text>}
-            {overLimit.map((c) => <Text key={c.name} size="small">{t.overLimit(c.name, c.count, c.max)}</Text>)}
+            <Heading size="small">{t.guideNoBoardTitle}</Heading>
+            <Text>{hasBoards ? t.guideNoBoardChoose : t.guideNoBoardCreate}</Text>
           </Stack>
         </Box>
-        <Box xcss={chartStyle}>
-          <Stack space="space.100">
-            <LabelWithTip tip={t.tipThroughput}><Heading size="small">{t.throughputTitle}</Heading></LabelWithTip>
-            <BarChart data={weeks} xAccessor="label" yAccessor="count" height={260} />
-          </Stack>
-        </Box>
-      </Inline>
+      )}
+
+      {fired.map((f) => <FindingCard key={f.id} f={f} t={t} siteUrl={siteUrl} view={view} />)}
+
+      {isBoard && <Guide view={view} t={t} referenceDays={referenceDays} onLongerHistory={onLongerHistory} onSettings={onSettings} />}
+      {isBoard && fired.length === 0 && lacking.length > 0 && <FindingCard f={EXAMPLE} t={t} example />}
+      {isBoard && <AllGood view={view} t={t} />}
 
       <Stack space="space.100">
-        <LabelWithTip tip={t.tipTable}><Heading size="small">{t.oldestWip}</Heading></LabelWithTip>
-        <Text>{refLine}</Text>
-        <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} isBoard={isBoard} />
+        <Inline>
+          <Button appearance="subtle" onClick={() => setShowAll(!showAll)}>{showAll ? t.hideAll : t.showAll(view.kpis.wip)}</Button>
+        </Inline>
+        {showAll && <AgingTable rows={aging.rows} siteUrl={siteUrl} t={t} includeBacklog={includeBacklog} isBoard={view.mode === 'board'} />}
       </Stack>
     </Stack>
   );
