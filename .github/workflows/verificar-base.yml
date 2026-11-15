@@ -26,3 +26,7 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/verificar-base-json.mjs
+      - name: O que o FRIDAY vai mostrar no FRIBASE
+        run: node scripts/verificar-friday.mjs
+        env:
+          PROJECT_KEY: FRIBASE
