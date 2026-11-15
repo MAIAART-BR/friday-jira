@@ -125,3 +125,66 @@ What to do: split the lane in two and track each one's delivery time. Each forec
 When not to trust it: with fewer than 30 items, two hills can be chance. Confirm over the next months before changing your board.
 
 I'm building a way to do this reading automatically on Jira data. If you'd like to see it on your team's data, send me a message.
+
+---
+
+# English versions with real experience (v2, 15/11/2026)
+
+Images: `marketing/imagens/post-1.png`, `post-2.png`, `post-3.png` (1200 × 1200, illustrative data; source in `posts.html`).
+First comment on each post: the link to the article "Transforming CTT with STATIK-inspired Workshops" (public, March 2025).
+
+**Attention:** the sentences marked [internal] come from internal team data. They are rounded and the team is not named, but get the company's OK before publishing them, or use the alternative in brackets.
+
+## Post 1: the long tail
+
+Last year I looked at the delivery times of a team I was coaching. Half of their work was done in about 3 days. Good news, right?
+
+Then I looked at the right-hand side of the chart. [internal] The slowest 2% had taken the better part of a year. [Alternative: A handful of items had taken months.]
+
+That's the long tail. On a histogram, it's the slope that fades slowly to the right, and almost nobody looks at it.
+
+So we opened those items one by one. None of them was hard. They had been waiting: for another team, for a supplier, for a decision nobody owned. The actual work was a few days. The rest was queue.
+
+Two things changed after that conversation. The team started showing time spent in external queues on the board, so waiting stopped being invisible. And they began agreeing on response times with the teams they depended on.
+
+Across the 45 teams in that program, the ones that adopted these practices cut their queues by 55% within a few months.
+
+The useful question isn't "why did this take so long?" It's "where did it sit still?" If the answer is the same place in 3 out of 5 cases, you know where to start.
+
+When not to worry: every team doing knowledge work has some tail. The signal is a tail that grows from one month to the next.
+
+I'm turning this way of reading into a Jira app. If you'd like to see it on your team's data, send me a message.
+
+## Post 2: more work coming in than going out
+
+For a year and a half, a colleague and I guided 45 teams, about 150 people, through a Kanban program. One pattern showed up again and again: teams starting more work than they finished.
+
+Nobody does this on purpose. A request arrives, it's urgent, someone starts it. Then another. The board fills up and everyone is busy. And delivery gets slower.
+
+It's not lack of effort. It's arithmetic. Every started item waits for its turn, and with the same capacity and more open items, each one waits longer. That's Little's Law, from 1961.
+
+The chart that shows it is simple: per week, how many items started and how many finished. When "started" stays above "finished" for 3 or 4 weeks, delivery times rise a few weeks later, even if nobody changed anything.
+
+What helped most was not a new tool. It was agreeing on a limit for work in progress and respecting it before pulling anything new. Some teams also cleaned out the oldest items sitting in their backlog, which turned out to be more freeing than they expected.
+
+In the teams that adopted these practices, delivery time dropped about 20% and throughput grew 15 to 17% within a few months. At portfolio level, deliveries that used to take 90 to 120 days now take around 63.
+
+Stop starting, start finishing. It sounds simple. The hard part is seeing it in your own data before the delays show up.
+
+I'm turning this way of reading into a Jira app. If you'd like to see it on your team's data, send me a message.
+
+## Post 3: two humps
+
+In a quarterly review with one of the teams I coach, the delivery time histogram of their main lane had more than one hill. Most items finished quickly. Another group clustered much further out, with a gap in between.
+
+That pattern almost always means different kinds of work are sharing one lane, and they behave differently. Small requests and larger pieces. Work the team controls and work that depends on someone else.
+
+It matters because of forecasting. If you tell your customer "85% of items are done within 30 days", you're wrong for both groups: the small ones finish much sooner, and the large ones often take longer. The average describes nobody.
+
+My recommendation to that team was to split the lane in two or three, one per kind of work, and track each separately. Their prioritisation becomes clearer, and each forecast becomes honest for the work it describes.
+
+Most teams have this chart available. Very few read it this way, because nobody taught them what the shape means.
+
+When not to trust it: with fewer than 30 items, two hills can be chance. Confirm over the next months before changing your board.
+
+I'm turning this way of reading into a Jira app. If you'd like to see it on your team's data, send me a message.
