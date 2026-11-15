@@ -41,6 +41,28 @@ Ver o `README.md`.
   - **os dados validam a autoavaliação:** a confirmação pelos dados é o que dá validade ao método.
 - **Maqueta:** `maquete/index.html` (dados fictícios, sem nada da CTT).
 
+## Retomar aqui (fim de 15/11/2026)
+
+**Estado:**
+- **Página única e conclusões:** o FRIDAY no site de teste mostra as 4 conclusões no projeto FRIDAY Base (FRIBASE), a partir da base importada em JSON.
+- **Modo de demonstração:** feito.
+- **Defeito corrigido:** o histórico importado sem fieldId (deploy nº 18).
+- **Simulação em tempo real:** desligada.
+
+**Próximos passos para vender:**
+- **Claude:**
+  1. verificar se o nome «FRIDAY» está livre no Marketplace;
+  2. reescrever a listagem (`marketplace/LISTING.md`), a privacidade e o EULA para o produto atual;
+  3. preparar as imagens a partir do modo de demonstração;
+  4. depois, o pt-BR (item 4), o deploy em produção e a preparação da submissão.
+- **Artur:**
+  1. publicar o primeiro carrossel (antes, confirmar com a CTT e com a Cristina);
+  2. decidir o canal e o prazo de suporte;
+  3. criar o perfil de parceiro;
+  4. procurar uma equipa piloto (fora da CTT).
+- **À espera:** a resposta da Atlassian sobre o preço (ECOHELP-185604).
+- **A base FRIBASE dura cerca de 1 semana** (até perto de 22/11). Depois disso, gerar uma base nova com `node scripts/base-friday-json.mjs <pasta>` e importá-la.
+
 ## Como se avalia
 
 **Custo do atraso (CoD)** = soma de três componentes, cada uma numa escala relativa (1, 2, 3, 5, 8, 13):
