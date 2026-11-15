@@ -1,0 +1,28 @@
+# Verifica, só com leituras, os tickets da base de teste do FRIDAY no Jira (projetos, estados e datas do histórico).
+name: Verificar base de teste FRIDAY
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Site Jira de teste
+        type: string
+        default: arturmaiadecastro.atlassian.net
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      JIRA_SITE: ${{ inputs.site }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL || secrets.FORGE_EMAIL }}
+      JIRA_TOKEN: ${{ secrets.JIRA_TOKEN || secrets.FORGE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/verificar-base-json.mjs
