@@ -1,6 +1,6 @@
 # FRIDAY para Jira
 
-A jornada Kanban da equipa no **Jira Cloud**, para vender no Atlassian Marketplace.
+Leitura do fluxo para equipas Kanban no **Jira Cloud**: os seus gráficos, explicados.
 Versão para Jira do [FRIDAY](https://github.com/MAIAART-BR/FRIDAY), que lê BusinessMap e Trello.
 
 © Artur Castro. Todos os direitos reservados.
@@ -9,25 +9,19 @@ Prioridades e decisões: [`BACKLOG.md`](BACKLOG.md). Nada é implementado sem es
 
 ## O produto
 
-**O FRIDAY é a jornada Kanban da equipa dentro do Jira.** Mostra onde a equipa está, ensina a ler os seus próprios gráficos e diz por onde começar. Depois ajuda a melhorar, com experiências cujo resultado a app mede sozinha. Funciona desde o primeiro dia, com poucas métricas ou nenhuma.
+**Objetivo:** vender o conhecimento de leitura do fluxo de Artur Castro. As equipas têm gráficos mas não tiram conclusões. Por isso, o negócio tem três camadas (decisão de 15/11/2026):
 
-O método da jornada é de Artur Castro: as metáforas por passo, a autoavaliação, a confirmação das respostas pelos dados e a tabela de leitura das métricas.
+1. **App no Marketplace, «O que os seus dados dizem»:** um ecrã que lê o histórico do quadro e escreve no máximo 4 conclusões, cada uma com o padrão, o que significa, o que fazer e quando não confiar. Barata ou grátis até 10 utilizadores. Especificação: [`docs/specs/2026-11-15-o-que-os-seus-dados-dizem.md`](docs/specs/2026-11-15-o-que-os-seus-dados-dizem.md).
+2. **Conteúdo:** «como ler o seu gráfico». Começa com 3 publicações no LinkedIn ([`marketing/linkedin-padroes.md`](marketing/linkedin-padroes.md)).
+3. **Serviços do Artur:** diagnóstico de equipas com a jornada (método do Artur), workshops inspirados no STATIK e orientação de equipas de transformação.
 
-| Passo | O que faz | Precisa de métricas? |
-|---|---|---|
-| 1. Começar | STATIK guiado: propósito, insatisfações, procura e fluxo. Termina com uma proposta de quadro e de políticas. | Não |
-| 2. Onde estamos | Autoavaliação de toda a equipa, com a metáfora do passo. Assinala respostas apressadas e grandes divergências na equipa. | Não |
-| 3. Como ler | Cada resposta confrontada com os dados, e os padrões dos gráficos explicados: duas corcovas, cauda longa, fora dos limites, bloqueios agrupados. | Sim, quando houver |
-| 4. Próximos passos e experiências | 2 ou 3 práticas do passo seguinte, com o porquê. Experiências com antes e depois, reunião quinzenal e resumo mensal. | Sim, para medir |
-
-- **Para quem:** coaches, equipas de transformação (CoE) e líderes de equipas Kanban.
-- **Porque é diferente:** as ferramentas de métricas (Nave, ActionableAgile, Broken Build) pressupõem que se sabe ler gráficos e que há histórico. As de retrospetiva (TeamRhythm, SprintRetro) são feitas para o sprint e não medem se a ação resultou. Não encontrei no Marketplace nenhuma app de jornada ou maturidade Kanban. Ver [`marketplace/CONCORRENCIA.md`](marketplace/CONCORRENCIA.md).
-- **Regras, não IA:** os mesmos dados dão o mesmo resultado, e cada conclusão explica-se.
-- **Um só produto:** grátis até 10 utilizadores, pago acima disso.
 - **Estado:**
-  - direção **por validar com entrevistas**, com a maqueta em [`maquete/index.html`](maquete/index.html) (dados fictícios);
-  - o que existe hoje no Jira é o painel de fluxo (FRIDAY Flow), que passa a ser a base dos passos 3 e 4.
-- **Por verificar antes de vender:** o catálogo de práticas e os níveis do KMM e o STATIK são da Kanban University. Reescrever com palavras próprias ou licenciar.
+  - o que existe hoje no Jira é o painel de fluxo (FRIDAY Flow), que passa a separador «Detalhe»;
+  - a função nova espera pelo resultado das publicações.
+- **A jornada** (Começar, Onde estamos, experiências, modo reunião) fica primeiro como serviço e está na maqueta ([`maquete/index.html`](maquete/index.html), dados fictícios).
+- **Porque é diferente:** as ferramentas de métricas (Nave, ActionableAgile, Broken Build) mostram gráficos e deixam a leitura a quem os usa, ou investigam com IA para empresas grandes. Ver [`marketplace/CONCORRENCIA.md`](marketplace/CONCORRENCIA.md).
+- **Regras, não IA:** os mesmos dados dão o mesmo resultado, e cada conclusão explica-se.
+- **Por verificar antes de vender a jornada:** o catálogo de práticas e os níveis do KMM e o STATIK são da Kanban University.
 
 ## Estrutura
 
@@ -35,6 +29,8 @@ O método da jornada é de Artur Castro: as metáforas por passo, a autoavaliaç
 packages/core/        cálculos de fluxo (funções puras, testadas)
 apps/friday-flow/     a app Forge (manifest, resolver, ecrã em UI Kit); hoje é o painel de fluxo
 maquete/              maqueta navegável do produto, para entrevistas (dados fictícios)
+marketing/            textos para validar e divulgar (publicações no LinkedIn)
+docs/specs/           especificações do que vai ser construído
   src/core/           cópia gerada do core, não editar (ver abaixo)
 scripts/sync-core.mjs copia o core para cada app
 ```

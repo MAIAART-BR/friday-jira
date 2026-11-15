@@ -2,7 +2,22 @@
 
 Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD3**: o custo do atraso (CoD) dividido pela duração.
 
-## O produto (direção de 15/11/2026, por validar)
+## O produto (decisão de 15/11/2026)
+
+**O objetivo do Artur é vender o seu conhecimento de leitura do fluxo da melhor forma possível.** As equipas têm gráficos mas não tiram conclusões. O trabalho do Artur na CTT mostrou que é possível ensiná-las, mas uma app sozinha não parece ter mercado grande. Por isso, o negócio tem três camadas:
+
+| Camada | O que é | Para que serve |
+|---|---|---|
+| 1. App no Marketplace | **«O que os seus dados dizem»** (item 5): um ecrã que lê o histórico do quadro e escreve no máximo 4 conclusões, cada uma com o padrão, o que significa, o que fazer e quando não confiar | Montra: prova o método, chega a quem não conhece o Artur e traz contactos. Barata ou grátis até 10 utilizadores. |
+| 2. Conteúdo | Publicações e, depois, um curso curto «como ler o seu gráfico» | Autoridade e confiança; recruta pessoas para testar. Custo baixo. |
+| 3. Serviços do Artur | Diagnóstico de equipas com a jornada, workshops inspirados no STATIK, orientação de equipas de transformação (CoE) | Onde está o valor por cliente. |
+
+- **A jornada fica primeiro como serviço** (Começar, Onde estamos, sinais, experiências, modo reunião, resumo): itens 6 e 8 a 12. Só passa a produto se o serviço mostrar procura.
+- **Teste antes de construir:** 3 publicações no LinkedIn com os padrões da maqueta (`marketing/linkedin-padroes.md`). Se gerarem pedidos, constrói-se o item 5.
+- **Maqueta:** `maquete/index.html` (dados fictícios, sem nada da CTT).
+
+### Direção anterior: a jornada como produto (15/11/2026)
+
 
 **O FRIDAY é a jornada Kanban da equipa.** Por ordem, cobre:
 1. por onde começar (STATIK guiado);
@@ -51,17 +66,18 @@ Ver o `README.md`.
 | 2 | Validar o posicionamento com potenciais clientes (com a maqueta) | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
 | 3 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
 | 4 | A app na língua do Jira de cada pessoa | 3 | 3 | 2 | 8 | 0,5 | **16** | 0 € |
-| 5 | Onde estamos: autoavaliação da equipa e confirmação pelos dados | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (respostas por equipa, poucos KB) |
-| 6 | Como ler: padrões dos gráficos explicados | 13 | 3 | 8 | 24 | 2 | **12** | 0 € |
-| 7 | Começar: STATIK guiado | 8 | 2 | 5 | 15 | 2,5 | **6** | ~0 € |
-| 8 | Sinais «Esta quinzena» (3 regras determinísticas) | 8 | 3 | 8 | 19 | 1,5 | **12,7** | 0 € |
-| 9 | Experiências com antes e depois | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (guarda poucos KB por equipa) |
-| 10 | Modo reunião | 5 | 2 | 3 | 10 | 0,5 | **20** | 0 € |
-| 11 | Resumo do mês para a gestão | 5 | 2 | 3 | 10 | 1 | **10** | 0 € |
-| 12 | Publicar no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
+| 5 | **O que os seus dados dizem** (4 padrões, primeira versão) | 13 | 5 | 8 | 26 | 2,5 | **10,4** | 0 € |
+| 6 | Onde estamos: autoavaliação da equipa e confirmação pelos dados | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (respostas por equipa, poucos KB) |
+| 7 | Como ler: os outros padrões (versão 1.1 do item 5) | 8 | 2 | 5 | 15 | 2 | **7,5** | 0 € |
+| 8 | Começar: STATIK guiado | 8 | 2 | 5 | 15 | 2,5 | **6** | ~0 € |
+| 9 | Sinais «Esta quinzena» (3 regras determinísticas) | 8 | 3 | 8 | 19 | 1,5 | **12,7** | 0 € |
+| 10 | Experiências com antes e depois | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (guarda poucos KB por equipa) |
+| 11 | Modo reunião | 5 | 2 | 3 | 10 | 0,5 | **20** | 0 € |
+| 12 | Resumo do mês para a gestão | 5 | 2 | 3 | 10 | 1 | **10** | 0 € |
+| 13 | Publicar no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
 | ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
-**A ordem segue as dependências, não só o CD3.** Os itens 5 a 12 só começam se as entrevistas (2) confirmarem a direção. Primeiro vem a entrada da jornada: o «Como ler» (6) e o «Onde estamos» (5), que é o que distingue o produto. Depois vem o ciclo de melhoria (8 a 11). O modo reunião (10) tem o CD3 mais alto do ciclo, mas só tem conteúdo com os sinais (8) e as experiências (9).
+**A ordem segue as dependências e a decisão de 15/11/2026, não só o CD3.** O próximo item a construir é o 5, depois das publicações do item 2. Os itens 6 e 8 a 12 (a jornada) ficam como serviço do Artur até haver procura; o 7 é a versão 1.1 do 5; o 13 é a publicação. O modo reunião (11) tem o CD3 mais alto da jornada, mas só tem conteúdo com os sinais (9) e as experiências (10).
 
 ### 0. Verificar o uso comercial do KMM e do STATIK
 
@@ -93,6 +109,7 @@ Ver o `README.md`.
   - «diz-me o que fazer» também já existe (o painel de melhoria do processo do Nave).
 - **Porquê agora:** define o texto da listagem, o preço (item 1) e o que vem a seguir. Publicar sem isto é publicar mais uma app de gráficos.
 - **O que fazer:**
+  0. **Primeiro, as publicações (15/11/2026):** publicar as 3 de `marketing/linkedin-padroes.md`, com uma semana de intervalo, e oferecer a maqueta e 30 minutos de conversa a quem pedir. **Critério:** 5 ou mais pedidos para ver isto nos dados da própria equipa, somando as 3 publicações, levam à construção do item 5. Menos de 2 pedidos: repensar antes de construir.
   0. **Maqueta (14/11/2026):** mostrar `maquete/index.html` (Esta quinzena, Experiências, Modo reunião, Resumo do mês) e perguntar pela última reunião de melhoria que fizeram: o que decidiram e se souberam se resultou.
   1. Mostrar o ecrã atual a 5 pessoas que gerem equipas Kanban em Jira e perguntar o que fariam com ele amanhã, o que usam hoje e quanto pagariam. Incluir pessoas de empresas com regras de dados apertadas e perguntar se já foram impedidas de usar o Nave ou outra app parecida por causa dos dados ou da IA.
   2. Experimentar a versão atual do ActionableAgile, do Nave e do WIP Aging da Broken Build no site de teste, para confirmar o que ainda é verdade nas queixas.
@@ -123,7 +140,25 @@ Ver o `README.md`.
 - **Risco:** as traduções feitas pelo Claude precisam de revisão por quem fala a língua, sobretudo a ajuda com conceitos Kanban. Um texto estranho reduz a confiança.
 - **Custo no Forge:** 0 €. O texto vai no código do ecrã.
 
-### 5. Onde estamos: autoavaliação da equipa e confirmação pelos dados
+### 5. O que os seus dados dizem (próximo a construir)
+
+- **Hipótese:** as equipas têm os gráficos mas não tiram conclusões. Uma leitura escrita do seu próprio quadro, com o que fazer, é suficiente para instalarem e voltarem.
+- **O que fazer:** um ecrã com no máximo 4 conclusões, cada uma com o gráfico pequeno, o padrão, o que costuma significar, o que fazer, quando não confiar e uma ligação para aprender a ler o padrão (conteúdo do Artur). Primeira versão, só com dados que a app já carrega:
+  1. entra mais trabalho do que sai;
+  2. cauda longa no tempo de entrega, com a coluna onde os mais lentos esperaram;
+  3. tickets acima do tempo habitual;
+  4. bloqueios que duram demais.
+
+  As duas corcovas e o WIP fora dos limites ficam para a versão 1.1.
+- **O ecrã atual** passa para um separador «Detalhe».
+- **Especificação:** `docs/specs/2026-11-15-o-que-os-seus-dados-dizem.md`.
+- **Custo no Forge:** 0 €. Acrescenta o campo Flagged ao pedido de histórico que já existe e não guarda nada.
+- **Depende de:** 2 (as publicações). O item 4 (língua) pode ir junto.
+- **Sinal de que acertámos:**
+  - quem testa diz por palavras suas o que vai fazer a seguir;
+  - depois de publicado, a mesma equipa abre a página em 2 semanas diferentes.
+
+### 6. Onde estamos: autoavaliação da equipa e confirmação pelos dados
 
 - **Hipótese:** a equipa aceita o próximo passo quando vê, lado a lado, o que respondeu e o que os dados mostram.
 - **O que fazer:**
@@ -140,7 +175,10 @@ Ver o `README.md`.
 - **Depende de:** 0 e 2.
 - **Sinal de que acertámos:** nas entrevistas, um coach diz que usaria isto em vez da sua folha de cálculo.
 
-### 6. Como ler: padrões dos gráficos explicados
+### 7. Como ler: os outros padrões (versão 1.1 do item 5)
+
+- **Desde 15/11/2026:** os primeiros 4 padrões passaram para o item 5. Ficam aqui as duas corcovas, o WIP fora dos limites, os bloqueios agrupados e o envelhecimento do backlog.
+- **Texto original do item, para referência:**
 
 - **Hipótese:** as equipas não agem porque não sabem ler os padrões. Explicar o padrão no gráfico da própria equipa muda isso.
 - **O que fazer:** detetar e explicar cada padrão nos gráficos da equipa, sempre com: o que o gráfico mostra, o padrão, o que costuma significar, o que fazer e quando não se aplica. Primeiros padrões:
@@ -153,14 +191,14 @@ Ver o `README.md`.
 - **Depende de:** 2 e 3 (testar a deteção com dados reais).
 - **Sinal de que acertámos:** nas entrevistas, as pessoas explicam o padrão por palavras suas depois de o ver uma vez.
 
-### 7. Começar: STATIK guiado
+### 8. Começar: STATIK guiado
 
 - **Hipótese:** as equipas não sabem por onde começar, e um guia passo a passo com resultado numa página resolve o primeiro dia.
 - **O que fazer:** perguntas guiadas sobre o propósito, as fontes de insatisfação, os tipos de procura e o fluxo atual. O resultado é uma proposta de quadro e de políticas.
 - **Atenção:** o STATIK é um workshop facilitado. A app guia e regista, não substitui o facilitador. O comprador é o coach ou o CoE.
 - **Depende de:** 0 e 2.
 
-### 8. Sinais «Esta quinzena»
+### 9. Sinais «Esta quinzena»
 
 - **Hipótese:** a equipa percebe e aceita o próximo passo quando vê, numa só frase, o que mudou, o porquê e a fonte.
 - **O que fazer:** no máximo 3 sinais por quinzena, por ordem de impacto, cada um com: o que vemos, porquê, o que experimentar, como saber se resultou, a fonte e a lista de tickets por trás. Primeiras regras candidatas:
@@ -174,7 +212,7 @@ Ver o `README.md`.
 - **Depende de:** 2. As regras finais saem das entrevistas.
 - **Sinal de que acertámos:** nas entrevistas, as pessoas reconhecem os sinais e dizem o que fariam a seguir.
 
-### 9. Experiências com antes e depois
+### 10. Experiências com antes e depois
 
 - **Hipótese:** é isto que o FRIDAY tem e os outros não: a equipa sabe se a mudança resultou, sem fazer contas.
 - **O que fazer:**
@@ -182,27 +220,27 @@ Ver o `README.md`.
   - comparar o período antes e depois a partir do histórico do Jira;
   - com menos de 10 concluídos, dizer «ainda não dá para saber».
 - **Custo no Forge:** guarda as experiências por quadro, com poucos KB por equipa, dentro da franquia gratuita. Atualizar a política de privacidade.
-- **Depende de:** 8.
+- **Depende de:** 9.
 - **Risco:** comparar antes e depois não prova a causa, porque outras coisas mudam ao mesmo tempo. A app tem de o dizer, e não pode prometer mais do que isso.
 - **Sinal de que acertámos:** uma equipa faz a segunda experiência.
 
-### 10. Modo reunião
+### 11. Modo reunião
 
 - **O que fazer:** ecrã inteiro para projetar, com 3 passos (a experiência anterior resultou? os sinais; a próxima experiência) e um temporizador de 30 minutos.
 - **Base:** a Service Delivery Review do Método Kanban (Anderson e Carmichael, 2016).
-- **Depende de:** 8 e 9.
+- **Depende de:** 9 e 10.
 - **Sinal de que acertámos:** a terceira reunião feita na app. É o indicador de quem fica.
 
-### 11. Resumo do mês para a gestão
+### 12. Resumo do mês para a gestão
 
 - **O que fazer:** texto pronto a copiar com as entregas, o tempo habitual, as experiências e o resultado de cada uma, os riscos e o próximo passo.
 - **Responde a:** à dor de PM do Artur («mostrar a saúde do projeto, riscos e tendências»).
-- **Depende de:** 9.
+- **Depende de:** 10.
 
-### 12. Publicar no Marketplace
+### 13. Publicar no Marketplace
 
 - **Hipótese:** coaches e líderes de equipas Kanban procuram uma forma de saber se a melhoria resultou.
-- **Depende de:** 0 a 4, 5 e 6, e pelo menos um passo do ciclo de melhoria (8 a 10).
+- **Depende de:** 0 a 5. A jornada (6 a 12) não é necessária para publicar.
 - **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production e submissão (ver `marketplace/PREPARACAO.md`). A listagem tem de ser reescrita para o produto novo.
 - **Para aprender com quem instala:**
   - escrever ao contacto técnico de cada nova experiência;
