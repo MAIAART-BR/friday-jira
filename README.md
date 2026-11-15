@@ -1,6 +1,6 @@
 # FRIDAY para Jira
 
-A reunião de melhoria das equipas Kanban no **Jira Cloud**, para vender no Atlassian Marketplace.
+A jornada Kanban da equipa no **Jira Cloud**, para vender no Atlassian Marketplace.
 Versão para Jira do [FRIDAY](https://github.com/MAIAART-BR/FRIDAY), que lê BusinessMap e Trello.
 
 © Artur Castro. Todos os direitos reservados.
@@ -9,17 +9,25 @@ Prioridades e decisões: [`BACKLOG.md`](BACKLOG.md). Nada é implementado sem es
 
 ## O produto
 
-**O FRIDAY é a ferramenta da reunião de melhoria das equipas Kanban no Jira.** A cada 2 semanas, a equipa vê no máximo 3 sinais sobre o seu fluxo, cada um com o porquê e a fonte. Escolhe uma experiência, e a app compara sozinha o antes e o depois, a partir do histórico do Jira. Uma vez por mês, gera um resumo para a gestão.
+**O FRIDAY é a jornada Kanban da equipa dentro do Jira.** Mostra onde a equipa está, ensina a ler os seus próprios gráficos e diz por onde começar. Depois ajuda a melhorar, com experiências cujo resultado a app mede sozinha. Funciona desde o primeiro dia, com poucas métricas ou nenhuma.
 
-- **Para quem:** coaches, líderes e Scrum Masters de equipas Kanban de 5 a 30 pessoas.
-- **Porque é diferente:** as ferramentas de métricas (Nave, ActionableAgile, Broken Build) servem analistas e especialistas, e as ferramentas de retrospetiva (TeamRhythm, SprintRetro) são feitas para o sprint e não medem se a ação resultou. Ver [`marketplace/CONCORRENCIA.md`](marketplace/CONCORRENCIA.md).
-- **Regras, não IA:** os mesmos dados dão o mesmo resultado, e cada sinal explica-se.
-- **Um só produto:** grátis até 10 utilizadores, pago acima disso. A ideia de vender módulos separados foi abandonada a 14/11/2026 (ver o backlog).
+O método da jornada é de Artur Castro: as metáforas por passo, a autoavaliação, a confirmação das respostas pelos dados e a tabela de leitura das métricas.
+
+| Passo | O que faz | Precisa de métricas? |
+|---|---|---|
+| 1. Começar | STATIK guiado: propósito, insatisfações, procura e fluxo. Termina com uma proposta de quadro e de políticas. | Não |
+| 2. Onde estamos | Autoavaliação de toda a equipa, com a metáfora do passo. Assinala respostas apressadas e grandes divergências na equipa. | Não |
+| 3. Como ler | Cada resposta confrontada com os dados, e os padrões dos gráficos explicados: duas corcovas, cauda longa, fora dos limites, bloqueios agrupados. | Sim, quando houver |
+| 4. Próximos passos e experiências | 2 ou 3 práticas do passo seguinte, com o porquê. Experiências com antes e depois, reunião quinzenal e resumo mensal. | Sim, para medir |
+
+- **Para quem:** coaches, equipas de transformação (CoE) e líderes de equipas Kanban.
+- **Porque é diferente:** as ferramentas de métricas (Nave, ActionableAgile, Broken Build) pressupõem que se sabe ler gráficos e que há histórico. As de retrospetiva (TeamRhythm, SprintRetro) são feitas para o sprint e não medem se a ação resultou. Não encontrei no Marketplace nenhuma app de jornada ou maturidade Kanban. Ver [`marketplace/CONCORRENCIA.md`](marketplace/CONCORRENCIA.md).
+- **Regras, não IA:** os mesmos dados dão o mesmo resultado, e cada conclusão explica-se.
+- **Um só produto:** grátis até 10 utilizadores, pago acima disso.
 - **Estado:**
-  - a direção está **por validar com entrevistas**, com a maqueta em [`maquete/index.html`](maquete/index.html) (dados fictícios);
-  - o que existe hoje no Jira é o painel de fluxo (FRIDAY Flow), que passa a ser a base dos sinais e o separador «Detalhe».
-
-O FRIDAY Quest (o jogo) fica de fora.
+  - direção **por validar com entrevistas**, com a maqueta em [`maquete/index.html`](maquete/index.html) (dados fictícios);
+  - o que existe hoje no Jira é o painel de fluxo (FRIDAY Flow), que passa a ser a base dos passos 3 e 4.
+- **Por verificar antes de vender:** o catálogo de práticas e os níveis do KMM e o STATIK são da Kanban University. Reescrever com palavras próprias ou licenciar.
 
 ## Estrutura
 

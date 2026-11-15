@@ -99,6 +99,19 @@ input, textarea, select.field {
 .report { white-space: pre-wrap; font-size: 14px; background: var(--surface); border-radius: var(--radius); padding: 16px; margin: 0; font-family: var(--font); }
 svg text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
 .chart-wrap { overflow-x: auto; }
+.journey { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.journey span { font-size: 12px; text-align: center; padding: 6px 2px; border-radius: 6px; background: var(--surface); color: var(--muted); overflow-wrap: anywhere; }
+.journey span.on { background: var(--accent); color: var(--bg); font-weight: 600; }
+.dims { display: flex; flex-direction: column; gap: 10px; }
+.dim, .dim-head { display: grid; grid-template-columns: 11em 10em 1fr; gap: 12px; align-items: center; }
+.dim-head { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.dim > span { min-width: 0; }
+.dim > span:nth-child(2) { display: flex; align-items: center; gap: 8px; }
+.score { position: relative; flex: 1; height: 10px; border-radius: 5px; background: var(--surface); border: 1px solid var(--line); }
+.score .range { position: absolute; top: 2px; bottom: 2px; border-radius: 3px; background: var(--line); }
+.score .dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--accent); }
+@media (max-width: 640px) { .dim, .dim-head { grid-template-columns: 1fr; gap: 4px; } .dim-head { display: none; } .dim { padding-bottom: 8px; border-bottom: 1px solid var(--line); } }
+button.pat.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
 @media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
 </style>
@@ -109,7 +122,7 @@ footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line)
   <header>
     <div>
       <h1>FRIDAY</h1>
-      <div class="sub">Melhoria contínua do fluxo, dentro do Jira</div>
+      <div class="sub">A jornada Kanban da equipe, dentro do Jira</div>
     </div>
     <div class="board">
       <label for="quadro" style="flex-direction:row;align-items:center;gap:8px">Quadro
@@ -119,14 +132,91 @@ footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line)
   </header>
 
   <nav aria-label="Seções">
+    <a href="#jornada">Onde estamos</a>
+    <a href="#ler">Como ler</a>
     <a href="#quinzena">Esta quinzena</a>
     <a href="#experiencias">Experiências</a>
     <a href="#reuniao">Modo reunião</a>
     <a href="#resumo">Resumo do mês</a>
   </nav>
 
+  <!-- ONDE ESTAMOS -->
+  <section id="v-jornada" class="stack">
+    <article class="card">
+      <div class="row">
+        <div>
+          <div class="sub">Passo 2 de 6 da jornada</div>
+          <h2>Aprendendo a andar de skate</h2>
+        </div>
+        <span class="pill info">Autoavaliação de outubro · 6 de 7 pessoas</span>
+      </div>
+      <p style="margin:0">Vocês já têm um skate, mas ainda estão se equilibrando: anda um pouco, cai, levanta e tenta de novo. O trabalho começa a ter um fluxo, mas ainda é instável e difícil de prever.</p>
+      <div class="journey" aria-label="Os 6 passos da jornada">
+        <span>Náufrago</span><span class="on">Skate</span><span>Carta de motorista</span><span>Piloto</span><span>Astronauta</span><span>Mestre</span>
+      </div>
+      <p class="sub" style="margin:0"><b>O que pode ajudar:</b> colocar o capacete (combinar políticas básicas) e aprender a frear (limitar o trabalho em curso).</p>
+    </article>
+
+    <article class="card">
+      <div class="row"><h2>O que a equipe respondeu e o que os dados mostram</h2><span class="sub">1 = nunca fazemos · 4 = fazemos sempre</span></div>
+      <div class="dims" role="table" aria-label="Respostas por dimensão e confirmação pelos dados">
+        <div class="dim-head" role="row"><span role="columnheader">Dimensão</span><span role="columnheader">Equipe</span><span role="columnheader">Os dados</span></div>
+        <div class="dim" role="row">
+          <span role="cell">Visibilidade</span>
+          <span role="cell"><span class="score"><span class="range" style="left:50%;width:50%"></span><span class="dot" style="left:75%"></span></span><span class="num">3,4</span></span>
+          <span role="cell"><span class="pill ok">Confirma</span> 96% dos itens têm responsável e tipo.</span>
+        </div>
+        <div class="dim" role="row">
+          <span role="cell">Limite do trabalho em curso</span>
+          <span role="cell"><span class="score"><span class="range" style="left:0%;width:100%"></span><span class="dot" style="left:60%"></span></span><span class="num">2,8</span></span>
+          <span role="cell"><span class="pill bad">Não confirma</span> O trabalho em curso variou entre 8 e 19 itens. Não há limite estável.</span>
+        </div>
+        <div class="dim" role="row">
+          <span role="cell">Bloqueios</span>
+          <span role="cell"><span class="score"><span class="range" style="left:33%;width:67%"></span><span class="dot" style="left:70%"></span></span><span class="num">3,1</span></span>
+          <span role="cell"><span class="pill ok">Confirma</span> 9 em 10 bloqueios têm o motivo registrado.</span>
+        </div>
+        <div class="dim" role="row">
+          <span role="cell">Uso das métricas</span>
+          <span role="cell"><span class="score"><span class="range" style="left:0%;width:67%"></span><span class="dot" style="left:30%"></span></span><span class="num">1,9</span></span>
+          <span role="cell"><span class="pill warn">Sem dados</span> Não dá para confirmar pelo Jira. Vale conversar.</span>
+        </div>
+      </div>
+      <div class="sub">A barra cinza mostra da menor à maior resposta; o ponto é a média. Na dimensão «Limite do trabalho em curso», as respostas vão de 1 a 4: a equipe não tem a mesma visão.</div>
+      <div class="card quiet" style="gap:4px">
+        <h3>2 respostas não entraram na conta</h3>
+        <span class="sub">Foram preenchidas em menos de 30 segundos, para 38 perguntas. A FRIDAY pede a essas pessoas que respondam de novo.</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>Próximos passos para sair do skate</h2>
+      <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+        <li><b>Combinar um limite para o trabalho em curso da equipe.</b> Por quê: é a dimensão em que vocês mais discordam e que os dados não confirmam. Sem limite, cada item espera mais pela sua vez.</li>
+        <li><b>Escrever o que quer dizer «pronto» em cada coluna.</b> Por quê: hoje cada pessoa decide quando passar o item adiante, e isso explica parte da variação.</li>
+        <li><b>Fazer uma reunião curta de reabastecimento por semana.</b> Por quê: decidir juntos o que entra evita que tudo chegue como urgente.</li>
+      </ol>
+      <div class="actions"><button type="button" class="primary" data-go="reuniao">Transformar o passo 1 em experiência</button><button type="button" data-go="ler">Entender os gráficos da equipe</button></div>
+    </article>
+  </section>
+
+  <!-- COMO LER -->
+  <section id="v-ler" class="stack" hidden>
+    <p class="lead">Os gráficos da equipe mostram 3 padrões. Escolha um para ver como ler.</p>
+    <div class="actions" role="tablist" aria-label="Padrões">
+      <button type="button" class="pat on" data-pat="duas" role="tab" aria-selected="true">Duas corcovas</button>
+      <button type="button" class="pat" data-pat="cauda" role="tab" aria-selected="false">Cauda longa</button>
+      <button type="button" class="pat" data-pat="limites" role="tab" aria-selected="false">Fora dos limites</button>
+    </div>
+    <article class="card">
+      <div class="row"><h2 id="pat-title"></h2><span class="sub" id="pat-chart-name"></span></div>
+      <div class="chart-wrap"><svg viewBox="0 0 560 190" width="100%" role="img" id="pat-svg"></svg></div>
+      <dl class="why" id="pat-text"></dl>
+    </article>
+  </section>
+
   <!-- ESTA QUINZENA -->
-  <section id="v-quinzena" class="stack">
+  <section id="v-quinzena" class="stack" hidden>
     <p class="lead">2 sinais pedem atenção. A experiência em curso termina em 3 dias.</p>
 
     <article class="card">
@@ -288,15 +378,15 @@ Próximo passo
     </article>
   </section>
 
-  <footer>FRIDAY · maquete v0.1 · As fontes citadas: Little, J. D. C. (1961), Operations Research 9(3); Little (2011), Operations Research 59(3); Reinertsen, D. (2009), The Principles of Product Development Flow; Vacanti e Coleman (2025), The Kanban Guide.</footer>
+  <footer>FRIDAY · maquete v0.2 · Método da jornada: Artur Castro. As fontes citadas: Little, J. D. C. (1961), Operations Research 9(3); Little (2011), Operations Research 59(3); Reinertsen, D. (2009), The Principles of Product Development Flow; Vacanti e Coleman (2025), The Kanban Guide.</footer>
 </div>
 
 <script>
 (function () {
-  var views = ["quinzena", "experiencias", "reuniao", "resumo"];
+  var views = ["jornada", "ler", "quinzena", "experiencias", "reuniao", "resumo"];
   function show() {
     var v = (location.hash || "").replace("#", "");
-    if (views.indexOf(v) < 0) v = "quinzena";
+    if (views.indexOf(v) < 0) v = "jornada";
     views.forEach(function (name) {
       document.getElementById("v-" + name).hidden = name !== v;
       var a = document.querySelector('nav a[href="#' + name + '"]');
@@ -355,6 +445,112 @@ Próximo passo
   el("text", { x: x(vals.length - 1) - 6, y: y(vals[vals.length - 1]) - 8, "text-anchor": "end" }, "9 dias");
   el("text", { x: x(0), y: H - 6, "text-anchor": "start" }, "há 12 semanas");
   el("text", { x: x(vals.length - 1), y: H - 6, "text-anchor": "end" }, "esta semana");
+
+  // Como ler: 3 padrões, cada um com o seu gráfico desenhado numa só escala.
+  var P = {
+    duas: {
+      title: "Duas corcovas no tempo de entrega", chart: "Histograma · dias até ficar pronto · 120 itens",
+      kind: "hist", bins: [6, 14, 18, 11, 5, 2, 1, 1, 3, 7, 10, 8, 4, 2], binDays: 3, mark: null,
+      text: [
+        ["O que o gráfico mostra", "Quantos itens ficaram prontos em 0–3 dias, 3–6 dias e assim por diante."],
+        ["O padrão", "Duas montanhas separadas: uma perto de 5 dias e outra perto de 32."],
+        ["O que costuma significar", "Há dois tipos de trabalho misturados na mesma raia, que se comportam de formas diferentes. Uma só previsão («85% em até 30 dias») não serve bem a nenhum dos dois."],
+        ["O que fazer", "Separar a raia em duas, por exemplo pedidos pequenos e projetos, e acompanhar o tempo de cada uma."],
+        ["Quando não se aplica", "Com menos de 30 itens, as montanhas podem ser acaso. Confirme nos próximos meses."]
+      ]
+    },
+    cauda: {
+      title: "Cauda longa no tempo de entrega", chart: "Histograma · dias até ficar pronto · 120 itens",
+      kind: "hist", bins: [22, 30, 21, 13, 9, 6, 5, 4, 3, 2, 2, 1, 1, 1], binDays: 5, mark: 8,
+      text: [
+        ["O que o gráfico mostra", "Quantos itens ficaram prontos em 0–5 dias, 5–10 dias e assim por diante. A linha marca 85% dos itens."],
+        ["O padrão", "A maioria fica pronta em poucos dias, mas alguns itens se arrastam por semanas e esticam o gráfico para a direita."],
+        ["O que costuma significar", "Os itens da cauda quase sempre ficaram esperando por algo: um bloqueio, outra equipe, uma decisão. O problema raramente é a execução."],
+        ["O que fazer", "Abrir os 5 itens mais demorados e perguntar onde esperaram. Agir sobre a espera mais comum."],
+        ["Quando não se aplica", "Uma cauda pequena é normal em trabalho de conhecimento. Preocupe-se quando ela cresce de um mês para o outro."]
+      ]
+    },
+    limites: {
+      title: "Trabalho em curso fora dos limites", chart: "Itens em curso por semana · 12 semanas",
+      kind: "run", vals: [11, 12, 10, 13, 12, 11, 14, 13, 12, 15, 17, 21], mean: 12.5, ucl: 18, lcl: 7,
+      text: [
+        ["O que o gráfico mostra", "Quantos itens estavam em curso em cada semana. As linhas tracejadas mostram a variação normal da equipe, calculada a partir do seu próprio histórico."],
+        ["O padrão", "Na última semana, o trabalho em curso passou do limite de cima: 21 itens, quando o normal vai de 7 a 18."],
+        ["O que costuma significar", "Algo mudou de verdade. Não é variação do dia a dia: entrou trabalho novo, alguém saiu ou itens travaram."],
+        ["O que fazer", "Descobrir o que mudou nesta semana antes de reagir. Se foi trabalho novo, pare de começar e termine o que está aberto."],
+        ["Quando não se aplica", "Um ponto dentro dos limites, mesmo alto, não pede ação: é a variação normal."]
+      ]
+    }
+  };
+  var psvg = document.getElementById("pat-svg");
+  function pel(tag, attrs, text) {
+    var n = document.createElementNS(ns, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text) n.textContent = text;
+    psvg.appendChild(n); return n;
+  }
+  function drawPattern(key) {
+    var p = P[key];
+    document.getElementById("pat-title").textContent = p.title;
+    document.getElementById("pat-chart-name").textContent = p.chart;
+    psvg.setAttribute("aria-label", p.title);
+    var dl = document.getElementById("pat-text"); dl.innerHTML = "";
+    p.text.forEach(function (t) {
+      var dt = document.createElement("dt"); dt.textContent = t[0];
+      var dd = document.createElement("dd"); dd.textContent = t[1];
+      dl.appendChild(dt); dl.appendChild(dd);
+    });
+    while (psvg.firstChild) psvg.removeChild(psvg.firstChild);
+    var W2 = 560, H2 = 190, L2 = 34, R2 = 12, T2 = 14, B2 = 30;
+    if (p.kind === "hist") {
+      var top = Math.ceil(Math.max.apply(null, p.bins) / 10) * 10;
+      var yh = function (v) { return T2 + (1 - v / top) * (H2 - T2 - B2); };
+      var bw = (W2 - L2 - R2) / p.bins.length;
+      [0, top / 2, top].forEach(function (g) {
+        pel("line", { x1: L2, x2: W2 - R2, y1: yh(g), y2: yh(g), stroke: "var(--line)", "stroke-width": 1 });
+        pel("text", { x: L2 - 8, y: yh(g) + 4, "text-anchor": "end" }, String(g));
+      });
+      p.bins.forEach(function (c, i) {
+        pel("rect", { x: L2 + i * bw + 2, y: yh(c), width: bw - 4, height: yh(0) - yh(c), rx: 2, fill: "var(--accent)" });
+      });
+      [0, 4, 8, 12, 14].forEach(function (i) {
+        pel("text", { x: L2 + i * bw, y: H2 - 10, "text-anchor": i === 0 ? "start" : (i === 14 ? "end" : "middle") }, (i * p.binDays) + " d");
+      });
+      if (p.mark !== null) {
+        var mx = L2 + p.mark * bw;
+        pel("line", { x1: mx, x2: mx, y1: T2, y2: yh(0), stroke: "var(--bad)", "stroke-width": 1.5, "stroke-dasharray": "4 4" });
+        pel("text", { x: mx + 6, y: T2 + 10, "text-anchor": "start" }, "85% dos itens: até " + (p.mark * p.binDays) + " dias");
+      }
+    } else {
+      var topr = 25;
+      var yr = function (v) { return T2 + (1 - v / topr) * (H2 - T2 - B2); };
+      var xr = function (i) { return L2 + i * (W2 - L2 - R2) / (p.vals.length - 1); };
+      [0, 10, 20].forEach(function (g) {
+        pel("line", { x1: L2, x2: W2 - R2, y1: yr(g), y2: yr(g), stroke: "var(--line)", "stroke-width": 1 });
+        pel("text", { x: L2 - 8, y: yr(g) + 4, "text-anchor": "end" }, String(g));
+      });
+      [[p.ucl, "limite de cima: " + p.ucl], [p.lcl, "limite de baixo: " + p.lcl]].forEach(function (l) {
+        pel("line", { x1: L2, x2: W2 - R2, y1: yr(l[0]), y2: yr(l[0]), stroke: "var(--muted)", "stroke-width": 1, "stroke-dasharray": "5 4" });
+        pel("text", { x: L2 + 4, y: yr(l[0]) - 5, "text-anchor": "start" }, l[1]);
+      });
+      pel("polyline", { points: p.vals.map(function (v, i) { return xr(i) + "," + yr(v); }).join(" "), fill: "none", stroke: "var(--accent)", "stroke-width": 2 });
+      p.vals.forEach(function (v, i) {
+        var out = v > p.ucl || v < p.lcl;
+        pel("circle", { cx: xr(i), cy: yr(v), r: out ? 5 : 3, fill: out ? "var(--bad)" : "var(--accent)" });
+      });
+      pel("text", { x: xr(p.vals.length - 1) - 8, y: yr(21) + 4, "text-anchor": "end" }, "21");
+      pel("text", { x: xr(0), y: H2 - 10, "text-anchor": "start" }, "há 12 semanas");
+      pel("text", { x: xr(p.vals.length - 1), y: H2 - 10, "text-anchor": "end" }, "esta semana");
+    }
+  }
+  document.querySelectorAll("button.pat").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("button.pat").forEach(function (o) { o.classList.remove("on"); o.setAttribute("aria-selected", "false"); });
+      b.classList.add("on"); b.setAttribute("aria-selected", "true");
+      drawPattern(b.getAttribute("data-pat"));
+    });
+  });
+  drawPattern("duas");
 
   document.getElementById("copy").addEventListener("click", function () {
     var text = document.getElementById("report").textContent, ok = document.getElementById("copy-ok");

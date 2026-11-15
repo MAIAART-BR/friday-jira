@@ -2,19 +2,29 @@
 
 Nada é implementado sem estar aqui e sem decisão do Artur. A ordem sai do **CD3**: o custo do atraso (CoD) dividido pela duração.
 
-## O produto (direção de 14/11/2026, por validar)
+## O produto (direção de 15/11/2026, por validar)
 
-O FRIDAY deixa de ser um painel de métricas vendido por módulos e passa a ser **um só produto: a ferramenta da reunião de melhoria das equipas Kanban**. A cada 2 semanas a equipa vê no máximo 3 sinais, cada um com o porquê e com a fonte, escolhe uma experiência e a app mede sozinha se resultou.
+**O FRIDAY é a jornada Kanban da equipa.** Por ordem, cobre:
+1. por onde começar (STATIK guiado);
+2. onde a equipa está (autoavaliação de toda a equipa, com as metáforas do Artur);
+3. como ler os gráficos da equipa (a confirmação das respostas pelos dados e os padrões explicados);
+4. os próximos passos e experiências com antes e depois.
 
-- **Porquê:**
-  - o painel de métricas é o terreno do Nave, do ActionableAgile e da Broken Build;
-  - as reuniões de melhoria dentro do Jira vendem (Easy Agile TeamRhythm: 3 317 instalações; SprintRetro: 972 e 547), mas estão feitas para o sprint do Scrum;
-  - ninguém mede se a ação decidida na retrospetiva resultou: o TeamRhythm só acompanha se a ação foi feita.
+Ver o `README.md`.
 
-  Ver `marketplace/CONCORRENCIA.md`, terceira leitura.
-- **Para quem:** coach, líder ou Scrum Master de uma equipa Kanban de 5 a 30 pessoas, sem analista de fluxo.
-- **O que não é:** um quadro de retrospetiva (já há muitos), um painel de investigação para analistas (Nave) nem gráficos para especialistas (ActionableAgile).
-- **Maqueta para as entrevistas:** `maquete/index.html` (dados fictícios).
+- **Porquê esta direção (15/11/2026):**
+  - o Artur acredita que as equipas não percebem o que fazer porque não sabem ler os padrões dos gráficos;
+  - na autoavaliação real que fez, a dimensão «Análise de Métricas» ficou quase toda em 2 («às vezes fazemos»). É um sinal, de uma só organização;
+  - o método é do Artur e já foi aplicado com equipas;
+  - funciona sem histórico, ao contrário do Nave, do ActionableAgile e do TeamRhythm;
+  - não encontrei no Marketplace nenhuma app de jornada ou maturidade Kanban.
+- **Direção anterior (14/11/2026):** a reunião de melhoria com experiências. Mantém-se, como passo 4.
+- **Lições do método aplicado, para o produto:**
+  - **respostas apressadas:** 4 de 7 respostas foram preenchidas em 7 a 16 segundos para cerca de 38 perguntas. A app tem de as detetar;
+  - **uma só voz por equipa:** houve 1 respondente por equipa, e uma pessoa respondeu por 3. A app pede a resposta de toda a equipa e mostra a divergência;
+  - **pontuação sem validação:** somar escalas de 8 dimensões numa percentagem não está validado. Os critérios de cada passo têm de ser explícitos;
+  - **os dados validam a autoavaliação:** a confirmação pelos dados é o que dá validade ao método.
+- **Maqueta:** `maquete/index.html` (dados fictícios, sem nada da CTT).
 
 ## Como se avalia
 
@@ -36,18 +46,31 @@ O FRIDAY deixa de ser um painel de métricas vendido por módulos e passa a ser 
 
 | # | Item | V | U | R | CoD | D (sem.) | CD3 | Forge |
 |---|---|---|---|---|---|---|---|---|
+| 0 | Verificar o uso comercial do KMM e do STATIK com a Kanban University | 2 | 8 | 8 | 18 | 0,2 | **90** | 0 € |
 | 1 | Decidir: gratuito ou pago | 3 | 8 | 5 | 16 | 0,2 | **80** | 0 € |
 | 2 | Validar o posicionamento com potenciais clientes (com a maqueta) | 5 | 8 | 13 | 26 | 0,5 | **52** | 0 € |
 | 3 | Testar com dados reais | 3 | 8 | 13 | 24 | 0,5 | **48** | 0 € |
 | 4 | A app na língua do Jira de cada pessoa | 3 | 3 | 2 | 8 | 0,5 | **16** | 0 € |
-| 5 | Sinais «Esta quinzena» (3 regras determinísticas) | 8 | 3 | 8 | 19 | 1,5 | **12,7** | 0 € |
-| 6 | Experiências com antes e depois | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (guarda poucos KB por equipa) |
-| 7 | Modo reunião | 5 | 2 | 3 | 10 | 0,5 | **20** | 0 € |
-| 8 | Resumo do mês para a gestão | 5 | 2 | 3 | 10 | 1 | **10** | 0 € |
-| 9 | Publicar no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
+| 5 | Onde estamos: autoavaliação da equipa e confirmação pelos dados | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (respostas por equipa, poucos KB) |
+| 6 | Como ler: padrões dos gráficos explicados | 13 | 3 | 8 | 24 | 2 | **12** | 0 € |
+| 7 | Começar: STATIK guiado | 8 | 2 | 5 | 15 | 2,5 | **6** | ~0 € |
+| 8 | Sinais «Esta quinzena» (3 regras determinísticas) | 8 | 3 | 8 | 19 | 1,5 | **12,7** | 0 € |
+| 9 | Experiências com antes e depois | 8 | 3 | 8 | 19 | 2 | **9,5** | ~0 € (guarda poucos KB por equipa) |
+| 10 | Modo reunião | 5 | 2 | 3 | 10 | 0,5 | **20** | 0 € |
+| 11 | Resumo do mês para a gestão | 5 | 2 | 3 | 10 | 1 | **10** | 0 € |
+| 12 | Publicar no Marketplace | 5 | 5 | 8 | 18 | 1,5 | **12** | 0 € |
 | ✓ | Limite de 1000 tickets esconde o trabalho em curso | 5 | 8 | 5 | 18 | 0,5 | **36** | ~0 € |
 
-**A ordem segue as dependências, não só o CD3.** O modo reunião (7) tem o CD3 mais alto do bloco, mas só tem conteúdo com os sinais (5) e as experiências (6). Os itens 5 a 9 só começam se as entrevistas (2) confirmarem a direção.
+**A ordem segue as dependências, não só o CD3.** Os itens 5 a 12 só começam se as entrevistas (2) confirmarem a direção. Primeiro vem a entrada da jornada: o «Como ler» (6) e o «Onde estamos» (5), que é o que distingue o produto. Depois vem o ciclo de melhoria (8 a 11). O modo reunião (10) tem o CD3 mais alto do ciclo, mas só tem conteúdo com os sinais (8) e as experiências (9).
+
+### 0. Verificar o uso comercial do KMM e do STATIK
+
+- **Porquê:** o catálogo de práticas e os níveis do KMM, e o STATIK, são da Kanban University. O método da jornada é do Artur, mas usa partes do KMM. Usá-las num produto pago pode exigir licença.
+- **O que fazer:**
+  1. ler as regras de uso de marca e de conteúdos da Kanban University;
+  2. se não forem claras, perguntar-lhes diretamente;
+  3. aproveitar para saber se há interesse em parceria: os coaches acreditados precisam de ferramentas.
+- **Plano B:** reescrever as práticas com palavras próprias, sem os códigos (VZ, LW…) nem os nomes dos níveis do KMM.
 
 ### 1. Decidir: gratuito ou pago
 
@@ -100,7 +123,44 @@ O FRIDAY deixa de ser um painel de métricas vendido por módulos e passa a ser 
 - **Risco:** as traduções feitas pelo Claude precisam de revisão por quem fala a língua, sobretudo a ajuda com conceitos Kanban. Um texto estranho reduz a confiança.
 - **Custo no Forge:** 0 €. O texto vai no código do ecrã.
 
-### 5. Sinais «Esta quinzena»
+### 5. Onde estamos: autoavaliação da equipa e confirmação pelos dados
+
+- **Hipótese:** a equipa aceita o próximo passo quando vê, lado a lado, o que respondeu e o que os dados mostram.
+- **O que fazer:**
+  - autoavaliação curta, respondida por toda a equipa;
+  - o passo da jornada, com a metáfora do Artur;
+  - a dispersão das respostas por dimensão;
+  - a confirmação de cada dimensão pelos dados do Jira, quando existem («dizem que limitam o WIP; o WIP variou entre 8 e 19»);
+  - as respostas apressadas (menos de 30 segundos) ficam de fora e pede-se que sejam refeitas;
+  - os 2 ou 3 próximos passos, com o porquê.
+- **Atenção:**
+  - as perguntas e os critérios de cada passo têm de ser explícitos e defensáveis;
+  - o catálogo de práticas do KMM é da Kanban University (item 0).
+- **Custo no Forge:** guarda as respostas por equipa, poucos KB. Atualizar a política de privacidade, porque guarda respostas de pessoas.
+- **Depende de:** 0 e 2.
+- **Sinal de que acertámos:** nas entrevistas, um coach diz que usaria isto em vez da sua folha de cálculo.
+
+### 6. Como ler: padrões dos gráficos explicados
+
+- **Hipótese:** as equipas não agem porque não sabem ler os padrões. Explicar o padrão no gráfico da própria equipa muda isso.
+- **O que fazer:** detetar e explicar cada padrão nos gráficos da equipa, sempre com: o que o gráfico mostra, o padrão, o que costuma significar, o que fazer e quando não se aplica. Primeiros padrões:
+  1. duas corcovas no histograma (partir a raia);
+  2. cauda longa (onde o trabalho esperou);
+  3. WIP fora dos limites naturais (algo mudou);
+  4. bloqueios agrupados (rever as políticas);
+  5. aging acima do habitual (limpar o backlog).
+- **Base:** a tabela de leitura do Artur (moda, mediana, P85, P85–P98), os limites naturais do processo (XmR) e Vacanti (2015).
+- **Depende de:** 2 e 3 (testar a deteção com dados reais).
+- **Sinal de que acertámos:** nas entrevistas, as pessoas explicam o padrão por palavras suas depois de o ver uma vez.
+
+### 7. Começar: STATIK guiado
+
+- **Hipótese:** as equipas não sabem por onde começar, e um guia passo a passo com resultado numa página resolve o primeiro dia.
+- **O que fazer:** perguntas guiadas sobre o propósito, as fontes de insatisfação, os tipos de procura e o fluxo atual. O resultado é uma proposta de quadro e de políticas.
+- **Atenção:** o STATIK é um workshop facilitado. A app guia e regista, não substitui o facilitador. O comprador é o coach ou o CoE.
+- **Depende de:** 0 e 2.
+
+### 8. Sinais «Esta quinzena»
 
 - **Hipótese:** a equipa percebe e aceita o próximo passo quando vê, numa só frase, o que mudou, o porquê e a fonte.
 - **O que fazer:** no máximo 3 sinais por quinzena, por ordem de impacto, cada um com: o que vemos, porquê, o que experimentar, como saber se resultou, a fonte e a lista de tickets por trás. Primeiras regras candidatas:
@@ -114,7 +174,7 @@ O FRIDAY deixa de ser um painel de métricas vendido por módulos e passa a ser 
 - **Depende de:** 2. As regras finais saem das entrevistas.
 - **Sinal de que acertámos:** nas entrevistas, as pessoas reconhecem os sinais e dizem o que fariam a seguir.
 
-### 6. Experiências com antes e depois
+### 9. Experiências com antes e depois
 
 - **Hipótese:** é isto que o FRIDAY tem e os outros não: a equipa sabe se a mudança resultou, sem fazer contas.
 - **O que fazer:**
@@ -122,27 +182,27 @@ O FRIDAY deixa de ser um painel de métricas vendido por módulos e passa a ser 
   - comparar o período antes e depois a partir do histórico do Jira;
   - com menos de 10 concluídos, dizer «ainda não dá para saber».
 - **Custo no Forge:** guarda as experiências por quadro, com poucos KB por equipa, dentro da franquia gratuita. Atualizar a política de privacidade.
-- **Depende de:** 5.
+- **Depende de:** 8.
 - **Risco:** comparar antes e depois não prova a causa, porque outras coisas mudam ao mesmo tempo. A app tem de o dizer, e não pode prometer mais do que isso.
 - **Sinal de que acertámos:** uma equipa faz a segunda experiência.
 
-### 7. Modo reunião
+### 10. Modo reunião
 
 - **O que fazer:** ecrã inteiro para projetar, com 3 passos (a experiência anterior resultou? os sinais; a próxima experiência) e um temporizador de 30 minutos.
 - **Base:** a Service Delivery Review do Método Kanban (Anderson e Carmichael, 2016).
-- **Depende de:** 5 e 6.
+- **Depende de:** 8 e 9.
 - **Sinal de que acertámos:** a terceira reunião feita na app. É o indicador de quem fica.
 
-### 8. Resumo do mês para a gestão
+### 11. Resumo do mês para a gestão
 
 - **O que fazer:** texto pronto a copiar com as entregas, o tempo habitual, as experiências e o resultado de cada uma, os riscos e o próximo passo.
 - **Responde a:** à dor de PM do Artur («mostrar a saúde do projeto, riscos e tendências»).
-- **Depende de:** 6.
+- **Depende de:** 9.
 
-### 9. Publicar no Marketplace
+### 12. Publicar no Marketplace
 
 - **Hipótese:** coaches e líderes de equipas Kanban procuram uma forma de saber se a melhoria resultou.
-- **Depende de:** 1 a 4 e pelo menos 5 a 7.
+- **Depende de:** 0 a 4, 5 e 6, e pelo menos um passo do ciclo de melhoria (8 a 10).
 - **O que fazer:** Developer Space, perfil de parceiro, documentos legais publicados, imagens, deploy para production e submissão (ver `marketplace/PREPARACAO.md`). A listagem tem de ser reescrita para o produto novo.
 - **Para aprender com quem instala:**
   - escrever ao contacto técnico de cada nova experiência;
