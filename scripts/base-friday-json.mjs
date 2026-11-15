@@ -10,6 +10,9 @@
 //
 // O plano é o mesmo da simulação em tempo real (scripts/base-friday-plano.mjs), deslocado para o passado.
 // O CSV não serve: só guarda a criação e a resolução, não as mudanças de coluna, e é delas que o FRIDAY lê o início.
+//
+// ATENÇÃO (15/11/2026): no site de teste do Artur a opção de importar JSON não existe. Usar o modo de demonstração
+// da app ou a base em tempo real (scripts/base-friday.mjs, projeto FRIBASE). Este gerador fica para sites que a tenham.
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
