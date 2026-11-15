@@ -5,6 +5,7 @@ import { loadProjectData, checkProjectKey, SAFETY_MAX } from './jira.js';
 import { buildFlowView, DONE_WINDOW_DAYS } from './flow.js';
 import { listBoards, readBoard, loadBoardData, buildBoardView } from './board.js';
 import { agingViews, referenceTimes, weeklyThroughput } from './core/metrics.js';
+import { flowFindings } from './core/findings.js';
 
 const resolver = new Resolver();
 
@@ -94,7 +95,7 @@ resolver.define('getFlowView', async ({ payload, context }) => {
         truncated: data.truncated,
         limit: SAFETY_MAX,
         hasFlaggedField: data.hasFlaggedField,
-        ...buildBoardView(data, { agingViews, referenceTimes, weeklyThroughput }, new Date(), DONE_WINDOW_DAYS, referenceDays),
+        ...buildBoardView(data, { agingViews, referenceTimes, weeklyThroughput, flowFindings }, new Date(), DONE_WINDOW_DAYS, referenceDays),
       };
     }
     const data = await loadProjectData(request, { projectKey, doneWindowDays: DONE_WINDOW_DAYS, referenceDays });

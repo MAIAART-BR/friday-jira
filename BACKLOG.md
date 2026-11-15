@@ -140,7 +140,7 @@ Ver o `README.md`.
 - **Risco:** as traduções feitas pelo Claude precisam de revisão por quem fala a língua, sobretudo a ajuda com conceitos Kanban. Um texto estranho reduz a confiança.
 - **Custo no Forge:** 0 €. O texto vai no código do ecrã.
 
-### 5. O que os seus dados dizem (próximo a construir)
+### 5. O que os seus dados dizem (construído a 15/11/2026, sem deploy)
 
 - **Hipótese:** as equipas têm os gráficos mas não tiram conclusões. Uma leitura escrita do seu próprio quadro, com o que fazer, é suficiente para instalarem e voltarem.
 - **O que fazer:** um ecrã com no máximo 4 conclusões, cada uma com o gráfico pequeno, o padrão, o que costuma significar, o que fazer, quando não confiar e uma ligação para aprender a ler o padrão (conteúdo do Artur). Primeira versão, só com dados que a app já carrega:
@@ -154,6 +154,7 @@ Ver o `README.md`.
 - **Especificação:** `docs/specs/2026-11-15-o-que-os-seus-dados-dizem.md`.
 - **Custo no Forge:** 0 €. Acrescenta o campo Flagged ao pedido de histórico que já existe e não guarda nada.
 - **Depende de:** 2 (as publicações). O item 4 (língua) pode ir junto.
+- **Decisão do Artur (15/11/2026):** construir já, sem esperar pelas publicações. Construído no mesmo dia (ver a especificação, secção 7). Falta o deploy, que só se faz com a autorização dele, e o teste com dados reais (item 3).
 - **Sinal de que acertámos:**
   - quem testa diz por palavras suas o que vai fazer a seguir;
   - depois de publicado, a mesma equipa abre a página em 2 semanas diferentes.

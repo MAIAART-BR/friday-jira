@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
   Box, Inline, Stack, Heading, Text, Lozenge, Link, Spinner, SectionMessage, Select, Button, ButtonGroup, Label,
   Modal, ModalTransition, ModalHeader, ModalTitle, ModalBody, ModalFooter, List, ListItem, Icon, Pressable, Tooltip,
-  DynamicTable, BarChart, StackBarChart, useProductContext, xcss,
+  DynamicTable, BarChart, StackBarChart, Tabs, TabList, Tab, TabPanel, useProductContext, xcss,
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 import { messagesFor, roundDays, daysCell } from './i18n';
@@ -16,6 +16,10 @@ const headerStyle = xcss({ paddingTop: 'space.300' });
 const iconButtonStyle = xcss({ borderRadius: 'border.radius', padding: 'space.050', backgroundColor: 'color.background.neutral.subtle' });
 // Abaixo disto, o tempo habitual é fraco: o cartão não fica vermelho (pedido dos agentes de revisão, 15/11/2026).
 const MIN_REFERENCE_ITEMS = 10;
+const findingStyle = xcss({ borderRadius: 'border.radius', borderWidth: 'border.width', borderStyle: 'solid', borderColor: 'color.border', padding: 'space.200' });
+// Ligação «Aprender a ler este padrão», por padrão. Fica vazia até haver conteúdo publicado (backlog, item 2).
+const LEARN_URLS = { inflow: null, tail: null, above: null, blocks: null };
+const ITEMS_SHOWN = 5;
 
 // Ícone ⓘ com a explicação ao passar o rato: a ajuda está onde está o número.
 // Abre por cima do ícone: por baixo, ficava tapado pela seta do rato.
@@ -172,6 +176,74 @@ function AgingTable({ rows, siteUrl, t, includeBacklog, isBoard }) {
   return <DynamicTable head={head} rows={tableRows} emptyView={t.emptyTable} />;
 }
 
+// Um cartão por conclusão: sempre o padrão nos dados, o que significa, o que fazer, quando não confiar e os tickets.
+function FindingCard({ f, t, siteUrl }) {
+  const m = t.find[f.id];
+  const d = (n) => t.days(roundDays(n));
+  const shown = f.items.slice(0, ITEMS_SHOWN);
+  let chart = null;
+  if (f.id === 'inflow') {
+    const data = f.facts.weeks.flatMap((w) => [
+      { week: t.weekLabel(w.week), kind: t.findStarted, count: w.started },
+      { week: t.weekLabel(w.week), kind: t.findFinished, count: w.finished },
+    ]);
+    chart = <BarChart data={data} xAccessor="week" yAccessor="count" colorAccessor="kind" height={200} />;
+  } else if (f.id === 'tail' && f.facts.histogram.counts.length) {
+    const w = f.facts.histogram.width;
+    const data = f.facts.histogram.counts.map((c, k) => ({ label: `${k * w}–${(k + 1) * w}`, count: c }));
+    chart = <BarChart data={data} xAccessor="label" yAccessor="count" height={200} />;
+  }
+  const itemLine = (i) => {
+    const extra = f.id === 'tail' ? `${d(i.days)}${i.waitColumn ? ` · ${i.waitColumn}` : ''}`
+      : f.id === 'blocks' ? d(i.blockedDays)
+        : `${d(i.ageDays)}${i.column ? ` · ${i.column}` : ''}`;
+    return (
+      <ListItem key={i.key}>
+        <Inline space="space.075" alignBlock="center" shouldWrap>
+          {siteUrl ? <Link href={`${siteUrl}/browse/${i.key}`} openNewTab>{i.key}</Link> : <Text>{i.key}</Text>}
+          <Text>{i.summary}</Text>
+          <Text color="color.text.subtlest">{extra}</Text>
+        </Inline>
+      </ListItem>
+    );
+  };
+  return (
+    <Box xcss={findingStyle}>
+      <Stack space="space.150">
+        <Heading size="small">{m.title(f.facts)}</Heading>
+        <Stack space="space.050"><Text weight="bold">{t.findSeen}</Text><Text>{m.seen(f.facts, d)}</Text></Stack>
+        {chart}
+        <Stack space="space.050"><Text weight="bold">{t.findMeans}</Text><Text>{m.means}</Text></Stack>
+        <Stack space="space.050"><Text weight="bold">{t.findTodo}</Text><Text>{m.todo(f.facts)}</Text></Stack>
+        {shown.length > 0 && (
+          <Stack space="space.050">
+            <Text weight="bold">{t.findItems}</Text>
+            <List type="unordered">{shown.map(itemLine)}</List>
+            {f.items.length > shown.length && <Text size="small" color="color.text.subtlest">{t.findMore(f.items.length - shown.length)}</Text>}
+          </Stack>
+        )}
+        <Text size="small" color="color.text.subtlest">{`${t.findCaveat}: ${m.caveat}`}</Text>
+        {LEARN_URLS[f.id] && <Link href={LEARN_URLS[f.id]} openNewTab>{t.find[f.id].name}</Link>}
+      </Stack>
+    </Box>
+  );
+}
+
+function Findings({ view, t, siteUrl }) {
+  const fired = view.findings.filter((f) => f.fired);
+  const fewData = view.findings.filter((f) => !f.fired && !f.enoughData && !f.unavailable).map((f) => t.find[f.id].name);
+  const blocksUnavailable = view.findings.some((f) => f.id === 'blocks' && f.unavailable);
+  return (
+    <Stack space="space.200">
+      <Heading size="medium">{t.findIntro(fired.length, view.analysed)}</Heading>
+      {fired.length === 0 && <SectionMessage appearance="success"><Text>{t.findNoneHint}</Text></SectionMessage>}
+      {fired.map((f) => <FindingCard key={f.id} f={f} t={t} siteUrl={siteUrl} />)}
+      {fewData.length > 0 && <Text size="small" color="color.text.subtlest">{t.findFewData(fewData)}</Text>}
+      {blocksUnavailable && <Text size="small" color="color.text.subtlest">{t.findBlocksUnavailable}</Text>}
+    </Stack>
+  );
+}
+
 function App() {
   const context = useProductContext();
   const t = messagesFor(context?.locale);
@@ -259,9 +331,33 @@ function App() {
   );
 }
 
-function Body({ view, t, siteUrl, includeBacklog, referenceDays }) {
+function Body(props) {
+  const { view, t, siteUrl } = props;
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
+  // Sem quadro não há colunas: as conclusões não são calculadas e fica só o detalhe, com o aviso.
+  if (view.mode !== 'board' || !view.findings) {
+    return (
+      <Stack space="space.200">
+        <SectionMessage appearance="information"><Text>{t.findNoBoard}</Text></SectionMessage>
+        <Detail {...props} />
+      </Stack>
+    );
+  }
+  return (
+    <Tabs id="friday-tabs">
+      <TabList>
+        <Tab>{t.tabFindings}</Tab>
+        <Tab>{t.tabDetail}</Tab>
+      </TabList>
+      <TabPanel><Box paddingBlock="space.200"><Findings view={view} t={t} siteUrl={siteUrl} /></Box></TabPanel>
+      <TabPanel><Box paddingBlock="space.200"><Detail {...props} /></Box></TabPanel>
+    </Tabs>
+  );
+}
+
+// O painel de antes (cartões, gráficos e tabela), agora no separador «Detalhe».
+function Detail({ view, t, siteUrl, includeBacklog, referenceDays }) {
 
   const k = view.kpis;
   const isBoard = view.mode === 'board';

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { listBoards, readBoard, loadBoardData, buildBoardView, ageBands, stripOrderBy, columnCategory, classifyColumns, startedAt, enteredAt, fetchStatusHistories } from '../src/board.js';
 import { agingViews, referenceTimes, weeklyThroughput } from '../src/core/metrics.js';
+import { flowFindings } from '../src/core/findings.js';
 const DEPS = { agingViews, referenceTimes, weeklyThroughput };
 
 const NOW = new Date('2026-11-14T00:00:00Z');
@@ -291,4 +292,40 @@ test('readBoard aplica a definição guardada', async () => {
   const b = await readBoard(request, 1, { start: 'In Progress', end: 'Done' });
   assert.deepEqual(b.columns.map((c) => c.category), ['backlog', 'backlog', 'wip', 'done']);
   assert.equal(b.workflow.start, 'In Progress');
+});
+
+test('«O que os seus dados dizem»: histórico do Flagged no mesmo pedido, tempo por coluna e os 4 padrões na vista', async () => {
+  const h = (created, from, to) => ({ created, items: [{ fieldId: 'status', from, to }] });
+  const wip = [rawIssue(1, 'indeterminate', { customfield_1: [{ value: 'Impediment' }] })];
+  const done = [rawIssue(30, 'done', { created: '2026-10-20T00:00:00.000+0000' })];
+  const histories = {
+    1001: [h('2026-11-02T00:00:00Z', '10001', '3'),
+      { created: '2026-11-08T00:00:00Z', items: [{ fieldId: 'customfield_1', from: null, fromString: null, to: '[10019]', toString: 'Impediment' }] }],
+    // Selected 02/11 → In Progress 04/11 → Done 09/11: 2 dias em Selected, 5 em In Progress.
+    1030: [h('2026-11-02T00:00:00Z', '10000', '10001'), h('2026-11-04T00:00:00Z', '10001', '3'), h('2026-11-09T00:00:00Z', '3', '10002')],
+  };
+  const bodies = [];
+  const fake = fakeJira({ wip, done, histories, counts: {} });
+  const request = async (path, init) => {
+    if (path === '/rest/api/3/changelog/bulkfetch') bodies.push(JSON.parse(init.body));
+    return fake.request(path, init);
+  };
+  const board = await readBoard(request, 1);
+  const data = await loadBoardData(request, board, { doneWindowDays: 14, referenceDays: 30 });
+  assert.deepEqual(bodies[0].fieldIds, ['status', 'customfield_1']);
+  assert.equal(data.wip[0].flaggedSince.toISOString(), '2026-11-08T00:00:00.000Z');
+  assert.deepEqual(data.done[0].timeInColumns, { 'Selected for Development': 2, 'In Progress': 5 });
+
+  const v = buildBoardView(data, { ...DEPS, flowFindings }, NOW, 14, 30);
+  assert.deepEqual(v.findings.map((f) => f.id), ['inflow', 'tail', 'above', 'blocks']);
+  const blocks = v.findings.find((f) => f.id === 'blocks');
+  assert.equal(blocks.fired, true); // bloqueado desde 08/11, há 6 dias
+  assert.equal(blocks.items[0].key, 'FRI-1');
+  assert.deepEqual(v.analysed, { done: 1, wip: 1, days: 30 });
+});
+
+test('sem flowFindings nas dependências, a vista não tem conclusões (compatível)', async () => {
+  const { request } = fakeJira({ counts: {} });
+  const v = buildBoardView(await loadBoardData(request, await readBoard(request, 1), { doneWindowDays: 14 }), DEPS, NOW, 14);
+  assert.equal(v.findings, null);
 });

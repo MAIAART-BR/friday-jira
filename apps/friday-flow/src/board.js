@@ -14,6 +14,7 @@
 // Idade = tempo desde a última entrada numa coluna do meio, lida no histórico de cada ticket
 // (The Kanban Guide: «Work Item Age: time since start for an unfinished item»).
 import { normalizeIssue } from './core/metrics.js';
+import { timeInStatuses, flaggedSince } from './core/findings.js';
 import { FIELDS, searchAll, countIssues, findFlaggedFieldId, checkProjectKey } from './jira.js';
 
 const DAY_MS = 86400000;
@@ -152,13 +153,13 @@ export function startedAt(histories, wipStatusIds, created) {
 const CHANGELOG_CONCURRENCY = 8;
 
 /** Histórico de estados de vários tickets: primeiro em lote; se o Jira recusar, ticket a ticket. Mapa id → histórico. */
-export async function fetchStatusHistories(request, issues) {
+export async function fetchStatusHistories(request, issues, extraFieldIds = []) {
   if (!issues.length) return { histories: new Map(), complete: true, partial: new Set() };
   const ids = issues.map((i) => String(i.id));
   const bulk = await request('/rest/api/3/changelog/bulkfetch', {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ issueIdsOrKeys: ids, fieldIds: ['status'], maxResults: 1000 }),
+    body: JSON.stringify({ issueIdsOrKeys: ids, fieldIds: ['status', ...extraFieldIds.filter(Boolean)], maxResults: 1000 }),
   }).catch(() => null);
   if (bulk?.ok) {
     const body = await bulk.json();
@@ -224,7 +225,8 @@ export async function loadBoardData(request, board, { doneWindowDays, referenceD
   ]);
 
   // Histórico dos em curso e dos concluídos, num só pedido: idade, início e fim reais pelas colunas do quadro.
-  const { histories, complete, partial } = await fetchStatusHistories(request, [...wip.issues, ...done.issues]);
+  // Com o campo Flagged: desde quando cada ticket está bloqueado («O que os seus dados dizem», padrão 4).
+  const { histories, complete, partial } = await fetchStatusHistories(request, [...wip.issues, ...done.issues], [flaggedFieldId]);
   const columnOfStatus = new Map(board.columns.flatMap((c) => c.statusIds.map((id) => [String(id), c.name])));
   let ageGuessed = false;
   const wipItems = wip.issues.map((raw) => {
@@ -233,12 +235,25 @@ export async function loadBoardData(request, board, { doneWindowDays, referenceD
     const started = enteredAt(h, wipIds);
     // Histórico cortado e sem a entrada em WIP: a idade cai para a criação — e a página tem de o dizer.
     if (!started && partial.has(String(raw.id))) ageGuessed = true;
-    return { ...n, categoryChanged: started || n.created, column: columnOfStatus.get(String(raw.fields?.status?.id)) ?? null };
+    return {
+      ...n,
+      categoryChanged: started || n.created,
+      column: columnOfStatus.get(String(raw.fields?.status?.id)) ?? null,
+      flaggedSince: n.flagged ? flaggedSince(h, flaggedFieldId) : null,
+    };
   });
   const doneItems = done.issues.map((raw) => {
     const n = normalize(raw);
     const h = histories.get(String(raw.id));
-    return { ...n, doneAt: enteredAt(h, doneIds) || n.doneAt, startedAt: enteredAt(h, wipIds) };
+    const doneAt = enteredAt(h, doneIds) || n.doneAt;
+    const started = enteredAt(h, wipIds);
+    // Tempo em cada coluna entre o início e o fim: onde esperaram os mais lentos (padrão 2).
+    const timeInColumns = {};
+    for (const [status, d] of Object.entries(timeInStatuses(h, started, doneAt))) {
+      const col = columnOfStatus.get(String(status));
+      if (col) timeInColumns[col] = (timeInColumns[col] || 0) + d;
+    }
+    return { ...n, doneAt, startedAt: started, timeInColumns };
   });
 
   const wipCount = (c) => wipItems.filter((i) => i.column === c.name).length;
@@ -275,7 +290,7 @@ export function ageBands(wip, wipColumns, now, ref, from) {
 }
 
 /** Vista da página a partir dos dados do quadro. */
-export function buildBoardView(data, { agingViews, referenceTimes, weeklyThroughput }, now = new Date(), doneWindowDays = 14, referenceDays = 90) {
+export function buildBoardView(data, { agingViews, referenceTimes, weeklyThroughput, flowFindings }, now = new Date(), doneWindowDays = 14, referenceDays = 90) {
   const since = new Date(now.getTime() - doneWindowDays * DAY_MS);
   const reference = referenceTimes(data.done, now, referenceDays);
   const wipColumns = data.columns.filter((c) => c.category === 'wip');
@@ -304,6 +319,11 @@ export function buildBoardView(data, { agingViews, referenceTimes, weeklyThrough
       created: ageBands(data.wip, wipColumns, now, reference.lead, from.created),
     },
     throughput: weeklyThroughput(data.done.map((i) => i.doneAt), now),
+    // «O que os seus dados dizem»: os 4 padrões, avaliados sobre os mesmos dados do resto da página.
+    findings: flowFindings
+      ? flowFindings({ wip: data.wip, done: data.done, reference: reference.cycle, hasFlaggedField: data.hasFlaggedField }, now, referenceDays)
+      : null,
+    analysed: { done: reference.cycle.n, wip: data.wip.length, days: referenceDays },
     generatedAt: now.toISOString(),
   };
 }

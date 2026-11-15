@@ -1,6 +1,6 @@
 # Especificação: «O que os seus dados dizem» (item 5 do backlog)
 
-Data: 15/11/2026. Estado: **por construir**, à espera do critério das publicações (item 2).
+Data: 15/11/2026. Estado: **construído a 15/11/2026, por decisão do Artur, sem deploy.** Falta testar com dados reais (item 3).
 
 ## 1. O que é
 
@@ -75,7 +75,7 @@ Notação: `concluídos` = os tickets concluídos no período do Histórico (30,
 | `packages/core/src/findings.js` (novo) | As 4 regras como funções puras: recebem itens normalizados e a referência e devolvem `{ id, fired, facts, items }`. Nenhum texto: os textos ficam no ecrã, na língua do utilizador. |
 | `packages/core/test/findings.test.js` (novo) | Para cada padrão: dispara, não dispara, poucos dados e casos limite (exatamente no limiar). |
 | `apps/friday-flow/src/board.js` | Acrescentar o campo Flagged ao pedido de histórico; tempo por coluna dos 5 mais lentos; `findings` na vista. |
-| `apps/friday-flow/src/flow.js` | Sem quadro: P1 e P3 com as categorias de estado. P2 sem «onde esperaram», porque não há colunas. P4 igual. |
+| `apps/friday-flow/src/flow.js` | Sem quadro, as conclusões não são calculadas: sem colunas não há início do trabalho nem histórico. O ecrã diz para escolher um quadro e mostra o detalhe. (Mudança face ao plano: menos código e nenhuma conclusão a meias.) |
 | `apps/friday-flow/src/frontend/index.jsx` | Separadores «O que os seus dados dizem» e «Detalhe» (componente `Tabs` do UI Kit), com um cartão por conclusão. |
 | `apps/friday-flow/src/frontend/i18n.js` | Textos em inglês e português (o teste exige as mesmas chaves). Se o item 4 for feito ao mesmo tempo, em pt-BR por omissão. |
 
@@ -101,3 +101,15 @@ Notação: `concluídos` = os tickets concluídos no período do Histórico (30,
 | Ecrã, separadores e textos | 1 |
 | Cenários e validação | 0,5 |
 | **Total** | **2,5** |
+
+## 7. O que foi construído (15/11/2026)
+
+- **Núcleo:** `packages/core/src/findings.js`, com as 4 regras, `timeInStatuses` e `flaggedSince`; 18 testes.
+- **Dados:** `board.js` pede o campo Flagged no mesmo pedido de histórico, guarda `flaggedSince` nos tickets em curso e `timeInColumns` nos concluídos, e devolve `findings` e `analysed` na vista. 2 testes novos.
+- **Ecrã:** separadores «O que os seus dados dizem» e «Detalhe». Cada conclusão é um cartão com o padrão nos dados, o gráfico (começados e concluídos por semana; histograma da cauda), o que significa, o que fazer, os tickets (até 5, com ligação) e quando não confiar.
+- **Textos:** em inglês e português (`find` em `i18n.js`), testados nas duas línguas.
+- **Ligação «Aprender»:** a constante `LEARN_URLS` em `index.jsx` está vazia, até haver conteúdo publicado.
+- **Por fazer antes de publicar:**
+  - cenários no site de teste, um por padrão;
+  - saída dos padrões no `validar-csv`;
+  - deploy em development, depois de o Artur autorizar.
