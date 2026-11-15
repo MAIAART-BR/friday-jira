@@ -77,3 +77,51 @@ Estou construindo uma forma de fazer essa leitura automaticamente nos dados do J
 - **«Na minha experiência»** refere-se ao trabalho de orientação de equipas do Artur. Não cite a CTT nem números da CTT sem autorização.
 - **Duas corcovas** é um padrão da versão 1.1 (item 7). Se a publicação 3 for a que gera mais pedidos, isso é um argumento para a antecipar.
 - **Fonte da publicação 2:** Little, J. D. C. (1961). A proof for the queuing formula L = λW. *Operations Research, 9*(3), 383–387. https://doi.org/10.1287/opre.9.3.383
+
+---
+
+# English versions (15/11/2026)
+
+Same measurement table and decision rule as above, recorded separately for the English posts.
+
+## Post 1: the long tail
+
+Most teams I work with have a delivery time chart. Almost nobody looks at the right-hand side of it.
+
+That's where the tail lives: the few items that took weeks when most take days. On a histogram, it shows up as a slope that fades slowly to the right.
+
+The temptation is to assume those items were hard. In my experience, that's rarely the case. When we open the 5 slowest, we find they were waiting: for another team, for a decision, for an environment, for someone back from holiday. The work itself took very little time.
+
+So the useful question isn't "why did this take so long?" but "where did these items sit still?" If the answer is the same column in 3 out of 5 cases, you've found where to start.
+
+When not to worry: every team doing knowledge work has some tail. The signal is a tail that grows from one month to the next.
+
+I'm building a way to do this reading automatically on Jira data. If you'd like to see it on your team's data, send me a message.
+
+## Post 2: more work coming in than going out
+
+If your team starts more work than it finishes, it will get slower. Not because of laziness or lack of skill. Because of arithmetic.
+
+Here's how it works. Every item that's started but not finished waits for its turn. With the same delivery capacity and more items open, each one waits longer. That's Little's Law, from 1961, and it holds for bank queues, hospitals and software alike.
+
+The chart that shows it is simple: per week, how many items were started and how many were finished. When the "started" bar sits above the "finished" bar for several weeks in a row, delivery times will rise in the weeks that follow, even if nobody changed anything.
+
+What to do: stop starting, start finishing. In practice, agree on a limit for work in progress and respect it before pulling anything new.
+
+When not to worry: one heavy week is normal, for example right after planning. The signal is a gap that holds for 3 or 4 weeks.
+
+I'm building a way to do this reading automatically on Jira data. If you'd like to see it on your team's data, send me a message.
+
+## Post 3: two humps
+
+Have you ever seen a delivery time histogram with two hills? One around 5 days and another around 30, with a valley in between?
+
+That almost always means two kinds of work are mixed in the same lane, and they behave very differently. Small requests and projects. Fixes and improvements. Things that depend only on the team and things that depend on someone else.
+
+The problem is forecasting. If you tell your customer "85% of items are done within 30 days", you're wrong for both kinds: the small ones finish much sooner, and the big ones often take longer.
+
+What to do: split the lane in two and track each one's delivery time. Each forecast becomes more honest, and the team can agree on different expectations for different kinds of work.
+
+When not to trust it: with fewer than 30 items, two hills can be chance. Confirm over the next months before changing your board.
+
+I'm building a way to do this reading automatically on Jira data. If you'd like to see it on your team's data, send me a message.
