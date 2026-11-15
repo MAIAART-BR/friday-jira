@@ -30,3 +30,5 @@ jobs:
         run: node scripts/verificar-friday.mjs
         env:
           PROJECT_KEY: FRIBASE
+      - name: Diagnóstico do histórico
+        run: node scripts/diagnostico-historico.mjs
