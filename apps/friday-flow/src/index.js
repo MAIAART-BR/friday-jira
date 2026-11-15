@@ -6,6 +6,7 @@ import { buildFlowView, DONE_WINDOW_DAYS } from './flow.js';
 import { listBoards, readBoard, loadBoardData, buildBoardView } from './board.js';
 import { agingViews, referenceTimes, weeklyThroughput } from './core/metrics.js';
 import { flowFindings, LIMITS } from './core/findings.js';
+import { buildDemoData } from './core/demo.js';
 
 const resolver = new Resolver();
 
@@ -84,6 +85,20 @@ resolver.define('getFlowView', async ({ payload, context }) => {
   const { projectKey } = g;
   const referenceDays = validReference(payload?.referenceDays);
   try {
+    // Modo de demonstração: um quadro fictício, calculado pelo mesmo código, sem ler nada do Jira.
+    if (payload?.demo) {
+      const now = new Date();
+      return {
+        mode: 'board',
+        demo: true,
+        projectKey,
+        truncated: false,
+        limit: SAFETY_MAX,
+        hasFlaggedField: true,
+        ...buildBoardView(buildDemoData(now), { agingViews, referenceTimes, weeklyThroughput, flowFindings }, now, DONE_WINDOW_DAYS, referenceDays),
+        limits: LIMITS,
+      };
+    }
     if (payload?.boardId) {
       if (payload.remember) await kvs.set(choiceKey(context, projectKey), Number(payload.boardId)).catch((e) => console.error(e));
       const override = await kvs.get(workflowKey(payload.boardId)).catch(() => undefined);

@@ -272,7 +272,7 @@ function AllGood({ view, t }) {
  * O que falta para o FRIDAY ler o quadro, e como o conseguir. Cada ponto diz o que é preciso, o que existe e como resolver.
  * Só aparece quando falta alguma coisa.
  */
-function Guide({ view, t, referenceDays, onLongerHistory, onSettings }) {
+function Guide({ view, t, referenceDays, onLongerHistory, onSettings, onDemo }) {
   const L = view.limits || {};
   const f = Object.fromEntries((view.findings || []).map((x) => [x.id, x]));
   const doneWithStart = view.reference?.cycle?.n ?? 0;
@@ -311,6 +311,7 @@ function Guide({ view, t, referenceDays, onLongerHistory, onSettings }) {
         <Stack space="space.050">
           <Heading size="small">{t.guideTitle}</Heading>
           <Text>{t.guideIntro}</Text>
+          <Inline><Button appearance="primary" onClick={() => onDemo(true)}>{t.demoEnter}</Button></Inline>
         </Stack>
         {steps.map((s) => (
           <Stack key={s.key} space="space.075">
@@ -337,10 +338,11 @@ function App() {
   const [referenceDays, setReferenceDays] = useState(90);
   const [referenceOptions, setReferenceOptions] = useState([30, 60, 90, 180]);
   const [modal, setModal] = useState(null); // 'help' | 'settings' | null
+  const [demo, setDemo] = useState(false);
 
-  const load = (boardId, remember = false, days = referenceDays) => {
+  const load = (boardId, remember = false, days = referenceDays, asDemo = demo) => {
     setView(null);
-    invoke('getFlowView', boardId ? { boardId, remember, referenceDays: days } : { referenceDays: days })
+    invoke('getFlowView', asDemo ? { demo: true, referenceDays: days } : boardId ? { boardId, remember, referenceDays: days } : { referenceDays: days })
       .then(setView)
       .catch(() => setView({ error: 'UNKNOWN' }));
   };
@@ -371,9 +373,14 @@ function App() {
     load(selectedId, false, days);
   };
   const chooseBoard = (id) => {
-    if (id === selectedId) return;
+    if (id === selectedId && !demo) return;
     setSelectedId(id);
-    load(id, true);
+    setDemo(false);
+    load(id, true, referenceDays, false);
+  };
+  const toggleDemo = (on) => {
+    setDemo(on);
+    load(selectedId, false, referenceDays, on);
   };
   const saveWorkflow = (start, end) => {
     setModal(null);
@@ -387,7 +394,7 @@ function App() {
   if (!context) return <Spinner label={t.loading} />;
   const projectKey = view?.projectKey || context.extension?.project?.key || '';
   const boardOptions = (boards || []).map((b) => ({ label: b.name, value: b.id }));
-  const workflow = view?.mode === 'board' ? view.workflow : null;
+  const workflow = view?.mode === 'board' && !view.demo ? view.workflow : null;
 
   return (
     <Stack space="space.300">
@@ -412,8 +419,8 @@ function App() {
           </Inline>
         </Inline>
       </Box>
-      <Body view={view} t={t} siteUrl={context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} referenceDays={referenceDays}
-        hasBoards={Boolean(boards && boards.length)} onLongerHistory={() => chooseReference(MAX_HISTORY)} onSettings={() => setModal('settings')} />
+      <Body view={view} t={t} siteUrl={view?.demo ? null : context.siteUrl?.replace(/\/$/, '')} includeBacklog={includeBacklog} referenceDays={referenceDays}
+        hasBoards={Boolean(boards && boards.length)} onLongerHistory={() => chooseReference(MAX_HISTORY)} onSettings={() => setModal('settings')} onDemo={toggleDemo} />
       <ModalTransition>
         {modal === 'help' && <HelpModal t={t} onClose={() => setModal(null)} />}
         {modal === 'settings' && (
@@ -426,7 +433,7 @@ function App() {
   );
 }
 
-function Body({ view, t, siteUrl, includeBacklog, referenceDays, hasBoards, onLongerHistory, onSettings }) {
+function Body({ view, t, siteUrl, includeBacklog, referenceDays, hasBoards, onLongerHistory, onSettings, onDemo }) {
   const [showAll, setShowAll] = useState(false);
   if (!view) return <Spinner label={t.loading} />;
   if (view.error) return <SectionMessage appearance="error"><Text>{t.errors[view.error] || t.errors.UNKNOWN}</Text></SectionMessage>;
@@ -450,6 +457,14 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays, hasBoards, onLo
 
   return (
     <Stack space="space.300">
+      {view.demo && (
+        <SectionMessage appearance="discovery" title={t.demoTitle}>
+          <Stack space="space.100">
+            <Text>{t.demoBanner}</Text>
+            <Inline><Button onClick={() => onDemo(false)}>{t.demoExit}</Button></Inline>
+          </Stack>
+        </SectionMessage>
+      )}
       <Stack space="space.100">
         <Heading size="medium">{headline}</Heading>
         <NumbersLine view={view} t={t} />
@@ -461,14 +476,15 @@ function Body({ view, t, siteUrl, includeBacklog, referenceDays, hasBoards, onLo
           <Stack space="space.100">
             <Heading size="small">{t.guideNoBoardTitle}</Heading>
             <Text>{hasBoards ? t.guideNoBoardChoose : t.guideNoBoardCreate}</Text>
+            <Inline><Button appearance="primary" onClick={() => onDemo(true)}>{t.demoEnter}</Button></Inline>
           </Stack>
         </Box>
       )}
 
       {fired.map((f) => <FindingCard key={f.id} f={f} t={t} siteUrl={siteUrl} view={view} />)}
 
-      {isBoard && <Guide view={view} t={t} referenceDays={referenceDays} onLongerHistory={onLongerHistory} onSettings={onSettings} />}
-      {isBoard && fired.length === 0 && lacking.length > 0 && <FindingCard f={EXAMPLE} t={t} example />}
+      {isBoard && !view.demo && <Guide view={view} t={t} referenceDays={referenceDays} onLongerHistory={onLongerHistory} onSettings={onSettings} onDemo={onDemo} />}
+      {isBoard && !view.demo && fired.length === 0 && lacking.length > 0 && <FindingCard f={EXAMPLE} t={t} example />}
       {isBoard && <AllGood view={view} t={t} />}
 
       <Stack space="space.100">

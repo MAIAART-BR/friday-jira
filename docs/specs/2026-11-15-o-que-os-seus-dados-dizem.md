@@ -133,3 +133,11 @@ Com dois separadores, o painel antigo ficava intacto e o separador novo quase va
 8. **«Ver todos os tickets em curso»:** a tabela antiga, escondida por omissão.
 
 Sem quadro, a página explica como escolher ou criar um.
+
+## 9. Modo de demonstração (15/11/2026)
+
+- **O que é:** um quadro fictício, calculado pelo mesmo código que lê os dados reais: as mesmas regras e a mesma vista. Não lê nada do Jira.
+- **Onde se ativa:** no botão «Ver o FRIDAY com dados de demonstração», no guia (quando faltam dados) e no aviso de falta de quadro.
+- **No ecrã:** um aviso «Dados de demonstração» no topo, com «Voltar ao meu quadro». Os tickets DEMO-n não têm ligação. As definições do quadro ficam escondidas.
+- **Dados:** `packages/core/src/demo.js` é o mesmo plano da base de teste no Jira (FRIBASE), simulado como se tivesse começado há 45 dias. Dispara os 4 padrões (testado).
+- **Para quê:** ver o produto inteiro sem histórico, mostrá-lo nas entrevistas e dar a quem instala a app algo para ver no primeiro minuto.

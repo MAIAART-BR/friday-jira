@@ -107,6 +107,10 @@ const en = {
   emptyTable: 'No work in progress.',
   days: (n) => (n == null ? '–' : n < 1 ? 'less than 1 day' : n === 1 ? '1 day' : `${n} days`),
   // Página única (15/11/2026).
+  demoEnter: 'See FRIDAY with demo data',
+  demoTitle: 'Demo data',
+  demoBanner: 'You are looking at a made-up board, calculated by the same rules FRIDAY uses on your data. Nothing here comes from your Jira.',
+  demoExit: 'Back to my board',
   titleShort: 'FRIDAY',
   settingsTitleAll: 'Settings',
   settingsTooltipAll: 'Settings: where work starts and ends, age and history',
@@ -319,6 +323,10 @@ const pt = {
   emptyTable: 'Não há trabalho em curso.',
   days: (n) => (n == null ? '–' : n < 1 ? 'menos de 1 dia' : n === 1 ? '1 dia' : `${n} dias`),
   // Página única (15/11/2026).
+  demoEnter: 'Ver o FRIDAY com dados de demonstração',
+  demoTitle: 'Dados de demonstração',
+  demoBanner: 'Está a ver um quadro fictício, calculado pelas mesmas regras que o FRIDAY usa nos seus dados. Nada aqui vem do seu Jira.',
+  demoExit: 'Voltar ao meu quadro',
   titleShort: 'FRIDAY',
   settingsTitleAll: 'Definições',
   settingsTooltipAll: 'Definições: onde o trabalho começa e acaba, idade e histórico',

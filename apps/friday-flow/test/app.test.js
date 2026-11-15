@@ -133,3 +133,15 @@ test('countIssues devolve null quando o Jira falha', async () => {
 test('erro na pesquisa é propagado com o código', async () => {
   await assert.rejects(searchAll(async () => response(400, { errorMessages: ['bad'] }), 'x', []), /Jira respondeu 400/);
 });
+
+test('modo de demonstração: a vista do quadro fictício traz os 4 padrões e não lê o Jira', async () => {
+  const { buildDemoData } = await import('../src/core/demo.js');
+  const { buildBoardView } = await import('../src/board.js');
+  const { agingViews, referenceTimes, weeklyThroughput } = await import('../src/core/metrics.js');
+  const { flowFindings } = await import('../src/core/findings.js');
+  const now = new Date('2026-11-18T10:00:00Z');
+  const v = buildBoardView(buildDemoData(now), { agingViews, referenceTimes, weeklyThroughput, flowFindings }, now, 14, 90);
+  assert.deepEqual(v.findings.filter((f) => f.fired).map((f) => f.id), ['inflow', 'tail', 'above', 'blocks']);
+  assert.ok(v.kpis.wip > 0 && v.kpis.blocked.total >= 2);
+  assert.ok(v.bands.start.length > 0);
+});

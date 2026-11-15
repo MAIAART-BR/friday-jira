@@ -182,3 +182,15 @@ test('desde quando está bloqueado: a última passagem de vazio a preenchido', (
   // Uma remoção (para vazio) não conta como início, mesmo com «toString» herdado.
   assert.equal(flaggedSince([{ created: '2026-11-05T10:00:00Z', items: [{ fieldId: 'customfield_10021', from: '[1]', to: null }] }], 'customfield_10021'), null);
 });
+
+test('modo de demonstração: os dados disparam os 4 padrões', async () => {
+  const { buildDemoData } = await import('../src/demo.js');
+  const { referenceTimes } = await import('../src/metrics.js');
+  const now = new Date('2026-11-18T10:00:00Z');
+  const data = buildDemoData(now);
+  const reference = referenceTimes(data.done, now, 90).cycle;
+  const r = flowFindings({ wip: data.wip, done: data.done, reference, hasFlaggedField: true }, now, 90);
+  assert.deepEqual(r.map((f) => [f.id, f.fired]), [['inflow', true], ['tail', true], ['above', true], ['blocks', true]]);
+  assert.ok(data.wip.every((i) => i.key.startsWith('DEMO-')));
+  assert.equal(r[1].facts.waitColumn, 'Selected for Development');
+});
