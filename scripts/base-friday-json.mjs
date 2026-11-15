@@ -4,8 +4,9 @@
 //   node scripts/base-friday-json.mjs <pasta> [--key FRIBASE]
 //
 // Cria dois ficheiros:
-//   base-teste.json     5 tickets, para confirmar primeiro que o Jira guarda as datas do histórico;
-//   base-completa.json  a base inteira (cerca de 6 semanas), que faz aparecer os 4 padrões logo à primeira.
+//   base-teste.json   5 tickets, para confirmar primeiro que o Jira guarda as datas do histórico;
+//   base-resto.json   o resto da base (cerca de 6 semanas), que faz aparecer os 4 padrões logo à primeira.
+// Os 4 padrões aparecem até cerca de uma semana depois de gerar os ficheiros: gere-os no dia em que vai importar.
 //
 // O plano é o mesmo da simulação em tempo real (scripts/base-friday-plano.mjs), deslocado para o passado.
 // O CSV não serve: só guarda a criação e a resolução, não as mudanças de coluna, e é delas que o FRIDAY lê o início.
@@ -88,10 +89,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const k = process.argv.indexOf('--key');
   const key = k > 0 ? process.argv[k + 1] : 'FRIBASE';
   mkdirSync(dir, { recursive: true });
-  const test = buildImport({ key, only: ['A01', 'A02', 'T1', 'G1', 'B1'] });
-  const full = buildImport({ key });
+  const TEST = ['A01', 'A02', 'T1', 'G1', 'B1'];
+  const now = Date.now();
+  const test = buildImport({ key, now, only: TEST });
+  const full = buildImport({ key, now });
+  const rest = { projects: [{ ...full.projects[0], issues: full.projects[0].issues.filter((i) => !TEST.includes(i.externalId)) }] };
   writeFileSync(join(dir, 'base-teste.json'), JSON.stringify(test, null, 2));
-  writeFileSync(join(dir, 'base-completa.json'), JSON.stringify(full, null, 2));
-  console.log(`✓ base-teste.json: ${test.projects[0].issues.length} tickets`);
-  console.log(`✓ base-completa.json: ${full.projects[0].issues.length} tickets`);
+  writeFileSync(join(dir, 'base-resto.json'), JSON.stringify(rest, null, 2));
+  console.log(`✓ base-teste.json: ${test.projects[0].issues.length} tickets (importar primeiro)`);
+  console.log(`✓ base-resto.json: ${rest.projects[0].issues.length} tickets (importar depois, se o teste correr bem)`);
 }
